@@ -1,0 +1,230 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/Library%20Teste"))()
+
+local Window = Library:CreateWindow({
+	Title = "My Hub",
+	Subtitle = "Premium"
+})
+
+local MainTab = Window:CreateTab("Main")
+local CombatTab = Window:CreateTab("Combat")
+local PlayerTab = Window:CreateTab("Player")
+local VisualTab = Window:CreateTab("Visual")
+local SettingsTab = Window:CreateTab("Settings")
+
+MainTab:CreateToggle({
+	Name = "Auto Farm",
+	Description = "Collects resources automatically",
+	Default = true,
+	Callback = function(v)
+		print("Auto Farm:", v)
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "God Mode",
+	Description = "Prevents incoming damage",
+	Default = false,
+	Callback = function(v)
+		print("God Mode:", v)
+	end
+})
+
+MainTab:CreateSlider({
+	Name = "Walk Speed",
+	Min = 0,
+	Max = 100,
+	Default = 72,
+	Callback = function(v)
+		print("Walk Speed:", v)
+	end
+})
+
+MainTab:CreateButton({
+	Name = "Teleport to Spawn",
+	Callback = function()
+		print("Teleported to Spawn")
+	end
+})
+
+MainTab:CreateDropdown({
+	Name = "Game Mode",
+	Options = {"Classic", "Hardcore", "Arena"},
+	Default = "Classic",
+	Callback = function(v)
+		print("Game Mode:", v)
+	end
+})
+
+MainTab:CreateTextbox({
+	Name = "Player Name",
+	Placeholder = "Enter username...",
+	Callback = function(v)
+		print("Player Name:", v)
+	end
+})
+
+MainTab:CreateLabel("v2.4.1 · Delta Android · No deps")
+
+MainTab:CreateParagraph({
+	Title = "About",
+	Description = "Single-file library with zero dependencies. Mobile-first drag and touch support."
+})
+
+CombatTab:CreateToggle({
+	Name = "Auto Attack",
+	Description = "Automatically attacks enemies",
+	Default = false,
+	Callback = function(v)
+		print("Auto Attack:", v)
+	end
+})
+
+CombatTab:CreateSlider({
+	Name = "Attack Speed",
+	Min = 0,
+	Max = 200,
+	Default = 100,
+	Callback = function(v)
+		print("Attack Speed:", v)
+	end
+})
+
+CombatTab:CreateDropdown({
+	Name = "Combat Style",
+	Options = {"Aggressive", "Defensive", "Balanced"},
+	Default = "Balanced",
+	Callback = function(v)
+		print("Combat Style:", v)
+	end
+})
+
+CombatTab:CreateButton({
+	Name = "🎯 Execute Combo",
+	Callback = function()
+		print("Combo Executed!")
+	end
+})
+
+PlayerTab:CreateSlider({
+	Name = "Health",
+	Min = 0,
+	Max = 1000,
+	Default = 500,
+	Callback = function(v)
+		print("Health:", v)
+	end
+})
+
+PlayerTab:CreateSlider({
+	Name = "Mana",
+	Min = 0,
+	Max = 500,
+	Default = 250,
+	Callback = function(v)
+		print("Mana:", v)
+	end
+})
+
+PlayerTab:CreateToggle({
+	Name = "Infinite Health",
+	Description = "Never lose health",
+	Default = false,
+	Callback = function(v)
+		print("Infinite Health:", v)
+	end
+})
+
+PlayerTab:CreateToggle({
+	Name = "Infinite Mana",
+	Description = "Never run out of mana",
+	Default = false,
+	Callback = function(v)
+		print("Infinite Mana:", v)
+	end
+})
+
+VisualTab:CreateToggle({
+	Name = "Neon ESP",
+	Description = "See players through walls",
+	Default = false,
+	Callback = function(v)
+		print("Neon ESP:", v)
+	end
+})
+
+VisualTab:CreateToggle({
+	Name = "Custom Skins",
+	Description = "Use custom character skins",
+	Default = false,
+	Callback = function(v)
+		print("Custom Skins:", v)
+	end
+})
+
+VisualTab:CreateSlider({
+	Name = "FOV",
+	Min = 60,
+	Max = 120,
+	Default = 70,
+	Callback = function(v)
+		print("FOV:", v)
+	end
+})
+
+VisualTab:CreateDropdown({
+	Name = "Theme",
+	Options = {"Dark", "Light", "Purple", "Neon"},
+	Default = "Dark",
+	Callback = function(v)
+		print("Theme:", v)
+	end
+})
+
+SettingsTab:CreateToggle({
+	Name = "Auto Update",
+	Description = "Automatically update the script",
+	Default = true,
+	Callback = function(v)
+		print("Auto Update:", v)
+	end
+})
+
+SettingsTab:CreateToggle({
+	Name = "Notifications",
+	Description = "Show notification messages",
+	Default = true,
+	Callback = function(v)
+		print("Notifications:", v)
+	end
+})
+
+SettingsTab:CreateTextbox({
+	Name = "API Key",
+	Placeholder = "Enter your API key...",
+	Callback = function(v)
+		print("API Key Set:", v)
+	end
+})
+
+SettingsTab:CreateButton({
+	Name = "💾 Save Settings",
+	Callback = function()
+		print("Settings Saved!")
+	end
+})
+
+SettingsTab:CreateButton({
+	Name = "🔄 Reset Settings",
+	Callback = function()
+		print("Settings Reset!")
+	end
+})
+
+SettingsTab:CreateLabel("v2.4.1 · Build 2026.05.17")
+
+SettingsTab:CreateParagraph({
+	Title = "System Info",
+	Description = "Executor: Delta Android | Performance: Optimized | Memory: Low | Dependencies: None"
+})
+
+print("UI Library Loaded Successfully!")
