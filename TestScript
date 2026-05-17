@@ -1,126 +1,252 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/Library%20Teste"))()
+-- ╔══════════════════════════════════════════════════════╗
+-- ║         PRISM UI — Test Menu                        ║
+-- ║   Cole o conteúdo de PrismLib.lua na URL abaixo    ║
+-- ╚══════════════════════════════════════════════════════╝
 
+-- Se você hospedou no GitHub Raw, use:
+-- local Library = loadstring(game:HttpGet("SUA_URL_RAW"))()
+
+-- Para testar localmente (sem GitHub), cole a lib direto:
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/Library%20Test"))()
+-- ─── Janela Principal ─────────────────────────────────
 local Window = Library:CreateWindow({
-    Title = "Prism Hub",
-    Subtitle = "Premium"
+    Title    = "My Hub",
+    Subtitle = "Premium",
 })
 
+-- ═══════════════════════════════════════════════════════
+--  TAB 1 — Main
+-- ═══════════════════════════════════════════════════════
 local Main = Window:CreateTab("Main")
-local Combat = Window:CreateTab("Combat")
-local Player = Window:CreateTab("Player")
-local Visual = Window:CreateTab("Visual")
-local Settings = Window:CreateTab("Settings")
 
+-- Toggle com descrição
 Main:CreateToggle({
-    Name = "Auto Farm",
-    Description = "Collects resources automatically while you are playing.",
-    Default = true,
-    Callback = function(v)
-        print("Auto Farm:", v)
-    end
+    Name        = "Auto Farm",
+    Description = "Coleta recursos automaticamente enquanto você joga.",
+    Default     = true,
+    Callback    = function(v)
+        print("[AutoFarm]", v)
+    end,
 })
 
+-- Toggle sem descrição
 Main:CreateToggle({
-    Name = "Auto Collect",
-    Description = "Automatically grabs nearby drops and rewards.",
-    Default = false,
-    Callback = function(v)
-        print("Auto Collect:", v)
-    end
-})
-
-Main:CreateSlider({
-    Name = "Walk Speed",
-    Min = 16,
-    Max = 100,
-    Default = 72,
-    Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
-    end
-})
-
-Main:CreateButton({
-    Name = "✦ Teleport to Spawn",
-    Callback = function()
-        local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = CFrame.new(0,10,0)
+    Name        = "God Mode",
+    Description = "Previne dano recebido de qualquer fonte.",
+    Default     = false,
+    Callback    = function(v)
+        print("[GodMode]", v)
+        if v then
+            -- game.Players.LocalPlayer.Character.Humanoid.MaxHealth = math.huge
         end
-    end
+    end,
 })
 
+-- Slider
+Main:CreateSlider({
+    Name     = "Walk Speed",
+    Min      = 0,
+    Max      = 100,
+    Default  = 72,
+    Callback = function(v)
+        print("[WalkSpeed]", v)
+        -- game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+    end,
+})
+
+-- Botão
+Main:CreateButton({
+    Name     = "Teleport to Spawn",
+    Callback = function()
+        print("[Teleport] Executado!")
+        -- local spawn = workspace:FindFirstChildOfClass("SpawnLocation")
+        -- if spawn then
+        --     game.Players.LocalPlayer.Character:PivotTo(spawn.CFrame + Vector3.new(0,4,0))
+        -- end
+    end,
+})
+
+-- Dropdown
 Main:CreateDropdown({
-    Name = "Game Mode",
-    Options = {"Classic","Hardcore","Arena","Sandbox"},
-    Default = "Classic",
+    Name     = "Game Mode",
+    Options  = { "Classic", "Hardcore", "Arena", "Sandbox" },
+    Default  = "Classic",
     Callback = function(v)
-        print("Selected:", v)
-    end
+        print("[GameMode]", v)
+    end,
 })
 
+-- Textbox
 Main:CreateTextbox({
-    Name = "Player Name",
-    Placeholder = "Enter username...",
-    Callback = function(v)
-        print("Textbox:", v)
-    end
+    Name        = "Player Name",
+    Placeholder = "Digite o username...",
+    Callback    = function(v)
+        print("[PlayerName]", v)
+    end,
 })
 
-Main:CreateLabel("v2.4.1 · Delta Android · No deps")
+-- Label
+Main:CreateLabel("v1.0 · Delta Android · No deps")
 
+-- Parágrafo
 Main:CreateParagraph({
-    Title = "About",
-    Content = "Single-file library with zero dependencies. Mobile-first drag and touch support with futuristic prism visuals."
+    Title = "Sobre",
+    Text  = "Library single-file sem dependências externas. Drag e touch mobile funcionando.",
+})
+
+-- ═══════════════════════════════════════════════════════
+--  TAB 2 — Combat
+-- ═══════════════════════════════════════════════════════
+local Combat = Window:CreateTab("Combat")
+
+Combat:CreateToggle({
+    Name        = "Silent Aim",
+    Description = "Redireciona projéteis automaticamente para o alvo.",
+    Default     = false,
+    Callback    = function(v) print("[SilentAim]", v) end,
 })
 
 Combat:CreateToggle({
-    Name = "Kill Aura",
-    Description = "Automatically attacks nearby enemies.",
-    Default = false,
-    Callback = function(v)
-        print("Kill Aura:", v)
-    end
+    Name        = "Infinite Ammo",
+    Description = "Nunca gasta munição ao atirar.",
+    Default     = false,
+    Callback    = function(v) print("[InfAmmo]", v) end,
 })
 
 Combat:CreateSlider({
-    Name = "Attack Range",
-    Min = 5,
-    Max = 50,
-    Default = 15,
-    Callback = function(v)
-        print("Range:", v)
-    end
+    Name     = "Damage Multiplier",
+    Min      = 1,
+    Max      = 10,
+    Default  = 1,
+    Callback = function(v) print("[DmgMult]", v) end,
 })
 
+Combat:CreateButton({
+    Name     = "Kill All NPCs",
+    Callback = function()
+        print("[KillNPCs] Executado!")
+    end,
+})
+
+Combat:CreateLabel("Módulo Combat · Prism UI")
+
+-- ═══════════════════════════════════════════════════════
+--  TAB 3 — Player
+-- ═══════════════════════════════════════════════════════
+local Player = Window:CreateTab("Player")
+
 Player:CreateSlider({
-    Name = "Jump Power",
-    Min = 50,
-    Max = 200,
-    Default = 100,
+    Name     = "Jump Power",
+    Min      = 0,
+    Max      = 200,
+    Default  = 50,
     Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
-    end
+        print("[JumpPower]", v)
+        -- game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
+    end,
+})
+
+Player:CreateToggle({
+    Name        = "No Clip",
+    Description = "Permite atravessar paredes e objetos sólidos.",
+    Default     = false,
+    Callback    = function(v) print("[NoClip]", v) end,
+})
+
+Player:CreateDropdown({
+    Name     = "Team",
+    Options  = { "Blue", "Red", "Green", "Neutral" },
+    Default  = "Neutral",
+    Callback = function(v) print("[Team]", v) end,
+})
+
+Player:CreateTextbox({
+    Name        = "Rename Character",
+    Placeholder = "Novo nome...",
+    Callback    = function(v) print("[Rename]", v) end,
 })
 
 Player:CreateButton({
-    Name = "Reset Character",
+    Name     = "Reset Character",
     Callback = function()
-        game.Players.LocalPlayer.Character:BreakJoints()
-    end
+        print("[Reset] Executado!")
+        -- game.Players.LocalPlayer.Character.Humanoid.Health = 0
+    end,
+})
+
+-- ═══════════════════════════════════════════════════════
+--  TAB 4 — Visual
+-- ═══════════════════════════════════════════════════════
+local Visual = Window:CreateTab("Visual")
+
+Visual:CreateToggle({
+    Name        = "Full Bright",
+    Description = "Maximiza o brilho ambiente do jogo.",
+    Default     = false,
+    Callback    = function(v)
+        print("[FullBright]", v)
+        -- game.Lighting.Brightness = v and 5 or 1
+    end,
 })
 
 Visual:CreateToggle({
-    Name = "Fullbright",
-    Description = "Improves map visibility.",
-    Default = false,
+    Name        = "ESP Players",
+    Description = "Destaca jogadores através de paredes com caixa colorida.",
+    Default     = false,
+    Callback    = function(v) print("[ESP]", v) end,
+})
+
+Visual:CreateDropdown({
+    Name     = "ESP Color",
+    Options  = { "Roxo", "Vermelho", "Verde", "Azul", "Branco" },
+    Default  = "Roxo",
+    Callback = function(v) print("[ESPColor]", v) end,
+})
+
+Visual:CreateSlider({
+    Name     = "FOV",
+    Min      = 70,
+    Max      = 120,
+    Default  = 90,
     Callback = function(v)
-        print("Fullbright:", v)
-    end
+        print("[FOV]", v)
+        -- workspace.Camera.FieldOfView = v
+    end,
+})
+
+Visual:CreateLabel("Módulo Visual · Prism UI")
+
+-- ═══════════════════════════════════════════════════════
+--  TAB 5 — Settings
+-- ═══════════════════════════════════════════════════════
+local Settings = Window:CreateTab("Settings")
+
+Settings:CreateToggle({
+    Name        = "Rainbow Border",
+    Description = "Mantém a borda prismática animada.",
+    Default     = true,
+    Callback    = function(v) print("[RainbowBorder]", v) end,
+})
+
+Settings:CreateSlider({
+    Name     = "UI Opacity",
+    Min      = 0,
+    Max      = 100,
+    Default  = 100,
+    Callback = function(v) print("[Opacity]", v) end,
 })
 
 Settings:CreateButton({
-    Name = "Rejoin Server",
+    Name     = "Fechar UI",
     Callback = function()
-        game:GetService("TeleportService"):Teleport(game.PlaceId)
-    end
+        Window:Destroy()
+    end,
 })
+
+Settings:CreateParagraph({
+    Title = "Créditos",
+    Text  = "Prism UI Library v1.0\nDesenvolvida para Delta Android.\nSingle-file, sem dependências.",
+})
+
+Settings:CreateLabel("Prism UI · 2025 · Delta Android")
+
