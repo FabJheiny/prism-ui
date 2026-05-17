@@ -1,7 +1,7 @@
 -- =============================================
 -- CARREGA A LIB
 -- =============================================
-loadstring(game:HttpGet("https://pastebin.com/raw/suPs5Emy"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/prism-ui/refs/heads/main/prism-lib"))()
 local RobloxUI = _G.RobloxUI
 
 -- =============================================
