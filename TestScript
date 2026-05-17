@@ -40,7 +40,7 @@ Main:CreateSlider({
 })
 
 Main:CreateButton({
-    Name = "✦ Teleport to Spawn",
+    Name = "Teleport to Spawn",
     Callback = function()
         local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
