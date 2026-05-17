@@ -1,212 +1,547 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/prism-ui/refs/heads/main/prism-lib"))()
+-- =============================================
+-- CARREGA A LIB
+-- =============================================
+loadstring(game:HttpGet("https://pastebin.com/raw/suPs5Emy"))()
+local RobloxUI = _G.RobloxUI
 
-local Window = Library:CreateWindow({
-    Title = "My Hub",
-    Subtitle = "Premium"
-})
+-- =============================================
+-- SERVIÇOS
+-- =============================================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
-local MainTab = Window:CreateTab("Main")
-local CombatTab = Window:CreateTab("Combat")
-local PlayerTab = Window:CreateTab("Player")
-local VisualTab = Window:CreateTab("Visual")
-local SettingsTab = Window:CreateTab("Settings")
+-- =============================================
+-- SETTINGS
+-- =============================================
+local Settings = {
+    ESP = true,
+    Highlight = true,
+    Team = true,
+    Name = false,
+    Distance = true,
+    Fullbright = false
+}
 
--- ========== MAIN TAB ==========
-MainTab:CreateToggle({
-    Name = "Auto Farm",
-    Description = "Collects resources automatically",
-    Default = true,
-    Callback = function(v)
-        print("Auto Farm toggled: " .. tostring(v))
+local AimbotSettings = {
+    Enabled = true,
+    KillCheck = true,
+    FOV = 90,
+    ShowFOV = true,
+    IgnoreAllies = true,
+    IgnoreWall = false
+}
+
+-- =============================================
+-- MENU UI
+-- =============================================
+local ui = RobloxUI.new("Esp and Aimbot")
+ui:SetTabNames("ESP", "Aimbot", "Player")
+
+-- ABA ESP
+ui:AddToggle("left", "Esp Player", Settings.ESP, function(state)
+    Settings.ESP = state
+end)
+
+ui:AddToggle("left", "Name Esp", Settings.Name, function(state)
+    Settings.Name = state
+end)
+
+ui:AddToggle("left", "Esp Distance", Settings.Distance, function(state)
+    Settings.Distance = state
+end)
+
+-- ABA AIMBOT
+ui:AddSlider("right", "FOV", 20, 500, AimbotSettings.FOV, function(val)
+    AimbotSettings.FOV = val
+end)
+
+ui:AddToggle("right", "Aimbot", AimbotSettings.Enabled, function(state)
+    AimbotSettings.Enabled = state
+end)
+
+ui:AddToggle("right", "Show FOV", AimbotSettings.ShowFOV, function(state)
+    AimbotSettings.ShowFOV = state
+end)
+
+ui:AddToggle("right", "Ignore Wall", AimbotSettings.IgnoreWall, function(state)
+    AimbotSettings.IgnoreWall = state
+end)
+
+-- =============================================
+-- ABA PLAYER
+-- =============================================
+
+ui:AddButton("third", "Resetar Personagem", function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") then
+        char.Humanoid.Health = 0
     end
-})
+end)
 
-MainTab:CreateToggle({
-    Name = "God Mode",
-    Description = "Prevents incoming damage",
-    Default = false,
-    Callback = function(v)
-        print("God Mode toggled: " .. tostring(v))
+local infiniteJump = false
+ui:AddToggle("third", "Infinite Jump", false, function(state)
+    infiniteJump = state
+end)
+
+UIS.JumpRequest:Connect(function()
+    if infiniteJump then
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
     end
-})
+end)
 
-MainTab:CreateSlider({
-    Name = "Walk Speed",
-    Min = 0,
-    Max = 100,
-    Default = 72,
-    Callback = function(v)
-        print("Walk Speed set to: " .. v)
+-- NoClip
+local noClip = false
+local noClipConnection = nil
+local originalCollision = {}
+
+local function saveCollision(char)
+    originalCollision = {}
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            originalCollision[part] = part.CanCollide
+        end
     end
-})
+end
 
-MainTab:CreateButton({
-    Name = "Teleport to Spawn",
-    Callback = function()
-        print("Teleporting to spawn...")
+local function restoreCollision()
+    for part, state in pairs(originalCollision) do
+        if part and part.Parent then
+            part.CanCollide = state
+        end
     end
-})
+    originalCollision = {}
+end
 
-MainTab:CreateDropdown({
-    Name = "Game Mode",
-    Options = {"Classic", "Hardcore", "Arena"},
-    Default = "Classic",
-    Callback = function(v)
-        print("Game Mode changed to: " .. v)
+local function applyNoClip(char)
+    if noClipConnection then
+        noClipConnection:Disconnect()
+        noClipConnection = nil
     end
-})
+    if not noClip or not char then return end
+    saveCollision(char)
+    local lastNoClip = 0
+    noClipConnection = RunService.Stepped:Connect(function()
+        if not noClip then
+            noClipConnection:Disconnect()
+            noClipConnection = nil
+            return
+        end
+        if tick() - lastNoClip < 0.1 then return end
+        lastNoClip = tick()
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end)
+end
 
-MainTab:CreateTextbox({
-    Name = "Player Name",
-    Placeholder = "Enter username...",
-    Callback = function(v)
-        print("Player name set to: " .. v)
+ui:AddToggle("third", "NoClip", false, function(state)
+    noClip = state
+    if state then
+        applyNoClip(LocalPlayer.Character)
+    else
+        if noClipConnection then
+            noClipConnection:Disconnect()
+            noClipConnection = nil
+        end
+        restoreCollision()
     end
-})
+end)
 
-MainTab:CreateLabel("v2.4.1 · Delta Android · No deps")
-
-MainTab:CreateParagraph({
-    Title = "About",
-    Content = "Single-file library with zero dependencies. Mobile-first drag and touch support."
-})
-
--- ========== COMBAT TAB ==========
-CombatTab:CreateToggle({
-    Name = "Auto Attack",
-    Description = "Automatically attacks nearby enemies",
-    Default = false,
-    Callback = function(v)
-        print("Auto Attack: " .. tostring(v))
+-- WalkSpeed
+local playerSpeed = 16
+ui:AddSlider("third", "WalkSpeed", 16, 200, 16, function(val)
+    playerSpeed = val
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") then
+        char.Humanoid.WalkSpeed = val
     end
-})
+end)
 
-CombatTab:CreateSlider({
-    Name = "Attack Speed",
-    Min = 1,
-    Max = 10,
-    Default = 5,
-    Callback = function(v)
-        print("Attack Speed: " .. v)
+-- =============================================
+-- ESP VISIBILITY (raycast)
+-- =============================================
+local ESP_VISIBILITY = {
+    ENABLED = true,
+    UPDATE_DELAY = 0.4,
+    VISIBLE = {
+        Color = Color3.fromRGB(255, 0, 0),
+        FillTransparency = 0.35,
+        OutlineTransparency = 0
+    },
+    HIDDEN = {
+        Color = Color3.fromRGB(160, 0, 0),
+        FillTransparency = 0.6,
+        OutlineTransparency = 0.3
+    }
+}
+
+local visibilityCache = {}
+
+local BODY_PARTS_TO_CHECK = {
+    "Head", "HumanoidRootPart", "UpperTorso",
+    "LeftUpperArm", "RightUpperArm",
+    "LeftUpperLeg", "RightUpperLeg"
+}
+
+local function isPlayerVisible(part, character, player)
+    if not ESP_VISIBILITY.ENABLED then return true end
+    local cache = visibilityCache[player]
+    if cache and tick() - cache.t < ESP_VISIBILITY.UPDATE_DELAY then
+        return cache.v
     end
-})
 
-CombatTab:CreateToggle({
-    Name = "Auto Aim",
-    Description = "Automatically aims at targets",
-    Default = false,
-    Callback = function(v)
-        print("Auto Aim: " .. tostring(v))
+    local origin = Camera.CFrame.Position
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Blacklist
+    params.FilterDescendantsInstances = {LocalPlayer.Character, Camera}
+    params.IgnoreWater = true
+
+    local visible = false
+    for _, partName in ipairs(BODY_PARTS_TO_CHECK) do
+        local bodyPart = character:FindFirstChild(partName)
+        if not bodyPart then continue end
+        local ray = workspace:Raycast(origin, bodyPart.Position - origin, params)
+        if (not ray) or character:IsAncestorOf(ray.Instance) then
+            visible = true
+            break
+        end
     end
-})
 
-CombatTab:CreateButton({
-    Name = "Reset Combat Stats",
-    Callback = function()
-        print("Combat stats reset")
+    visibilityCache[player] = {v = visible, t = tick()}
+    return visible
+end
+
+-- =============================================
+-- ESP
+-- =============================================
+local espData = {}
+
+local function destroyESP(player)
+    local data = espData[player]
+    if not data then return end
+    if data.NameLabel then
+        local bg = data.NameLabel:FindFirstAncestorOfClass("BillboardGui")
+        if bg then bg:Destroy() end
     end
-})
+    if data.Highlight then data.Highlight:Destroy() end
+    espData[player] = nil
+end
 
-CombatTab:CreateLabel("Combat Module v1.0")
+local function createESP(player, character)
+    if player == LocalPlayer then return end
+    destroyESP(player)
+    local head = character:WaitForChild("Head", 5)
+    if not head then return end
 
--- ========== PLAYER TAB ==========
-PlayerTab:CreateSlider({
-    Name = "Health",
-    Min = 0,
-    Max = 100,
-    Default = 100,
-    Callback = function(v)
-        print("Health set to: " .. v)
+    local billboard = Instance.new("BillboardGui", head)
+    billboard.Size = UDim2.new(0, 120, 0, 32)
+    billboard.StudsOffset = Vector3.new(0, 5, 0)
+    billboard.AlwaysOnTop = true
+
+    local nameLabel = Instance.new("TextLabel", billboard)
+    nameLabel.Size = UDim2.new(1, 0, 0, 12)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Font = Enum.Font.Gotham
+    nameLabel.TextSize = 10
+    nameLabel.TextColor3 = Color3.new(1,1,1)
+    nameLabel.TextStrokeTransparency = 0
+
+    local distanceLabel = Instance.new("TextLabel", billboard)
+    distanceLabel.Size = UDim2.new(1, 0, 0, 12)
+    distanceLabel.Position = UDim2.new(0, 0, 0, 14)
+    distanceLabel.BackgroundTransparency = 1
+    distanceLabel.Font = Enum.Font.Gotham
+    distanceLabel.TextSize = 10
+    distanceLabel.TextColor3 = Color3.new(1,1,1)
+    distanceLabel.TextStrokeTransparency = 0
+
+    local existingHighlight = character:FindFirstChild("ESP_Highlight")
+    if existingHighlight then existingHighlight:Destroy() end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESP_Highlight"
+    highlight.FillTransparency = 0.6
+    highlight.OutlineTransparency = 0
+    highlight.Enabled = false
+    highlight.Adornee = character
+    highlight.Parent = character
+
+    espData[player] = {
+        NameLabel = nameLabel,
+        DistanceLabel = distanceLabel,
+        Character = character,
+        Highlight = highlight,
+        LastName = "",
+        LastDistance = -1
+    }
+end
+
+local function setupPlayer(player)
+    player.CharacterAdded:Connect(function(char)
+        task.wait(0.4)
+        createESP(player, char)
+        if player == LocalPlayer then
+            local hum = char:WaitForChild("Humanoid", 5)
+            if hum then
+                hum.WalkSpeed = playerSpeed
+                if noClip then
+                    applyNoClip(char)
+                end
+            end
+        end
+    end)
+    player.CharacterRemoving:Connect(function()
+        destroyESP(player)
+        if player == LocalPlayer then
+            if noClipConnection then
+                noClipConnection:Disconnect()
+                noClipConnection = nil
+            end
+        end
+    end)
+    if player.Character then
+        createESP(player, player.Character)
     end
-})
+end
 
-PlayerTab:CreateSlider({
-    Name = "Mana",
-    Min = 0,
-    Max = 100,
-    Default = 50,
-    Callback = function(v)
-        print("Mana set to: " .. v)
+for _, p in ipairs(Players:GetPlayers()) do setupPlayer(p) end
+Players.PlayerAdded:Connect(setupPlayer)
+
+-- =============================================
+-- ESP LOOP
+-- =============================================
+local updateDelay = 0.25
+local lastUpdate = 0
+
+RunService.Heartbeat:Connect(function(dt)
+    lastUpdate = lastUpdate + dt
+    if lastUpdate < updateDelay then return end
+    lastUpdate = 0
+
+    local myChar = LocalPlayer.Character
+    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return end
+
+    for player, data in pairs(espData) do
+        local char = data.Character
+        if not char or not char.Parent then continue end
+
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if not humanoid or humanoid.Health <= 0 then
+            data.NameLabel.Visible = false
+            data.DistanceLabel.Visible = false
+            if data.Highlight then data.Highlight.Enabled = false end
+            continue
+        end
+
+        if not Settings.ESP then
+            data.NameLabel.Visible = false
+            data.DistanceLabel.Visible = false
+            if data.Highlight then data.Highlight.Enabled = false end
+            continue
+        end
+
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then continue end
+
+        local _, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+        if not onScreen then
+            data.NameLabel.Visible = false
+            data.DistanceLabel.Visible = false
+            if data.Highlight then data.Highlight.Enabled = false end
+            continue
+        end
+
+        local dist = (myHRP.Position - hrp.Position).Magnitude
+        if dist > 2500 then
+            data.NameLabel.Visible = false
+            data.DistanceLabel.Visible = false
+            if data.Highlight then data.Highlight.Enabled = false end
+            continue
+        end
+
+        local visible = isPlayerVisible(hrp, char, player)
+        local visConfig = visible and ESP_VISIBILITY.VISIBLE or ESP_VISIBILITY.HIDDEN
+        local col = visConfig.Color
+
+        if Settings.Team and LocalPlayer.Team and player.Team == LocalPlayer.Team then
+            col = Color3.fromRGB(0, 255, 0)
+        end
+
+        if data.Highlight then
+            if Settings.Highlight then
+                data.Highlight.Enabled = true
+                data.Highlight.FillColor = col
+                data.Highlight.OutlineColor = col
+                data.Highlight.FillTransparency = visConfig.FillTransparency
+                data.Highlight.OutlineTransparency = visConfig.OutlineTransparency
+            else
+                data.Highlight.Enabled = false
+            end
+        end
+
+        data.NameLabel.Visible = Settings.Name
+        if Settings.Name then
+            if data.LastName ~= player.Name then
+                data.NameLabel.Text = player.Name
+                data.LastName = player.Name
+            end
+            data.NameLabel.TextColor3 = col
+        end
+
+        data.DistanceLabel.Visible = Settings.Distance
+        if Settings.Distance then
+            local d = math.floor(dist)
+            if data.LastDistance ~= d then
+                data.DistanceLabel.Text = visible and ("< " .. d .. "m >") or ("[WALL] " .. d .. "m")
+                data.LastDistance = d
+            end
+            data.DistanceLabel.TextColor3 = col
+        end
     end
-})
+end)
 
-PlayerTab:CreateToggle({
-    Name = "Infinite Stamina",
-    Description = "Never run out of stamina",
-    Default = false,
-    Callback = function(v)
-        print("Infinite Stamina: " .. tostring(v))
+-- =============================================
+-- AIMBOT
+-- =============================================
+local function getClosestTarget()
+    local closestPart = nil
+    local closestWorldDist = math.huge
+    local myChar = LocalPlayer.Character
+    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return nil end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player == LocalPlayer then continue end
+        local char = player.Character
+        if not char then continue end
+
+        local part = char:FindFirstChild("Head")
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not part or not hrp then continue end
+
+        if AimbotSettings.IgnoreAllies and LocalPlayer.Team and player.Team == LocalPlayer.Team then
+            continue
+        end
+
+        if AimbotSettings.KillCheck then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 then continue end
+        end
+
+        local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
+        if not onScreen then continue end
+
+        local screenDist = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)).Magnitude
+        if screenDist > AimbotSettings.FOV then continue end
+
+        local worldDist = (myHRP.Position - hrp.Position).Magnitude
+        if worldDist > 2000 then continue end
+
+        -- Wall check por partes do corpo
+        if not AimbotSettings.IgnoreWall then
+            local origin = Camera.CFrame.Position
+            local params = RaycastParams.new()
+            params.FilterType = Enum.RaycastFilterType.Blacklist
+            params.FilterDescendantsInstances = {LocalPlayer.Character, Camera}
+            params.IgnoreWater = true
+
+            local anyVisible = false
+            for _, partName in ipairs(BODY_PARTS_TO_CHECK) do
+                local bodyPart = char:FindFirstChild(partName)
+                if not bodyPart then continue end
+                local ray = workspace:Raycast(origin, bodyPart.Position - origin, params)
+                if (not ray) or char:IsAncestorOf(ray.Instance) then
+                    anyVisible = true
+                    break
+                end
+            end
+            if not anyVisible then continue end
+        end
+
+        if worldDist < closestWorldDist then
+            closestWorldDist = worldDist
+            closestPart = part
+        end
     end
-})
 
-PlayerTab:CreateDropdown({
-    Name = "Weapon",
-    Options = {"Sword", "Bow", "Staff", "Axe"},
-    Default = "Sword",
-    Callback = function(v)
-        print("Weapon selected: " .. v)
+    return closestPart
+end  -- <-- end que estava faltando
+
+-- =============================================
+-- AIMBOT LOOP
+-- =============================================
+local cachedTarget = nil
+RunService.Heartbeat:Connect(function()
+    if not AimbotSettings.Enabled then
+        cachedTarget = nil
+        return
     end
-})
+    cachedTarget = getClosestTarget()
+end)
 
-PlayerTab:CreateLabel("Player Stats v1.0")
+local BASE_SMOOTHNESS = 0.9
+local currentSmoothness = BASE_SMOOTHNESS
+local lastCameraCF = Camera.CFrame
+local pullResistance = 0.15
+local releaseThreshold = 0.25
+local minSmoothness = 0
+local lastReleaseTime = 0
 
--- ========== VISUAL TAB ==========
-VisualTab:CreateToggle({
-    Name = "ESP",
-    Description = "See players through walls",
-    Default = false,
-    Callback = function(v)
-        print("ESP: " .. tostring(v))
+RunService.RenderStepped:Connect(function()
+    if not cachedTarget then
+        lastCameraCF = Camera.CFrame
+        currentSmoothness = BASE_SMOOTHNESS
+        return
     end
-})
 
-VisualTab:CreateToggle({
-    Name = "Nametags",
-    Description = "Display player names",
-    Default = true,
-    Callback = function(v)
-        print("Nametags: " .. tostring(v))
+    local lookDelta = (Camera.CFrame.LookVector - lastCameraCF.LookVector).Magnitude
+
+    if lookDelta > releaseThreshold then
+        cachedTarget = nil
+        currentSmoothness = 0
+        lastCameraCF = Camera.CFrame
+        lastReleaseTime = tick()
+        return
     end
-})
 
-VisualTab:CreateSlider({
-    Name = "FOV",
-    Min = 1,
-    Max = 120,
-    Default = 70,
-    Callback = function(v)
-        print("FOV set to: " .. v)
+    if lookDelta > pullResistance then
+        currentSmoothness = math.max(minSmoothness, currentSmoothness - (lookDelta * 3.5))
+    else
+        currentSmoothness = currentSmoothness + (BASE_SMOOTHNESS - currentSmoothness) * 0.05
     end
-})
 
-VisualTab:CreateLabel("Visual Settings v1.0")
+    local targetCF = CFrame.new(Camera.CFrame.Position, cachedTarget.Position)
+    Camera.CFrame = Camera.CFrame:Lerp(targetCF, currentSmoothness)
+    lastCameraCF = Camera.CFrame
+end)
 
--- ========== SETTINGS TAB ==========
-SettingsTab:CreateToggle({
-    Name = "Notifications",
-    Description = "Enable/disable notifications",
-    Default = true,
-    Callback = function(v)
-        print("Notifications: " .. tostring(v))
-    end
-})
+-- =============================================
+-- CÍRCULO DO FOV
+-- =============================================
+local fovCircle = Instance.new("Frame", ui.gui)
+fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
+fovCircle.BackgroundTransparency = 1
+fovCircle.BorderSizePixel = 0
+Instance.new("UICorner", fovCircle).CornerRadius = UDim.new(1, 0)
 
-SettingsTab:CreateDropdown({
-    Name = "Theme",
-    Options = {"Dark", "Light", "Auto"},
-    Default = "Dark",
-    Callback = function(v)
-        print("Theme changed to: " .. v)
-    end
-})
+local stroke = Instance.new("UIStroke", fovCircle)
+stroke.Color = Color3.new(1, 1, 1)
+stroke.Thickness = 1
+stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-SettingsTab:CreateButton({
-    Name = "Reset Settings",
-    Callback = function()
-        print("Settings reset to default")
-    end
-})
-
-SettingsTab:CreateLabel("v2.4.1 Settings Panel")
-
-print("✓ PRISM UI Library loaded successfully!")
+RunService.RenderStepped:Connect(function()
+    fovCircle.Visible = AimbotSettings.Enabled and AimbotSettings.ShowFOV
+    local size = AimbotSettings.FOV * 2
+    fovCircle.Size = UDim2.new(0, size, 0, size)
+end)
