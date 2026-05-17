@@ -142,105 +142,114 @@ function Library:CreateWindow(data)
         Parent                 = gui,
     })
 
-    -- ── Floating Avatar Widget (substitui o toggle button) ────
-    local avatarWidget = Create("Frame",{
-        Size             = UDim2.fromOffset(148,38),
-        Position         = UDim2.new(0,12,0,12),
-        BackgroundColor3 = Color3.fromRGB(10,8,26),
-        BorderSizePixel  = 0,
-        ZIndex           = 10,
-        Parent           = root,
-    })
-    Corner(avatarWidget, 10)
+-- ── Floating Bar (avatar + toggle, arrastrável, topo central) ──
+local floatingBar = Create("Frame",{
+    Size             = UDim2.fromOffset(200, 40),
+    Position         = UDim2.new(0.5, -100, 0, 12),
+    BackgroundColor3 = Color3.fromRGB(10,8,26),
+    BorderSizePixel  = 0,
+    ZIndex           = 20,
+    Parent           = root,
+})
+Corner(floatingBar, 10)
+local fbStroke = Stroke(floatingBar, Theme.Glow, 1, .45)
+AnimateGradient(Gradient(fbStroke,{
+    ColorSequenceKeypoint.new(0,  Theme.Accent1),
+    ColorSequenceKeypoint.new(.5, Theme.Accent2),
+    ColorSequenceKeypoint.new(1,  Theme.Accent3),
+}))
 
-    -- borda animada igual ao estilo da lib
-    local wgStroke = Stroke(avatarWidget, Theme.Glow, 1, .52)
-    AnimateGradient(Gradient(wgStroke,{
-        ColorSequenceKeypoint.new(0,  Theme.Accent1),
-        ColorSequenceKeypoint.new(.5, Theme.Accent2),
-        ColorSequenceKeypoint.new(1,  Theme.Accent3),
-    }))
+-- Avatar
+local wgAvatarBg = Create("Frame",{
+    Size             = UDim2.fromOffset(26,26),
+    Position         = UDim2.fromOffset(7,7),
+    BackgroundColor3 = Color3.fromRGB(20,16,42),
+    BorderSizePixel  = 0,
+    ZIndex           = 22,
+    Parent           = floatingBar,
+})
+Corner(wgAvatarBg, 999)
 
-    -- fundo do avatar circular
-    local wgAvatarBg = Create("Frame",{
-        Size             = UDim2.fromOffset(26,26),
-        Position         = UDim2.fromOffset(6,6),
-        BackgroundColor3 = Color3.fromRGB(20,16,42),
-        BorderSizePixel  = 0,
-        ZIndex           = 11,
-        Parent           = avatarWidget,
-    })
-    Corner(wgAvatarBg, 999)
+local wgRing = Create("Frame",{
+    Size                   = UDim2.fromOffset(30,30),
+    Position               = UDim2.fromOffset(5,5),
+    BackgroundTransparency = 1,
+    BorderSizePixel        = 0,
+    ZIndex                 = 21,
+    Parent                 = floatingBar,
+})
+Corner(wgRing, 999)
+local wgRingS = Stroke(wgRing, Theme.Accent1, 1.5, .3)
+Gradient(wgRingS,{
+    ColorSequenceKeypoint.new(0, Theme.Accent1),
+    ColorSequenceKeypoint.new(1, Theme.Accent2),
+})
 
-    -- anel gradiente ao redor do mini-avatar
-    local wgRing = Create("Frame",{
-        Size               = UDim2.fromOffset(30,30),
-        Position           = UDim2.fromOffset(4,4),
-        BackgroundTransparency = 1,
-        BorderSizePixel    = 0,
-        ZIndex             = 10,
-        Parent             = avatarWidget,
-    })
-    Corner(wgRing, 999)
-    local wgRingS = Stroke(wgRing, Theme.Accent1, 1.5, .28)
-    Gradient(wgRingS,{
-        ColorSequenceKeypoint.new(0, Theme.Accent1),
-        ColorSequenceKeypoint.new(1, Theme.Accent2),
-    })
-
-    -- imagem do avatar
-    local wgAvatar = Create("ImageLabel",{
-        Size               = UDim2.fromScale(1,1),
-        BackgroundTransparency = 1,
-        Image              = "",
-        ZIndex             = 12,
-        Parent             = wgAvatarBg,
-    })
-    Corner(wgAvatar, 999)
-
-    task.spawn(function()
-        local ok, img = pcall(function()
-            return Players:GetUserThumbnailAsync(
-                LocalPlayer.UserId,
-                Enum.ThumbnailType.HeadShot,
-                Enum.ThumbnailSize.Size48x48)
-        end)
-        if ok then wgAvatar.Image = img end
+local wgAvatar = Create("ImageLabel",{
+    Size                   = UDim2.fromScale(1,1),
+    BackgroundTransparency = 1,
+    Image                  = "",
+    ZIndex                 = 23,
+    Parent                 = wgAvatarBg,
+})
+Corner(wgAvatar, 999)
+task.spawn(function()
+    local ok, img = pcall(function()
+        return Players:GetUserThumbnailAsync(
+            LocalPlayer.UserId,
+            Enum.ThumbnailType.HeadShot,
+            Enum.ThumbnailSize.Size48x48)
     end)
+    if ok then wgAvatar.Image = img end
+end)
 
-    -- nome de exibição com gradiente
-    local wgDisplayName = Create("TextLabel",{
-        Text               = LocalPlayer.DisplayName,
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 10,
-        TextColor3         = Color3.fromRGB(210,196,255),
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(40,6),
-        Size               = UDim2.new(1,-46,0,13),
-        TextXAlignment     = Enum.TextXAlignment.Left,
-        TextTruncate       = Enum.TextTruncate.AtEnd,
-        ZIndex             = 11,
-        Parent             = avatarWidget,
-    })
-    Gradient(wgDisplayName,{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,180,220)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(160,144,255)),
-    })
+-- Nomes
+Create("TextLabel",{
+    Text                   = LocalPlayer.DisplayName,
+    Font                   = Enum.Font.GothamBold,
+    TextSize               = 10,
+    TextColor3             = Color3.fromRGB(210,196,255),
+    BackgroundTransparency = 1,
+    Position               = UDim2.fromOffset(41,5),
+    Size                   = UDim2.new(1,-82,0,14),
+    TextXAlignment         = Enum.TextXAlignment.Left,
+    TextTruncate           = Enum.TextTruncate.AtEnd,
+    ZIndex                 = 22,
+    Parent                 = floatingBar,
+})
+Create("TextLabel",{
+    Text                   = "@"..LocalPlayer.Name,
+    Font                   = Enum.Font.Gotham,
+    TextSize               = 8,
+    TextColor3             = Theme.SubText,
+    BackgroundTransparency = 1,
+    Position               = UDim2.fromOffset(41,20),
+    Size                   = UDim2.new(1,-82,0,12),
+    TextXAlignment         = Enum.TextXAlignment.Left,
+    TextTruncate           = Enum.TextTruncate.AtEnd,
+    ZIndex                 = 22,
+    Parent                 = floatingBar,
+})
 
-    -- @username discreto
-    Create("TextLabel",{
-        Text               = "@"..LocalPlayer.Name,
-        Font               = Enum.Font.Gotham,
-        TextSize           = 8,
-        TextColor3         = Theme.SubText,
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(40,20),
-        Size               = UDim2.new(1,-46,0,12),
-        TextXAlignment     = Enum.TextXAlignment.Left,
-        TextTruncate       = Enum.TextTruncate.AtEnd,
-        ZIndex             = 11,
-        Parent             = avatarWidget,
-    })
+-- Botão toggle (lado direito)
+local toggleBtn = Create("TextButton",{
+    Text             = "◉",
+    Font             = Enum.Font.GothamBold,
+    TextSize         = 20,
+    TextColor3       = Color3.fromRGB(180,160,255),
+    AutoButtonColor  = false,
+    Size             = UDim2.fromOffset(30,30),
+    Position         = UDim2.new(1,-34, 0, 5),
+    BackgroundColor3 = Color3.fromRGB(18,14,38),
+    BorderSizePixel  = 0,
+    ZIndex           = 23,
+    Parent           = floatingBar,
+})
+Corner(toggleBtn, 8)
+Stroke(toggleBtn, Theme.Glow, 1, .55)
+
+-- Toda a barra é arrastável
+Dragify(floatingBar)
 
     -- ── Window wrap & prism border ────────────────────────────
     local wrap = Create("Frame",{
@@ -349,7 +358,7 @@ function Library:CreateWindow(data)
         ColorSequenceKeypoint.new(1,  Theme.Accent3),
     },45)
     Create("TextLabel",{
-        Text               = "✦",
+        Text               = "◉",
         Font               = Enum.Font.GothamBold,
         TextSize           = 16,
         TextColor3         = Color3.new(1,1,1),
@@ -533,41 +542,18 @@ function Library:CreateWindow(data)
 
     Dragify(wrap, topbar)
 
--- ── Toggle Button ─────────────────────────────────────────
-local toggleBtn = Create("TextButton",{
-    Text             = "✦",
-    Font             = Enum.Font.GothamBold,
-    TextSize         = 16,
-    TextColor3       = Color3.fromRGB(220,200,255),
-    AutoButtonColor  = false,
-    Size             = UDim2.fromOffset(38,38),
-    Position         = UDim2.new(0,12,0,60),   -- abaixo do avatarWidget
-    BackgroundColor3 = Color3.fromRGB(10,8,26),
-    BorderSizePixel  = 0,
-    ZIndex           = 10,
-    Parent           = root,
-})
-Corner(toggleBtn, 999)
-local tbStroke = Stroke(toggleBtn, Theme.Glow, 1.5, .4)
-AnimateGradient(Gradient(tbStroke,{
-    ColorSequenceKeypoint.new(0,  Theme.Accent1),
-    ColorSequenceKeypoint.new(.5, Theme.Accent2),
-    ColorSequenceKeypoint.new(1,  Theme.Accent3),
-}))
-
 local menuVisible = true
 toggleBtn.MouseButton1Click:Connect(function()
     menuVisible = not menuVisible
-    Ripple(toggleBtn)
-    TweenService:Create(wrap, Config.Tween, {
-        Size = menuVisible and Config.WindowSize or UDim2.fromOffset(0,0),
-        BackgroundTransparency = menuVisible and 0 or 1,
-    }):Play()
+    wrap.Visible = menuVisible
+    toggleBtn.Text = "◉"
     TweenService:Create(toggleBtn, Config.Tween, {
-        TextColor3 = menuVisible
-            and Color3.fromRGB(220,200,255)
+        TextColor3       = menuVisible
+            and Color3.fromRGB(180,160,255)
             or  Theme.Accent1,
-        Rotation = menuVisible and 0 or 135,
+        BackgroundColor3 = menuVisible
+            and Color3.fromRGB(18,14,38)
+            or  Color3.fromRGB(30,10,50),
     }):Play()
 end)
 
@@ -1294,4 +1280,3 @@ end)
 end
 
 return setmetatable({}, Library)
-
