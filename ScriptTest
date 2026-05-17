@@ -1,0 +1,212 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/prism-ui/refs/heads/main/prism-lib"))()
+
+local Window = Library:CreateWindow({
+    Title = "My Hub",
+    Subtitle = "Premium"
+})
+
+local MainTab = Window:CreateTab("Main")
+local CombatTab = Window:CreateTab("Combat")
+local PlayerTab = Window:CreateTab("Player")
+local VisualTab = Window:CreateTab("Visual")
+local SettingsTab = Window:CreateTab("Settings")
+
+-- ========== MAIN TAB ==========
+MainTab:CreateToggle({
+    Name = "Auto Farm",
+    Description = "Collects resources automatically",
+    Default = true,
+    Callback = function(v)
+        print("Auto Farm toggled: " .. tostring(v))
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "God Mode",
+    Description = "Prevents incoming damage",
+    Default = false,
+    Callback = function(v)
+        print("God Mode toggled: " .. tostring(v))
+    end
+})
+
+MainTab:CreateSlider({
+    Name = "Walk Speed",
+    Min = 0,
+    Max = 100,
+    Default = 72,
+    Callback = function(v)
+        print("Walk Speed set to: " .. v)
+    end
+})
+
+MainTab:CreateButton({
+    Name = "Teleport to Spawn",
+    Callback = function()
+        print("Teleporting to spawn...")
+    end
+})
+
+MainTab:CreateDropdown({
+    Name = "Game Mode",
+    Options = {"Classic", "Hardcore", "Arena"},
+    Default = "Classic",
+    Callback = function(v)
+        print("Game Mode changed to: " .. v)
+    end
+})
+
+MainTab:CreateTextbox({
+    Name = "Player Name",
+    Placeholder = "Enter username...",
+    Callback = function(v)
+        print("Player name set to: " .. v)
+    end
+})
+
+MainTab:CreateLabel("v2.4.1 · Delta Android · No deps")
+
+MainTab:CreateParagraph({
+    Title = "About",
+    Content = "Single-file library with zero dependencies. Mobile-first drag and touch support."
+})
+
+-- ========== COMBAT TAB ==========
+CombatTab:CreateToggle({
+    Name = "Auto Attack",
+    Description = "Automatically attacks nearby enemies",
+    Default = false,
+    Callback = function(v)
+        print("Auto Attack: " .. tostring(v))
+    end
+})
+
+CombatTab:CreateSlider({
+    Name = "Attack Speed",
+    Min = 1,
+    Max = 10,
+    Default = 5,
+    Callback = function(v)
+        print("Attack Speed: " .. v)
+    end
+})
+
+CombatTab:CreateToggle({
+    Name = "Auto Aim",
+    Description = "Automatically aims at targets",
+    Default = false,
+    Callback = function(v)
+        print("Auto Aim: " .. tostring(v))
+    end
+})
+
+CombatTab:CreateButton({
+    Name = "Reset Combat Stats",
+    Callback = function()
+        print("Combat stats reset")
+    end
+})
+
+CombatTab:CreateLabel("Combat Module v1.0")
+
+-- ========== PLAYER TAB ==========
+PlayerTab:CreateSlider({
+    Name = "Health",
+    Min = 0,
+    Max = 100,
+    Default = 100,
+    Callback = function(v)
+        print("Health set to: " .. v)
+    end
+})
+
+PlayerTab:CreateSlider({
+    Name = "Mana",
+    Min = 0,
+    Max = 100,
+    Default = 50,
+    Callback = function(v)
+        print("Mana set to: " .. v)
+    end
+})
+
+PlayerTab:CreateToggle({
+    Name = "Infinite Stamina",
+    Description = "Never run out of stamina",
+    Default = false,
+    Callback = function(v)
+        print("Infinite Stamina: " .. tostring(v))
+    end
+})
+
+PlayerTab:CreateDropdown({
+    Name = "Weapon",
+    Options = {"Sword", "Bow", "Staff", "Axe"},
+    Default = "Sword",
+    Callback = function(v)
+        print("Weapon selected: " .. v)
+    end
+})
+
+PlayerTab:CreateLabel("Player Stats v1.0")
+
+-- ========== VISUAL TAB ==========
+VisualTab:CreateToggle({
+    Name = "ESP",
+    Description = "See players through walls",
+    Default = false,
+    Callback = function(v)
+        print("ESP: " .. tostring(v))
+    end
+})
+
+VisualTab:CreateToggle({
+    Name = "Nametags",
+    Description = "Display player names",
+    Default = true,
+    Callback = function(v)
+        print("Nametags: " .. tostring(v))
+    end
+})
+
+VisualTab:CreateSlider({
+    Name = "FOV",
+    Min = 1,
+    Max = 120,
+    Default = 70,
+    Callback = function(v)
+        print("FOV set to: " .. v)
+    end
+})
+
+VisualTab:CreateLabel("Visual Settings v1.0")
+
+-- ========== SETTINGS TAB ==========
+SettingsTab:CreateToggle({
+    Name = "Notifications",
+    Description = "Enable/disable notifications",
+    Default = true,
+    Callback = function(v)
+        print("Notifications: " .. tostring(v))
+    end
+})
+
+SettingsTab:CreateDropdown({
+    Name = "Theme",
+    Options = {"Dark", "Light", "Auto"},
+    Default = "Dark",
+    Callback = function(v)
+        print("Theme changed to: " .. v)
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Reset Settings",
+    Callback = function()
+        print("Settings reset to default")
+    end
+})
+
+SettingsTab:CreateLabel("v2.4.1 Settings Panel")
+
+print("✓ PRISM UI Library loaded successfully!")
