@@ -5,13 +5,11 @@ local Window = Library:CreateWindow({
     Subtitle = "Premium"
 })
 
-local Main     = Window:CreateTab("Main")
-local Combat   = Window:CreateTab("Combat")
-local Player   = Window:CreateTab("Player")
-local Visual   = Window:CreateTab("Visual")
+local Main = Window:CreateTab("Main")
+local Combat = Window:CreateTab("Combat")
+local Player = Window:CreateTab("Player")
+local Visual = Window:CreateTab("Visual")
 local Settings = Window:CreateTab("Settings")
-
--- ── Main ──────────────────────────────────────────────────────
 
 Main:CreateToggle({
     Name = "Auto Farm",
@@ -46,14 +44,14 @@ Main:CreateButton({
     Callback = function()
         local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
-            hrp.CFrame = CFrame.new(0, 10, 0)
+            hrp.CFrame = CFrame.new(0,10,0)
         end
     end
 })
 
 Main:CreateDropdown({
     Name = "Game Mode",
-    Options = {"Classic", "Hardcore", "Arena", "Sandbox"},
+    Options = {"Classic","Hardcore","Arena","Sandbox"},
     Default = "Classic",
     Callback = function(v)
         print("Selected:", v)
@@ -75,8 +73,6 @@ Main:CreateParagraph({
     Content = "Single-file library with zero dependencies. Mobile-first drag and touch support with futuristic prism visuals."
 })
 
--- ── Combat ────────────────────────────────────────────────────
-
 Combat:CreateToggle({
     Name = "Kill Aura",
     Description = "Automatically attacks nearby enemies.",
@@ -96,8 +92,6 @@ Combat:CreateSlider({
     end
 })
 
--- ── Player ────────────────────────────────────────────────────
-
 Player:CreateSlider({
     Name = "Jump Power",
     Min = 50,
@@ -115,8 +109,6 @@ Player:CreateButton({
     end
 })
 
--- ── Visual ────────────────────────────────────────────────────
-
 Visual:CreateToggle({
     Name = "Fullbright",
     Description = "Improves map visibility.",
@@ -124,12 +116,6 @@ Visual:CreateToggle({
     Callback = function(v)
         print("Fullbright:", v)
     end
-})
-
--- ── Settings ──────────────────────────────────────────────────
-
-Settings:CreateFpsPing({
-    Default = true   -- pill flutuante já aparece ativo
 })
 
 Settings:CreateButton({
