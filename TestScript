@@ -5,63 +5,85 @@ local Window = Library:CreateWindow({
     Subtitle = "Premium"
 })
 
-local Main = Window:CreateTab("Main")
-local Combat = Window:CreateTab("Combat")
-local Player = Window:CreateTab("Player")
-local Visual = Window:CreateTab("Visual")
+local Main     = Window:CreateTab("Main")
+local Combat   = Window:CreateTab("Combat")
+local Player   = Window:CreateTab("Player")
+local Visual   = Window:CreateTab("Visual")
 local Settings = Window:CreateTab("Settings")
 
+-- ── Main ──────────────────────────────────────────────────────
+
 Main:CreateToggle({
-    Name = "Auto Farm",
+    Name        = "Speed Hack",
+    Description = "Aumenta a velocidade do personagem",
+    Default     = false,
+    FloatingButton = {
+        Label       = "Speed",
+        Icon        = "⚡",
+        Description = "Clique para boost",
+        Position    = UDim2.new(0.5, -56, 0.85, 0),
+        Callback    = function()
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 50
+        end,
+    },
+    Callback = function(state)
+        if not state then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+        end
+    end,
+})
+
+Main:CreateToggle({
+    Name        = "Auto Farm",
     Description = "Collects resources automatically while you are playing.",
-    Default = true,
-    Callback = function(v)
+    Default     = true,
+    Callback    = function(v)
         print("Auto Farm:", v)
     end
 })
 
 Main:CreateToggle({
-    Name = "Auto Collect",
+    Name        = "Auto Collect",
     Description = "Automatically grabs nearby drops and rewards.",
-    Default = false,
-    Callback = function(v)
+    Default     = false,
+    Callback    = function(v)
         print("Auto Collect:", v)
     end
 })
 
 Main:CreateSlider({
-    Name = "Walk Speed",
-    Min = 16,
-    Max = 100,
-    Default = 72,
+    Name     = "Walk Speed",
+    Min      = 16,
+    Max      = 100,
+    Default  = 72,
     Callback = function(v)
         game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
     end
 })
 
 Main:CreateButton({
-    Name = "Teleport to Spawn",
+    Name     = "Teleport to Spawn",
     Callback = function()
         local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
-            hrp.CFrame = CFrame.new(0,10,0)
+            hrp.CFrame = CFrame.new(0, 10, 0)
         end
     end
 })
 
 Main:CreateDropdown({
-    Name = "Game Mode",
-    Options = {"Classic","Hardcore","Arena","Sandbox"},
-    Default = "Classic",
+    Name     = "Game Mode",
+    Options  = {"Classic", "Hardcore", "Arena", "Sandbox"},
+    Default  = "Classic",
     Callback = function(v)
         print("Selected:", v)
     end
 })
 
 Main:CreateTextbox({
-    Name = "Player Name",
+    Name        = "Player Name",
     Placeholder = "Enter username...",
-    Callback = function(v)
+    Callback    = function(v)
         print("Textbox:", v)
     end
 })
@@ -69,57 +91,65 @@ Main:CreateTextbox({
 Main:CreateLabel("v2.4.1 · Delta Android · No deps")
 
 Main:CreateParagraph({
-    Title = "About",
+    Title   = "About",
     Content = "Single-file library with zero dependencies. Mobile-first drag and touch support with futuristic prism visuals."
 })
 
+-- ── Combat ────────────────────────────────────────────────────
+
 Combat:CreateToggle({
-    Name = "Kill Aura",
+    Name        = "Kill Aura",
     Description = "Automatically attacks nearby enemies.",
-    Default = false,
-    Callback = function(v)
+    Default     = false,
+    Callback    = function(v)
         print("Kill Aura:", v)
     end
 })
 
 Combat:CreateSlider({
-    Name = "Attack Range",
-    Min = 5,
-    Max = 50,
-    Default = 15,
+    Name     = "Attack Range",
+    Min      = 5,
+    Max      = 50,
+    Default  = 15,
     Callback = function(v)
         print("Range:", v)
     end
 })
 
+-- ── Player ────────────────────────────────────────────────────
+
 Player:CreateSlider({
-    Name = "Jump Power",
-    Min = 50,
-    Max = 200,
-    Default = 100,
+    Name     = "Jump Power",
+    Min      = 50,
+    Max      = 200,
+    Default  = 100,
     Callback = function(v)
         game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
     end
 })
 
 Player:CreateButton({
-    Name = "Reset Character",
+    Name     = "Reset Character",
     Callback = function()
         game.Players.LocalPlayer.Character:BreakJoints()
     end
 })
 
+-- ── Visual ────────────────────────────────────────────────────
+
 Visual:CreateToggle({
-    Name = "Fullbright",
+    Name        = "Fullbright",
     Description = "Improves map visibility.",
-    Default = false,
-    Callback = function(v)
+    Default     = false,
+    Callback    = function(v)
         print("Fullbright:", v)
     end
 })
 
+-- ── Settings ──────────────────────────────────────────────────
+
 Settings:CreateButton({
-    Name = "Rejoin Server",
+    Name     = "Rejoin Server",
     Callback = function()
         game:GetService("TeleportService"):Teleport(game.PlaceId)
     end
