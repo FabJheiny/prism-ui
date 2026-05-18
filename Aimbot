@@ -1,7 +1,4 @@
--- =============================================
--- CARREGA A LIB
--- =============================================
-loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/prism-ui/refs/heads/main/prism-lib"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/Aimbot%20Library"))()
 local RobloxUI = _G.RobloxUI
 
 -- =============================================
