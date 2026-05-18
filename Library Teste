@@ -225,19 +225,17 @@ local function CreateFloatingActionButton(root, opts)
         })
     end
 
-    -- Botão invisível cobrindo o pill inteiro (captura clique + drag)
+    -- Botão invisível cobrindo apenas a área de texto (clique)
     local hitBtn = Create("TextButton",{
         Text               = "",
         AutoButtonColor    = false,
         BackgroundTransparency = 1,
-        Size               = UDim2.fromScale(1,1),
+        Position           = UDim2.fromOffset(44, 0),
+        Size               = UDim2.new(1, -44, 1, 0),
         ZIndex             = pill.ZIndex + 10,
         ClipsDescendants   = false,
         Parent             = pill,
     })
-
-    -- Arraste
-    Dragify(pill, hitBtn)
 
     -- Clique: ripple + callback
     hitBtn.MouseButton1Click:Connect(function()
@@ -253,7 +251,7 @@ local function CreateFloatingActionButton(root, opts)
         if callback then task.spawn(callback) end
     end)
 
-    -- Hover: leve pulso de escala (simulado via tamanho)
+    -- Hover: só tamanho, sem mexer em Position
     hitBtn.MouseEnter:Connect(function()
         TweenService:Create(pill, TweenInfo.new(.14, Enum.EasingStyle.Quint), {
             Size = UDim2.fromOffset(118, 46),
@@ -263,6 +261,44 @@ local function CreateFloatingActionButton(root, opts)
         TweenService:Create(pill, TweenInfo.new(.14, Enum.EasingStyle.Quint), {
             Size = UDim2.fromOffset(112, 44),
         }):Play()
+    end)
+
+    -- Drag pelo ícone via UserInputService (não sofre bloqueio de TextButton)
+    local locked = false
+    local draggingPill = false
+    local dragStartPos, pillStartPos
+
+    UserInputService.InputBegan:Connect(function(input)
+        if locked then return end
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1
+        and input.UserInputType ~= Enum.UserInputType.Touch then return end
+        local mouse = UserInputService:GetMouseLocation()
+        local abs   = iconFrame.AbsolutePosition
+        local size  = iconFrame.AbsoluteSize
+        if mouse.X >= abs.X and mouse.X <= abs.X + size.X
+        and mouse.Y >= abs.Y and mouse.Y <= abs.Y + size.Y then
+            draggingPill = true
+            dragStartPos = mouse
+            pillStartPos = pill.Position
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if not draggingPill then return end
+        if input.UserInputType ~= Enum.UserInputType.MouseMovement
+        and input.UserInputType ~= Enum.UserInputType.Touch then return end
+        local delta = UserInputService:GetMouseLocation() - dragStartPos
+        pill.Position = UDim2.new(
+            pillStartPos.X.Scale, pillStartPos.X.Offset + delta.X,
+            pillStartPos.Y.Scale, pillStartPos.Y.Offset + delta.Y
+        )
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            draggingPill = false
+        end
     end)
 
     -- Funções de show/hide com animação
@@ -285,7 +321,7 @@ local function CreateFloatingActionButton(root, opts)
         end)
     end
 
-    return { Frame = pill, Show = Show, Hide = Hide }
+    return { Frame = pill, Show = Show, Hide = Hide, SetLocked = function(v) locked = v end }
 end
 
 -- ────────────────────────────────────────────────────────────
@@ -939,6 +975,44 @@ end)
             })
             Corner(knob, 999)
 
+            -- Botão de lock do FAB (só aparece se tiver FloatingButton)
+            local fabLocked = false
+            local lockBtn = nil
+            if d.FloatingButton then
+                lockBtn = Create("TextButton",{
+                    Text             = "○",
+                    Font             = Enum.Font.GothamBold,
+                    TextSize         = 14,
+                    AutoButtonColor  = false,
+                    Size             = UDim2.fromOffset(24,24),
+                    Position         = UDim2.new(1,-68,0,0),  -- à esquerda do track
+                    BackgroundColor3 = Color3.fromRGB(20,16,48),
+                    BackgroundTransparency = .4,
+                    BorderSizePixel  = 0,
+                    TextColor3       = Color3.fromRGB(120,110,180),
+                    Parent           = row,
+                })
+                Corner(lockBtn, 6)
+                Stroke(lockBtn, Theme.Glow, 1, .75)
+
+                lockBtn.MouseButton1Click:Connect(function()
+                    fabLocked = not fabLocked
+                    lockBtn.Text = fabLocked and "●" or "○"
+                    TweenService:Create(lockBtn, Config.Tween, {
+                        BackgroundColor3 = fabLocked
+                            and Color3.fromRGB(80,20,120)
+                            or  Color3.fromRGB(20,16,48),
+                        TextColor3 = fabLocked
+                            and Color3.fromRGB(220,160,255)
+                            or  Color3.fromRGB(120,110,180),
+                    }):Play()
+                    -- Passa o estado de lock para o FAB
+                    if fab then
+                        fab.SetLocked(fabLocked)
+                    end
+                end)
+            end
+
             local function Resize()
                 local h = descL.TextBounds.Y + nameL.TextBounds.Y + 36
                 el.Size = UDim2.new(1,0,0,math.max(h,58))
@@ -1467,3 +1541,4 @@ end)
 end
 
 return setmetatable({}, Library)
+
