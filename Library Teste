@@ -455,6 +455,79 @@ Stroke(toggleBtn, Theme.Glow, 1, .55)
 
 -- Toda a barra é arrastável
 Dragify(floatingBar)
+-- ── Stats Pill (FPS + Ping) ──────────────────────────────
+local statsPill = Create("Frame",{
+    Size             = UDim2.fromOffset(130, 40),
+    Position         = UDim2.new(0.5, -65, 0, 58),
+    BackgroundColor3 = Color3.fromRGB(10,8,28),
+    BorderSizePixel  = 0,
+    ZIndex           = 20,
+    Visible          = true,
+    Parent           = root,
+})
+Corner(statsPill, 10)
+local spStroke = Stroke(statsPill, Theme.Accent2, 1.5, .3)
+AnimateGradient(Gradient(spStroke,{
+    ColorSequenceKeypoint.new(0,   Theme.Accent2),
+    ColorSequenceKeypoint.new(.5,  Theme.Accent3),
+    ColorSequenceKeypoint.new(1,   Theme.Accent2),
+}))
+
+local fpsLabel = Create("TextLabel",{
+    Text               = "FPS: --",
+    Font               = Enum.Font.GothamBold,
+    TextSize           = 11,
+    TextColor3         = Color3.fromRGB(96,255,200),
+    BackgroundTransparency = 1,
+    Position           = UDim2.fromOffset(10, 4),
+    Size               = UDim2.fromOffset(110, 14),
+    TextXAlignment     = Enum.TextXAlignment.Left,
+    ZIndex             = 21,
+    Parent             = statsPill,
+})
+
+local pingLabel = Create("TextLabel",{
+    Text               = "Ping: --",
+    Font               = Enum.Font.Gotham,
+    TextSize           = 10,
+    TextColor3         = Theme.SubText,
+    BackgroundTransparency = 1,
+    Position           = UDim2.fromOffset(10, 22),
+    Size               = UDim2.fromOffset(110, 12),
+    TextXAlignment     = Enum.TextXAlignment.Left,
+    ZIndex             = 21,
+    Parent             = statsPill,
+})
+
+Dragify(statsPill)
+
+local frameCount = 0
+local lastTime   = tick()
+RunService.RenderStepped:Connect(function()
+    frameCount += 1
+    local now = tick()
+    if now - lastTime >= 1 then
+        local fps  = math.round(frameCount / (now - lastTime))
+        local ping = math.round(Players.LocalPlayer:GetNetworkPing() * 1000)
+
+        fpsLabel.Text       = "FPS: " .. fps
+        fpsLabel.TextColor3 = fps >= 50
+            and Color3.fromRGB(96,255,180)
+            or  fps >= 30
+            and Color3.fromRGB(255,200,80)
+            or  Color3.fromRGB(255,80,80)
+
+        pingLabel.Text       = "Ping: " .. ping .. " ms"
+        pingLabel.TextColor3 = ping <= 80
+            and Color3.fromRGB(96,255,180)
+            or  ping <= 150
+            and Color3.fromRGB(255,200,80)
+            or  Color3.fromRGB(255,80,80)
+
+        frameCount = 0
+        lastTime   = now
+    end
+end)
 
     -- ── Window wrap & prism border ────────────────────────────
     local wrap = Create("Frame",{
@@ -751,6 +824,7 @@ local menuVisible = true
 toggleBtn.MouseButton1Click:Connect(function()
     menuVisible = not menuVisible
     wrap.Visible = menuVisible
+    statsPill.Visible = menuVisible
     toggleBtn.Text = "◉"
     TweenService:Create(toggleBtn, Config.Tween, {
         TextColor3       = menuVisible
