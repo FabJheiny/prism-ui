@@ -264,7 +264,6 @@ local function CreateFloatingActionButton(root, opts)
     end)
 
 -- Drag pelo ícone via botão invisível sobreposto (funciona mesmo após pill ficar visível)
-    local locked = false
     local draggingPill = false
     local dragStartPos, pillStartPos
 
@@ -278,7 +277,6 @@ local function CreateFloatingActionButton(root, opts)
     })
 
     dragHandle.InputBegan:Connect(function(input)
-        if locked then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1
         or input.UserInputType == Enum.UserInputType.Touch then
             draggingPill = true
@@ -325,7 +323,7 @@ local function CreateFloatingActionButton(root, opts)
         end)
     end
 
-    return { Frame = pill, Show = Show, Hide = Hide, SetLocked = function(v) locked = v end }
+    return { Frame = pill, Show = Show, Hide = Hide }
 end
 
 -- ────────────────────────────────────────────────────────────
@@ -978,44 +976,6 @@ end)
                 Parent           = track,
             })
             Corner(knob, 999)
-
-            -- Botão de lock do FAB (só aparece se tiver FloatingButton)
-            local fabLocked = false
-            local lockBtn = nil
-            if d.FloatingButton then
-                lockBtn = Create("TextButton",{
-                    Text             = "○",
-                    Font             = Enum.Font.GothamBold,
-                    TextSize         = 14,
-                    AutoButtonColor  = false,
-                    Size             = UDim2.fromOffset(24,24),
-                    Position         = UDim2.new(1,-82,0,0),  -- à esquerda do track
-                    BackgroundColor3 = Color3.fromRGB(20,16,48),
-                    BackgroundTransparency = .4,
-                    BorderSizePixel  = 0,
-                    TextColor3       = Color3.fromRGB(120,110,180),
-                    Parent           = row,
-                })
-                Corner(lockBtn, 6)
-                Stroke(lockBtn, Theme.Glow, 1, .75)
-
-                lockBtn.MouseButton1Click:Connect(function()
-                    fabLocked = not fabLocked
-                    lockBtn.Text = fabLocked and "●" or "○"
-                    TweenService:Create(lockBtn, Config.Tween, {
-                        BackgroundColor3 = fabLocked
-                            and Color3.fromRGB(80,20,120)
-                            or  Color3.fromRGB(20,16,48),
-                        TextColor3 = fabLocked
-                            and Color3.fromRGB(220,160,255)
-                            or  Color3.fromRGB(120,110,180),
-                    }):Play()
-                    -- Passa o estado de lock para o FAB
-                    if fab then
-                        fab.SetLocked(fabLocked)
-                    end
-                end)
-            end
 
             local function Resize()
                 local h = descL.TextBounds.Y + nameL.TextBounds.Y + 36
