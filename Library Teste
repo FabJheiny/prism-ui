@@ -230,16 +230,27 @@ local function CreateFloatingActionButton(root, opts)
         Text               = "",
         AutoButtonColor    = false,
         BackgroundTransparency = 1,
-        Size               = UDim2.fromScale(1,1),
+        Position           = UDim2.fromOffset(44, 0),   -- começa depois do ícone
+        Size               = UDim2.new(1, -44, 1, 0),   -- ocupa só a área de texto
         ZIndex             = pill.ZIndex + 10,
         ClipsDescendants   = false,
         Parent             = pill,
     })
 
-    -- Arraste
-    Dragify(pill, iconFrame)
+    -- Ícone vira TextButton para capturar input do drag
+    local dragHandle = Create("TextButton",{
+        Text               = "",
+        AutoButtonColor    = false,
+        BackgroundTransparency = 1,
+        Size               = UDim2.fromScale(1,1),
+        ZIndex             = iconFrame.ZIndex + 5,
+        Parent             = iconFrame,
+    })
 
-    -- Clique: ripple + callback
+    -- Arraste apenas pelo ícone
+    Dragify(pill, dragHandle)
+
+    -- Clique: ripple + callback (área toda exceto ícone)
     hitBtn.MouseButton1Click:Connect(function()
         Ripple(hitBtn)
         TweenService:Create(glowBg, TweenInfo.new(.07), {
@@ -1467,4 +1478,3 @@ end)
 end
 
 return setmetatable({}, Library)
-
