@@ -122,6 +122,185 @@ local function AnimateGradient(g)
 end
 
 -- ────────────────────────────────────────────────────────────
+-- CreateFloatingActionButton (interno)
+-- Cria um botão flutuante arrastável na tela vinculado a um toggle.
+-- Retorna o frame raiz para que o toggle possa mostrá-lo/ocultá-lo.
+-- ────────────────────────────────────────────────────────────
+
+local function CreateFloatingActionButton(root, opts)
+    -- opts: { Label, Icon, Description, Position, Callback }
+    local label       = opts.Label       or "Action"
+    local icon        = opts.Icon        or "▶"
+    local description = opts.Description or ""
+    local startPos    = opts.Position    or UDim2.new(0.5, -56, 0.85, 0)
+    local callback    = opts.Callback
+
+    -- Wrapper pill
+    local pill = Create("Frame",{
+        Size             = UDim2.fromOffset(112, 44),
+        Position         = startPos,
+        BackgroundColor3 = Color3.fromRGB(10,8,28),
+        BorderSizePixel  = 0,
+        ZIndex           = 50,
+        Visible          = false,   -- começa oculto; o toggle controla
+        Parent           = root,
+    })
+    Corner(pill, 22)
+
+    -- Borda animada igual ao estilo Prism
+    local pillStroke = Stroke(pill, Theme.Accent1, 1.5, .3)
+    AnimateGradient(Gradient(pillStroke,{
+        ColorSequenceKeypoint.new(0,   Theme.Accent1),
+        ColorSequenceKeypoint.new(.33, Theme.Accent2),
+        ColorSequenceKeypoint.new(.66, Theme.Accent3),
+        ColorSequenceKeypoint.new(1,   Theme.Accent1),
+    }))
+
+    -- Glow de fundo suave
+    local glowBg = Create("Frame",{
+        Size             = UDim2.fromScale(1,1),
+        BackgroundColor3 = Theme.Glow,
+        BackgroundTransparency = .88,
+        BorderSizePixel  = 0,
+        ZIndex           = pill.ZIndex - 1,
+        Parent           = pill,
+    })
+    Corner(glowBg, 22)
+
+    -- Ícone (lado esquerdo)
+    local iconFrame = Create("Frame",{
+        Size             = UDim2.fromOffset(32,32),
+        Position         = UDim2.fromOffset(6,6),
+        BackgroundColor3 = Theme.Glow,
+        BackgroundTransparency = .6,
+        BorderSizePixel  = 0,
+        ZIndex           = pill.ZIndex + 1,
+        Parent           = pill,
+    })
+    Corner(iconFrame, 999)
+    Gradient(iconFrame,{
+        ColorSequenceKeypoint.new(0, Theme.Accent1),
+        ColorSequenceKeypoint.new(1, Theme.Accent2),
+    },45)
+
+    local iconLabel = Create("TextLabel",{
+        Text               = icon,
+        Font               = Enum.Font.GothamBold,
+        TextSize           = 15,
+        TextColor3         = Color3.new(1,1,1),
+        BackgroundTransparency = 1,
+        Size               = UDim2.fromScale(1,1),
+        ZIndex             = pill.ZIndex + 2,
+        Parent             = iconFrame,
+    })
+
+    -- Texto (lado direito)
+    local textLabel = Create("TextLabel",{
+        Text               = label,
+        Font               = Enum.Font.GothamBold,
+        TextSize           = 11,
+        TextColor3         = Color3.fromRGB(210,196,255),
+        BackgroundTransparency = 1,
+        Position           = UDim2.fromOffset(44, 7),
+        Size               = UDim2.new(1,-50,0,14),
+        TextXAlignment     = Enum.TextXAlignment.Left,
+        TextTruncate       = Enum.TextTruncate.AtEnd,
+        ZIndex             = pill.ZIndex + 1,
+        Parent             = pill,
+    })
+
+    if description ~= "" then
+        Create("TextLabel",{
+            Text               = description,
+            Font               = Enum.Font.Gotham,
+            TextSize           = 8,
+            TextColor3         = Theme.SubText,
+            BackgroundTransparency = 1,
+            Position           = UDim2.fromOffset(44, 23),
+            Size               = UDim2.new(1,-50,0,12),
+            TextXAlignment     = Enum.TextXAlignment.Left,
+            TextTruncate       = Enum.TextTruncate.AtEnd,
+            ZIndex             = pill.ZIndex + 1,
+            Parent             = pill,
+        })
+    end
+
+    -- Botão invisível cobrindo o pill inteiro (captura clique + drag)
+    local hitBtn = Create("TextButton",{
+        Text               = "",
+        AutoButtonColor    = false,
+        BackgroundTransparency = 1,
+        Size               = UDim2.fromScale(1,1),
+        ZIndex             = pill.ZIndex + 10,
+        ClipsDescendants   = false,
+        Parent             = pill,
+    })
+
+    -- Arraste
+    Dragify(pill, hitBtn)
+
+    -- Clique: ripple + callback
+    hitBtn.MouseButton1Click:Connect(function()
+        Ripple(hitBtn)
+        TweenService:Create(glowBg, TweenInfo.new(.07), {
+            BackgroundTransparency = .6
+        }):Play()
+        task.delay(.07, function()
+            TweenService:Create(glowBg, TweenInfo.new(.18), {
+                BackgroundTransparency = .88
+            }):Play()
+        end)
+        if callback then task.spawn(callback) end
+    end)
+
+    -- Hover: leve pulso de escala (simulado via tamanho)
+    hitBtn.MouseEnter:Connect(function()
+        TweenService:Create(pill, TweenInfo.new(.14, Enum.EasingStyle.Quint), {
+            Size = UDim2.fromOffset(118, 46),
+            Position = UDim2.new(
+                pill.Position.X.Scale,
+                pill.Position.X.Offset - 3,
+                pill.Position.Y.Scale,
+                pill.Position.Y.Offset - 1
+            )
+        }):Play()
+    end)
+    hitBtn.MouseLeave:Connect(function()
+        TweenService:Create(pill, TweenInfo.new(.14, Enum.EasingStyle.Quint), {
+            Size = UDim2.fromOffset(112, 44),
+            Position = UDim2.new(
+                pill.Position.X.Scale,
+                pill.Position.X.Offset + 3,
+                pill.Position.Y.Scale,
+                pill.Position.Y.Offset + 1
+            )
+        }):Play()
+    end)
+
+    -- Funções de show/hide com animação
+    local function Show()
+        pill.Visible = true
+        pill.BackgroundTransparency = 1
+        TweenService:Create(pill, TweenInfo.new(.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0,
+        }):Play()
+    end
+
+    local function Hide()
+        TweenService:Create(pill, TweenInfo.new(.18, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+            BackgroundTransparency = 1,
+        }):Play()
+        task.delay(.2, function()
+            if pill and pill.Parent then
+                pill.Visible = false
+            end
+        end)
+    end
+
+    return { Frame = pill, Show = Show, Hide = Hide }
+end
+
+-- ────────────────────────────────────────────────────────────
 -- CreateWindow
 -- ────────────────────────────────────────────────────────────
 
@@ -678,10 +857,38 @@ end)
             return el
         end
 
-        -- ── Toggle ────────────────────────────────────────────
+        -- ── Toggle (com suporte a FloatingButton) ─────────────
+        --
+        -- NOVO: d.FloatingButton (opcional)
+        --   Se informado, ao ativar o toggle um botão pill flutuante
+        --   aparece na tela. Ao desativar, some com animação.
+        --
+        --   Campos de d.FloatingButton:
+        --     Label       string  — texto exibido no pill
+        --     Icon        string  — emoji/símbolo no ícone (padrão "▶")
+        --     Description string  — subtexto menor (opcional)
+        --     Position    UDim2   — posição inicial (padrão centro-baixo)
+        --     Callback    function — executada ao clicar no pill
+        --
         function tabObj:CreateToggle(d)
             local enabled = d.Default or false
             local el      = CreateElement(58)
+
+            -- Cria o botão flutuante agora (oculto) se configurado
+            local fab = nil
+            if d.FloatingButton then
+                fab = CreateFloatingActionButton(root, {
+                    Label       = d.FloatingButton.Label,
+                    Icon        = d.FloatingButton.Icon,
+                    Description = d.FloatingButton.Description or "",
+                    Position    = d.FloatingButton.Position,
+                    Callback    = d.FloatingButton.Callback,
+                })
+                -- Se o toggle já começa ativado, mostra de imediato
+                if enabled then
+                    fab.Frame.Visible = true
+                end
+            end
 
             local row = Create("Frame",{
                 BackgroundTransparency = 1,
@@ -759,6 +966,16 @@ end)
                     Position         = state and UDim2.fromOffset(21,3) or UDim2.fromOffset(3,3),
                     BackgroundColor3 = state and Color3.new(1,1,1) or Color3.fromRGB(24,22,58),
                 }):Play()
+
+                -- ── Controla visibilidade do FAB ──────────────
+                if fab then
+                    if state then
+                        fab.Show()
+                    else
+                        fab.Hide()
+                    end
+                end
+
                 if d.Callback then task.spawn(d.Callback, state) end
             end
 
@@ -767,7 +984,6 @@ end)
         end
 
         -- ── Slider ────────────────────────────────────────────
-        -- FIX: RenderStepped enquanto arrasta + hitzone cobrindo a track toda
         function tabObj:CreateSlider(d)
             local min   = d.Min or 0
             local max   = d.Max or 100
@@ -809,7 +1025,6 @@ end)
                 ColorSequenceKeypoint.new(1, Color3.fromRGB(96,144,255)),
             })
 
-            -- TextBox transparente por cima do label para digitação direta
             local valBox = Create("TextBox",{
                 Text               = "",
                 PlaceholderText    = "",
@@ -833,7 +1048,6 @@ end)
                 valLabel.Visible        = false
             end)
 
-            -- Track mais alta para facilitar clique/toque
             local track = Create("Frame",{
                 Size             = UDim2.new(1,-28,0,10),
                 Position         = UDim2.fromOffset(14,44),
@@ -855,7 +1069,6 @@ end)
                 ColorSequenceKeypoint.new(1, Theme.Accent2),
             })
 
-            -- Thumb
             local thumb = Create("Frame",{
                 AnchorPoint      = Vector2.new(.5,.5),
                 Position         = UDim2.new((value-min)/(max-min),0,.5,0),
@@ -870,7 +1083,6 @@ end)
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(255,96,144)),
                 ColorSequenceKeypoint.new(1, Theme.Accent2),
             })
-            -- ponto branco central no thumb
             local thumbDot = Create("Frame",{
                 AnchorPoint      = Vector2.new(.5,.5),
                 Position         = UDim2.fromScale(.5,.5),
@@ -882,8 +1094,6 @@ end)
             })
             Corner(thumbDot, 999)
 
-            -- Zona de clique invisível cobrindo TODA a largura da track
-            -- e altura generosa (40px) para facilitar toque/mouse
             local hitZone = Create("TextButton",{
                 Text               = "",
                 BackgroundTransparency = 1,
@@ -897,8 +1107,7 @@ end)
 
             local dragging   = false
             local renderConn = nil
-
-            local lastValue = value
+            local lastValue  = value
 
             local function SyncUI(v)
                 local newVal = math.clamp(math.floor(v + .5), min, max)
@@ -906,7 +1115,6 @@ end)
                 fill.Size        = UDim2.new(pct, 0, 1, 0)
                 thumb.Position   = UDim2.new(pct, 0, .5, 0)
                 valLabel.Text    = tostring(newVal)
-                -- callback apenas quando o valor muda de fato
                 if newVal ~= lastValue then
                     value     = newVal
                     lastValue = newVal
@@ -925,7 +1133,6 @@ end)
                 if dragging then return end
                 dragging = true
                 FromMouse()
-                -- RenderStepped: resposta imediata a cada frame enquanto arrasta
                 renderConn = RunService.RenderStepped:Connect(function()
                     if dragging then FromMouse() end
                 end)
@@ -947,7 +1154,6 @@ end)
                 end
             end)
 
-            -- Soltar em qualquer lugar da tela para o drag
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1
                 or input.UserInputType == Enum.UserInputType.Touch then
@@ -967,8 +1173,6 @@ end)
         end
 
         -- ── Button ────────────────────────────────────────────
-        -- FIX: ClipsDescendants=true impede que o ripple (Frame 200x200)
-        --      vaze para fora e cause aparência de crescimento do botão
         function tabObj:CreateButton(d)
             local btn = Create("TextButton",{
                 Text             = d.Name or "Button",
@@ -981,7 +1185,7 @@ end)
                 BackgroundTransparency = .97,
                 BorderSizePixel  = 0,
                 TextColor3       = Color3.fromRGB(192,176,255),
-                ClipsDescendants = true,   -- ← correção principal
+                ClipsDescendants = true,
                 Parent           = page,
             })
             Corner(btn, 11)
@@ -998,7 +1202,6 @@ end)
 
             btn.MouseButton1Click:Connect(function()
                 Ripple(btn)
-                -- apenas pulso de transparência, sem mexer no Size
                 TweenService:Create(btn, TweenInfo.new(.07), {
                     BackgroundTransparency = .80
                 }):Play()
@@ -1012,7 +1215,6 @@ end)
         end
 
         -- ── Dropdown ──────────────────────────────────────────
-        -- FIX: optList.Visible=false quando fechado; sem espaço fantasma
         function tabObj:CreateDropdown(d)
             local options  = d.Options or {}
             local current  = d.Default or options[1] or "None"
@@ -1077,7 +1279,6 @@ end)
                 Parent             = row,
             })
 
-            -- seta animada (rotaciona 180° ao abrir)
             local arrowL = Create("TextLabel",{
                 Text               = "v",
                 Font               = Enum.Font.GothamBold,
@@ -1091,12 +1292,11 @@ end)
                 Parent             = row,
             })
 
-            -- Lista de opções: inicia INVISÍVEL para não ocupar espaço
             local optList = Create("Frame",{
                 BackgroundTransparency = 1,
                 Position               = UDim2.fromOffset(0,CLOSED_H),
                 Size                   = UDim2.new(1,0,0,#options*30),
-                Visible                = false,   -- ← correção principal
+                Visible                = false,
                 Parent                 = el,
             })
             Create("UIListLayout",{ Parent = optList })
@@ -1128,14 +1328,13 @@ end)
                     current   = opt
                     valL.Text = opt
                     open      = true
-                    row.MouseButton1Click:Fire()  -- fecha
+                    row.MouseButton1Click:Fire()
                     if d.Callback then task.spawn(d.Callback, opt) end
                 end)
             end
 
             row.MouseButton1Click:Connect(function()
                 open = not open
-                -- mostrar/esconder lista antes/depois da animação
                 if open then
                     optList.Visible = true
                 end
@@ -1280,3 +1479,4 @@ end)
 end
 
 return setmetatable({}, Library)
+
