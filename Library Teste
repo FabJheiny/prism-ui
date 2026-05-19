@@ -713,19 +713,33 @@ function Library:CreateWindow(data)
         Parent             = topbar,
     })
 
-    local badge = Create("TextLabel",{
+    local statsVisible = true
+    local badge = Create("TextButton",{
         Text               = "ACTIVE",
         Font               = Enum.Font.GothamBold,
         TextSize           = 10,
         TextColor3         = Color3.fromRGB(144,128,216),
         BackgroundColor3   = Theme.Glow,
         BackgroundTransparency = .85,
+        AutoButtonColor    = false,
         Position           = UDim2.new(1,-78,0,15),
         Size               = UDim2.fromOffset(60,20),
         Parent             = topbar,
     })
     Corner(badge, 10)
     Stroke(badge, Theme.Glow, 1, .8)
+
+    badge.MouseButton1Click:Connect(function()
+        statsVisible = not statsVisible
+        fpsPill.Visible  = statsVisible
+        pingPill.Visible = statsVisible
+        TweenService:Create(badge, Config.Tween, {
+            BackgroundTransparency = statsVisible and .85 or .95,
+            TextColor3             = statsVisible
+                and Color3.fromRGB(144,128,216)
+                or  Theme.SubText,
+        }):Play()
+    end)
 
     -- ── FPS / Ping bar (inline, centro do topbar) ─────────────
     local fpsPill = Create("Frame",{
@@ -1588,4 +1602,3 @@ function Library:CreateWindow(data)
 end
 
 return setmetatable({}, Library)
-
