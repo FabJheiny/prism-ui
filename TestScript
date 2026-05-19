@@ -82,6 +82,25 @@ Combat:CreateToggle({
     end
 })
 
+Combat:CreateToggle({
+    Name = "Kill Reset",
+    Description = "Exibe o botão flutuante para resetar o personagem.",
+    Default = false,
+    FloatingButton = {
+        Label       = "Reset",
+        Icon        = "💀",
+        Description = "Break joints",
+        Position    = UDim2.new(0.5, -56, 0.85, 0),
+        Callback    = function()
+            local char = game.Players.LocalPlayer.Character
+            if char then
+                char:BreakJoints()
+            end
+        end,
+    },
+    Callback = function(v) end
+})
+
 Combat:CreateSlider({
     Name = "Attack Range",
     Min = 5,
