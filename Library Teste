@@ -803,15 +803,10 @@ end)
             Size               = UDim2.fromScale(1,1),
             BackgroundColor3   = Theme.Glow,
             BackgroundTransparency = 1,
-            ZIndex             = 0,
+            ZIndex             = -1,
             Parent             = tabBtn,
         })
         Corner(bg, 9)
-        Create("UIPadding",{
-            PaddingLeft  = UDim.new(0,2),
-            PaddingRight = UDim.new(0,2),
-            Parent       = bg,
-        })
 
         local page = Create("ScrollingFrame",{
             Visible                = false,
@@ -1489,3 +1484,4 @@ end)
 end
 
 return setmetatable({}, Library)
+
