@@ -791,7 +791,7 @@ end)
 
         local glowBar = Create("Frame",{
     Size             = UDim2.fromOffset(3,0),
-    Position         = UDim2.new(0,6,.5,0),
+    Position         = UDim2.new(0,10,.5,0),
     AnchorPoint      = Vector2.new(0,.5),
             BackgroundColor3 = Theme.Accent1,
             BorderSizePixel  = 0,
@@ -811,6 +811,10 @@ end)
             Parent           = tabBtn,
         })
         Corner(dot, 999)
+        Gradient(dot,{                                        -- adiciona isso
+    ColorSequenceKeypoint.new(0, Theme.Accent1),
+    ColorSequenceKeypoint.new(1, Theme.Accent2),
+},90)
 
         local tabText = Create("TextLabel",{
             Text               = name,
