@@ -123,26 +123,31 @@ end
 
 -- ────────────────────────────────────────────────────────────
 -- CreateFloatingActionButton (interno)
+-- Cria um botão flutuante arrastável na tela vinculado a um toggle.
+-- Retorna o frame raiz para que o toggle possa mostrá-lo/ocultá-lo.
 -- ────────────────────────────────────────────────────────────
 
 local function CreateFloatingActionButton(root, opts)
+    -- opts: { Label, Icon, Description, Position, Callback }
     local label       = opts.Label       or "Action"
     local icon        = opts.Icon        or "▶"
     local description = opts.Description or ""
     local startPos    = opts.Position    or UDim2.new(0.5, -56, 0.85, 0)
     local callback    = opts.Callback
 
+    -- Wrapper pill
     local pill = Create("Frame",{
         Size             = UDim2.fromOffset(112, 44),
         Position         = startPos,
         BackgroundColor3 = Color3.fromRGB(10,8,28),
         BorderSizePixel  = 0,
         ZIndex           = 50,
-        Visible          = false,
+        Visible          = false,   -- começa oculto; o toggle controla
         Parent           = root,
     })
     Corner(pill, 22)
 
+    -- Borda animada igual ao estilo Prism
     local pillStroke = Stroke(pill, Theme.Accent1, 1.5, .3)
     AnimateGradient(Gradient(pillStroke,{
         ColorSequenceKeypoint.new(0,   Theme.Accent1),
@@ -151,6 +156,7 @@ local function CreateFloatingActionButton(root, opts)
         ColorSequenceKeypoint.new(1,   Theme.Accent1),
     }))
 
+    -- Glow de fundo suave
     local glowBg = Create("Frame",{
         Size             = UDim2.fromScale(1,1),
         BackgroundColor3 = Theme.Glow,
@@ -161,6 +167,7 @@ local function CreateFloatingActionButton(root, opts)
     })
     Corner(glowBg, 22)
 
+    -- Ícone (lado esquerdo)
     local iconFrame = Create("Frame",{
         Size             = UDim2.fromOffset(32,32),
         Position         = UDim2.fromOffset(6,6),
@@ -176,7 +183,7 @@ local function CreateFloatingActionButton(root, opts)
         ColorSequenceKeypoint.new(1, Theme.Accent2),
     },45)
 
-    Create("TextLabel",{
+    local iconLabel = Create("TextLabel",{
         Text               = icon,
         Font               = Enum.Font.GothamBold,
         TextSize           = 15,
@@ -187,7 +194,8 @@ local function CreateFloatingActionButton(root, opts)
         Parent             = iconFrame,
     })
 
-    Create("TextLabel",{
+    -- Texto (lado direito)
+    local textLabel = Create("TextLabel",{
         Text               = label,
         Font               = Enum.Font.GothamBold,
         TextSize           = 11,
@@ -217,6 +225,7 @@ local function CreateFloatingActionButton(root, opts)
         })
     end
 
+    -- Botão invisível cobrindo apenas a área de texto (clique)
     local hitBtn = Create("TextButton",{
         Text               = "",
         AutoButtonColor    = false,
@@ -228,6 +237,7 @@ local function CreateFloatingActionButton(root, opts)
         Parent             = pill,
     })
 
+    -- Clique: ripple + callback
     hitBtn.MouseButton1Click:Connect(function()
         Ripple(hitBtn)
         TweenService:Create(glowBg, TweenInfo.new(.07), {
@@ -241,6 +251,7 @@ local function CreateFloatingActionButton(root, opts)
         if callback then task.spawn(callback) end
     end)
 
+    -- Hover: só tamanho, sem mexer em Position
     hitBtn.MouseEnter:Connect(function()
         TweenService:Create(pill, TweenInfo.new(.14, Enum.EasingStyle.Quint), {
             Size = UDim2.fromOffset(118, 46),
@@ -252,6 +263,7 @@ local function CreateFloatingActionButton(root, opts)
         }):Play()
     end)
 
+-- Drag pelo ícone via botão invisível sobreposto (funciona mesmo após pill ficar visível)
     local draggingPill = false
     local dragStartPos, pillStartPos
 
@@ -291,6 +303,7 @@ local function CreateFloatingActionButton(root, opts)
         end
     end)
 
+    -- Funções de show/hide com animação
     local function Show()
         pill.Visible = true
         pill.BackgroundTransparency = 1
@@ -334,112 +347,116 @@ function Library:CreateWindow(data)
         Parent                 = gui,
     })
 
-    -- ── Floating Bar ──────────────────────────────────────────
-    local floatingBar = Create("Frame",{
-        Size             = UDim2.fromOffset(200, 40),
-        Position         = UDim2.new(0.5, -100, 0, 12),
-        BackgroundColor3 = Color3.fromRGB(10,8,26),
-        BorderSizePixel  = 0,
-        ZIndex           = 20,
-        Parent           = root,
-    })
-    Corner(floatingBar, 10)
-    local fbStroke = Stroke(floatingBar, Theme.Glow, 1, .45)
-    AnimateGradient(Gradient(fbStroke,{
-        ColorSequenceKeypoint.new(0,  Theme.Accent1),
-        ColorSequenceKeypoint.new(.5, Theme.Accent2),
-        ColorSequenceKeypoint.new(1,  Theme.Accent3),
-    }))
+-- ── Floating Bar (avatar + toggle, arrastrável, topo central) ──
+local floatingBar = Create("Frame",{
+    Size             = UDim2.fromOffset(200, 40),
+    Position         = UDim2.new(0.5, -100, 0, 12),
+    BackgroundColor3 = Color3.fromRGB(10,8,26),
+    BorderSizePixel  = 0,
+    ZIndex           = 20,
+    Parent           = root,
+})
+Corner(floatingBar, 10)
+local fbStroke = Stroke(floatingBar, Theme.Glow, 1, .45)
+AnimateGradient(Gradient(fbStroke,{
+    ColorSequenceKeypoint.new(0,  Theme.Accent1),
+    ColorSequenceKeypoint.new(.5, Theme.Accent2),
+    ColorSequenceKeypoint.new(1,  Theme.Accent3),
+}))
 
-    local wgAvatarBg = Create("Frame",{
-        Size             = UDim2.fromOffset(26,26),
-        Position         = UDim2.fromOffset(7,7),
-        BackgroundColor3 = Color3.fromRGB(20,16,42),
-        BorderSizePixel  = 0,
-        ZIndex           = 22,
-        Parent           = floatingBar,
-    })
-    Corner(wgAvatarBg, 999)
+-- Avatar
+local wgAvatarBg = Create("Frame",{
+    Size             = UDim2.fromOffset(26,26),
+    Position         = UDim2.fromOffset(7,7),
+    BackgroundColor3 = Color3.fromRGB(20,16,42),
+    BorderSizePixel  = 0,
+    ZIndex           = 22,
+    Parent           = floatingBar,
+})
+Corner(wgAvatarBg, 999)
 
-    local wgRing = Create("Frame",{
-        Size                   = UDim2.fromOffset(30,30),
-        Position               = UDim2.fromOffset(5,5),
-        BackgroundTransparency = 1,
-        BorderSizePixel        = 0,
-        ZIndex                 = 21,
-        Parent                 = floatingBar,
-    })
-    Corner(wgRing, 999)
-    local wgRingS = Stroke(wgRing, Theme.Accent1, 1.5, .3)
-    Gradient(wgRingS,{
-        ColorSequenceKeypoint.new(0, Theme.Accent1),
-        ColorSequenceKeypoint.new(1, Theme.Accent2),
-    })
+local wgRing = Create("Frame",{
+    Size                   = UDim2.fromOffset(30,30),
+    Position               = UDim2.fromOffset(5,5),
+    BackgroundTransparency = 1,
+    BorderSizePixel        = 0,
+    ZIndex                 = 21,
+    Parent                 = floatingBar,
+})
+Corner(wgRing, 999)
+local wgRingS = Stroke(wgRing, Theme.Accent1, 1.5, .3)
+Gradient(wgRingS,{
+    ColorSequenceKeypoint.new(0, Theme.Accent1),
+    ColorSequenceKeypoint.new(1, Theme.Accent2),
+})
 
-    local wgAvatar = Create("ImageLabel",{
-        Size                   = UDim2.fromScale(1,1),
-        BackgroundTransparency = 1,
-        Image                  = "",
-        ZIndex                 = 23,
-        Parent                 = wgAvatarBg,
-    })
-    Corner(wgAvatar, 999)
-    task.spawn(function()
-        local ok, img = pcall(function()
-            return Players:GetUserThumbnailAsync(
-                LocalPlayer.UserId,
-                Enum.ThumbnailType.HeadShot,
-                Enum.ThumbnailSize.Size48x48)
-        end)
-        if ok then wgAvatar.Image = img end
+local wgAvatar = Create("ImageLabel",{
+    Size                   = UDim2.fromScale(1,1),
+    BackgroundTransparency = 1,
+    Image                  = "",
+    ZIndex                 = 23,
+    Parent                 = wgAvatarBg,
+})
+Corner(wgAvatar, 999)
+task.spawn(function()
+    local ok, img = pcall(function()
+        return Players:GetUserThumbnailAsync(
+            LocalPlayer.UserId,
+            Enum.ThumbnailType.HeadShot,
+            Enum.ThumbnailSize.Size48x48)
     end)
+    if ok then wgAvatar.Image = img end
+end)
 
-    Create("TextLabel",{
-        Text                   = LocalPlayer.DisplayName,
-        Font                   = Enum.Font.GothamBold,
-        TextSize               = 10,
-        TextColor3             = Color3.fromRGB(210,196,255),
-        BackgroundTransparency = 1,
-        Position               = UDim2.fromOffset(41,5),
-        Size                   = UDim2.new(1,-82,0,14),
-        TextXAlignment         = Enum.TextXAlignment.Left,
-        TextTruncate           = Enum.TextTruncate.AtEnd,
-        ZIndex                 = 22,
-        Parent                 = floatingBar,
-    })
-    Create("TextLabel",{
-        Text                   = "@"..LocalPlayer.Name,
-        Font                   = Enum.Font.Gotham,
-        TextSize               = 8,
-        TextColor3             = Theme.SubText,
-        BackgroundTransparency = 1,
-        Position               = UDim2.fromOffset(41,20),
-        Size                   = UDim2.new(1,-82,0,12),
-        TextXAlignment         = Enum.TextXAlignment.Left,
-        TextTruncate           = Enum.TextTruncate.AtEnd,
-        ZIndex                 = 22,
-        Parent                 = floatingBar,
-    })
+-- Nomes
+Create("TextLabel",{
+    Text                   = LocalPlayer.DisplayName,
+    Font                   = Enum.Font.GothamBold,
+    TextSize               = 10,
+    TextColor3             = Color3.fromRGB(210,196,255),
+    BackgroundTransparency = 1,
+    Position               = UDim2.fromOffset(41,5),
+    Size                   = UDim2.new(1,-82,0,14),
+    TextXAlignment         = Enum.TextXAlignment.Left,
+    TextTruncate           = Enum.TextTruncate.AtEnd,
+    ZIndex                 = 22,
+    Parent                 = floatingBar,
+})
+Create("TextLabel",{
+    Text                   = "@"..LocalPlayer.Name,
+    Font                   = Enum.Font.Gotham,
+    TextSize               = 8,
+    TextColor3             = Theme.SubText,
+    BackgroundTransparency = 1,
+    Position               = UDim2.fromOffset(41,20),
+    Size                   = UDim2.new(1,-82,0,12),
+    TextXAlignment         = Enum.TextXAlignment.Left,
+    TextTruncate           = Enum.TextTruncate.AtEnd,
+    ZIndex                 = 22,
+    Parent                 = floatingBar,
+})
 
-    local toggleBtn = Create("TextButton",{
-        Text             = "◉",
-        Font             = Enum.Font.GothamBold,
-        TextSize         = 20,
-        TextColor3       = Color3.fromRGB(180,160,255),
-        AutoButtonColor  = false,
-        Size             = UDim2.fromOffset(30,30),
-        Position         = UDim2.new(1,-34, 0, 5),
-        BackgroundColor3 = Color3.fromRGB(18,14,38),
-        BorderSizePixel  = 0,
-        ZIndex           = 23,
-        Parent           = floatingBar,
-    })
-    Corner(toggleBtn, 8)
-    Stroke(toggleBtn, Theme.Glow, 1, .55)
+-- Botão toggle (lado direito)
+local toggleBtn = Create("TextButton",{
+    Text             = "◉",
+    Font             = Enum.Font.GothamBold,
+    TextSize         = 20,
+    TextColor3       = Color3.fromRGB(180,160,255),
+    AutoButtonColor  = false,
+    Size             = UDim2.fromOffset(30,30),
+    Position         = UDim2.new(1,-34, 0, 5),
+    BackgroundColor3 = Color3.fromRGB(18,14,38),
+    BorderSizePixel  = 0,
+    ZIndex           = 23,
+    Parent           = floatingBar,
+})
+Corner(toggleBtn, 8)
+Stroke(toggleBtn, Theme.Glow, 1, .55)
 
-    Dragify(floatingBar)
+-- Toda a barra é arrastável
+Dragify(floatingBar)
 
-    -- ── Window wrap & prism border ─────────────────────────────
+    -- ── Window wrap & prism border ────────────────────────────
     local wrap = Create("Frame",{
         Size        = Config.WindowSize,
         Position    = UDim2.fromScale(.5,.5),
@@ -487,7 +504,7 @@ function Library:CreateWindow(data)
         Parent            = window,
     })
 
-    -- ── Sidebar ────────────────────────────────────────────────
+    -- ── Sidebar ───────────────────────────────────────────────
     local sidebar = Create("Frame",{
         Size             = UDim2.new(0,Config.SidebarWidth,1,0),
         BackgroundColor3 = Theme.Sidebar,
@@ -519,6 +536,7 @@ function Library:CreateWindow(data)
         ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
     },90)
 
+    -- brand header
     local brand = Create("Frame",{
         Size               = UDim2.new(1,0,0,82),
         BackgroundTransparency = 1,
@@ -643,6 +661,7 @@ function Library:CreateWindow(data)
         Parent             = avatarFrame,
     })
     Corner(avatarImg, 999)
+
     task.spawn(function()
         local ok, img = pcall(function()
             return Players:GetUserThumbnailAsync(
@@ -678,7 +697,7 @@ function Library:CreateWindow(data)
         Parent             = playerCard,
     })
 
-    -- ── Content ────────────────────────────────────────────────
+    -- ── Content ───────────────────────────────────────────────
     local content = Create("Frame",{
         Position           = UDim2.new(0,Config.SidebarWidth,0,0),
         Size               = UDim2.new(1,-Config.SidebarWidth,1,0),
@@ -686,7 +705,6 @@ function Library:CreateWindow(data)
         Parent             = window,
     })
 
-    -- Topbar com altura aumentada para comportar a stats bar
     local topbar = Create("Frame",{
         Size               = UDim2.new(1,0,0,52),
         BackgroundTransparency = 1,
@@ -713,15 +731,13 @@ function Library:CreateWindow(data)
         Parent             = topbar,
     })
 
-    local statsVisible = true
-    local badge = Create("TextButton",{
+    local badge = Create("TextLabel",{
         Text               = "ACTIVE",
         Font               = Enum.Font.GothamBold,
         TextSize           = 10,
         TextColor3         = Color3.fromRGB(144,128,216),
         BackgroundColor3   = Theme.Glow,
         BackgroundTransparency = .85,
-        AutoButtonColor    = false,
         Position           = UDim2.new(1,-78,0,15),
         Size               = UDim2.fromOffset(60,20),
         Parent             = topbar,
@@ -729,158 +745,24 @@ function Library:CreateWindow(data)
     Corner(badge, 10)
     Stroke(badge, Theme.Glow, 1, .8)
 
-    badge.MouseButton1Click:Connect(function()
-        statsVisible = not statsVisible
-        fpsPill.Visible  = statsVisible
-        pingPill.Visible = statsVisible
-        TweenService:Create(badge, Config.Tween, {
-            BackgroundTransparency = statsVisible and .85 or .95,
-            TextColor3             = statsVisible
-                and Color3.fromRGB(144,128,216)
-                or  Theme.SubText,
-        }):Play()
-    end)
-
-    -- ── FPS / Ping bar (inline, centro do topbar) ─────────────
-    local fpsPill = Create("Frame",{
-        Size             = UDim2.fromOffset(72, 22),
-        Position         = UDim2.new(0.5, -82, 0, 15),
-        BackgroundColor3 = Color3.fromRGB(10,8,26),
-        BorderSizePixel  = 0,
-        Parent           = topbar,
-    })
-    Corner(fpsPill, 11)
-    Stroke(fpsPill, Theme.SubText, 1, .85)
-
-    Create("TextLabel",{
-        Text               = "FPS",
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 9,
-        TextColor3         = Theme.Accent2,
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(7, 0),
-        Size               = UDim2.fromOffset(24, 22),
-        TextXAlignment     = Enum.TextXAlignment.Left,
-        Parent             = fpsPill,
-    })
-
-    local fpsVal = Create("TextLabel",{
-        Text               = "...",
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 10,
-        TextColor3         = Theme.SubText,
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(30, 0),
-        Size               = UDim2.fromOffset(38, 22),
-        TextXAlignment     = Enum.TextXAlignment.Right,
-        Parent             = fpsPill,
-    })
-
-    local pingPill = Create("Frame",{
-        Size             = UDim2.fromOffset(84, 22),
-        Position         = UDim2.new(0.5, 2, 0, 15),
-        BackgroundColor3 = Color3.fromRGB(10,8,26),
-        BorderSizePixel  = 0,
-        Parent           = topbar,
-    })
-    Corner(pingPill, 11)
-    Stroke(pingPill, Theme.SubText, 1, .85)
-
-    Create("TextLabel",{
-        Text               = "PING",
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 9,
-        TextColor3         = Theme.Accent3,
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(7, 0),
-        Size               = UDim2.fromOffset(28, 22),
-        TextXAlignment     = Enum.TextXAlignment.Left,
-        Parent             = pingPill,
-    })
-
-    local pingVal = Create("TextLabel",{
-        Text               = "... ms",
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 10,
-        TextColor3         = Theme.SubText,
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(34, 0),
-        Size               = UDim2.fromOffset(46, 22),
-        TextXAlignment     = Enum.TextXAlignment.Right,
-        Parent             = pingPill,
-    })
-
-    -- ── FPS / Ping logic ───────────────────────────────────────
-    local fpsBuffer     = {}
-    local lastStatsTick = 0
-
-    RunService.RenderStepped:Connect(function(dt)
-        table.insert(fpsBuffer, dt)
-
-        local now = tick()
-        if now - lastStatsTick < 0.5 then return end
-        lastStatsTick = now
-
-        -- FPS médio do período
-        local sum = 0
-        for _, v in ipairs(fpsBuffer) do sum = sum + v end
-        local fps = (sum > 0) and math.round(#fpsBuffer / sum) or 0
-        fpsBuffer = {}
-
-        -- Ping
-        local ping = -1
-        pcall(function()
-            ping = math.round(Players.LocalPlayer:GetNetworkPing() * 1000)
-        end)
-
-        -- Cor FPS
-        local fpsColor
-        if fps >= 55 then
-            fpsColor = Color3.fromRGB(180,160,255)      -- roxo claro (bom)
-        elseif fps >= 30 then
-            fpsColor = Color3.fromRGB(160,120,220)      -- roxo médio
-        else
-            fpsColor = Theme.Accent1                    -- rosa da lib (ruim)
-        end
-
-        -- Cor Ping
-        local pingColor
-        if ping < 0 then
-            pingColor = Theme.SubText                   -- cinza da lib (indisponível)
-        elseif ping <= 80 then
-            pingColor = Theme.Accent3                   -- ciano da lib (bom)
-        elseif ping <= 150 then
-            pingColor = Color3.fromRGB(96,160,220)      -- azul médio
-        else
-            pingColor = Theme.Accent1                   -- rosa da lib (ruim)
-        end
-
-        fpsVal.Text  = tostring(fps) .. " fps"
-        pingVal.Text = (ping >= 0 and tostring(ping) or "N/A") .. " ms"
-
-        TweenService:Create(fpsVal,  TweenInfo.new(.25), { TextColor3 = fpsColor  }):Play()
-        TweenService:Create(pingVal, TweenInfo.new(.25), { TextColor3 = pingColor }):Play()
-    end)
-
-    -- ── Toggle menu ───────────────────────────────────────────
-    local menuVisible = true
-    toggleBtn.MouseButton1Click:Connect(function()
-        menuVisible = not menuVisible
-        wrap.Visible = menuVisible
-        toggleBtn.Text = "◉"
-        TweenService:Create(toggleBtn, Config.Tween, {
-            TextColor3       = menuVisible
-                and Color3.fromRGB(180,160,255)
-                or  Theme.Accent1,
-            BackgroundColor3 = menuVisible
-                and Color3.fromRGB(18,14,38)
-                or  Color3.fromRGB(30,10,50),
-        }):Play()
-    end)
-
     Dragify(wrap, topbar)
 
-    -- ── Window object ──────────────────────────────────────────
+local menuVisible = true
+toggleBtn.MouseButton1Click:Connect(function()
+    menuVisible = not menuVisible
+    wrap.Visible = menuVisible
+    toggleBtn.Text = "◉"
+    TweenService:Create(toggleBtn, Config.Tween, {
+        TextColor3       = menuVisible
+            and Color3.fromRGB(180,160,255)
+            or  Theme.Accent1,
+        BackgroundColor3 = menuVisible
+            and Color3.fromRGB(18,14,38)
+            or  Color3.fromRGB(30,10,50),
+    }):Play()
+end)
+
+    -- ── Window object ─────────────────────────────────────────
     local windowObj = { Tabs = {} }
 
     function windowObj:CreateTab(name)
@@ -937,7 +819,6 @@ function Library:CreateWindow(data)
         })
         Corner(bg, 9)
 
-        -- Page agora começa em Y=92 para respeitar a stats bar
         local page = Create("ScrollingFrame",{
             Visible                = false,
             BackgroundTransparency = 1,
@@ -977,6 +858,7 @@ function Library:CreateWindow(data)
         table.insert(windowObj.Tabs, tabObj)
         if #windowObj.Tabs == 1 then Select() end
 
+        -- Element base frame
         local function CreateElement(h)
             local el = Create("Frame",{
                 Size               = UDim2.new(1,0,0,h),
@@ -1001,11 +883,24 @@ function Library:CreateWindow(data)
             return el
         end
 
-        -- ── Toggle ────────────────────────────────────────────
+        -- ── Toggle (com suporte a FloatingButton) ─────────────
+        --
+        -- NOVO: d.FloatingButton (opcional)
+        --   Se informado, ao ativar o toggle um botão pill flutuante
+        --   aparece na tela. Ao desativar, some com animação.
+        --
+        --   Campos de d.FloatingButton:
+        --     Label       string  — texto exibido no pill
+        --     Icon        string  — emoji/símbolo no ícone (padrão "▶")
+        --     Description string  — subtexto menor (opcional)
+        --     Position    UDim2   — posição inicial (padrão centro-baixo)
+        --     Callback    function — executada ao clicar no pill
+        --
         function tabObj:CreateToggle(d)
             local enabled = d.Default or false
             local el      = CreateElement(58)
 
+            -- Cria o botão flutuante agora (oculto) se configurado
             local fab = nil
             if d.FloatingButton then
                 fab = CreateFloatingActionButton(root, {
@@ -1015,6 +910,7 @@ function Library:CreateWindow(data)
                     Position    = d.FloatingButton.Position,
                     Callback    = d.FloatingButton.Callback,
                 })
+                -- Se o toggle já começa ativado, mostra de imediato
                 if enabled then
                     fab.Frame.Visible = true
                 end
@@ -1096,9 +992,16 @@ function Library:CreateWindow(data)
                     Position         = state and UDim2.fromOffset(21,3) or UDim2.fromOffset(3,3),
                     BackgroundColor3 = state and Color3.new(1,1,1) or Color3.fromRGB(24,22,58),
                 }):Play()
+
+                -- ── Controla visibilidade do FAB ──────────────
                 if fab then
-                    if state then fab.Show() else fab.Hide() end
+                    if state then
+                        fab.Show()
+                    else
+                        fab.Hide()
+                    end
                 end
+
                 if d.Callback then task.spawn(d.Callback, state) end
             end
 
@@ -1602,3 +1505,4 @@ function Library:CreateWindow(data)
 end
 
 return setmetatable({}, Library)
+
