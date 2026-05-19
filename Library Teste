@@ -804,8 +804,8 @@ end)
         },90)
 
         local dot = Create("Frame",{
-            Size             = UDim2.fromOffset(8,8),
-            Position         = UDim2.fromOffset(18,15),
+    Size             = UDim2.fromOffset(5,5),
+    Position         = UDim2.fromOffset(19,17),
             BackgroundColor3 = Color3.fromRGB(26,24,56),
             BorderSizePixel  = 0,
             Parent           = tabBtn,
@@ -828,13 +828,14 @@ end)
             Parent             = tabBtn,
         })
 
+        
         local bg = Create("Frame",{
-            Size               = UDim2.fromScale(1,1),
-            BackgroundColor3   = Theme.Glow,
-            BackgroundTransparency = 1,
-            ZIndex             = -1,
-            Parent             = tabBtn,
-        })
+    Size               = UDim2.new(1,-8,1,0),
+    BackgroundColor3   = Color3.fromRGB(30, 26, 72),
+    BackgroundTransparency = 1,
+    ZIndex             = -1,
+    Parent             = tabBtn,
+})
         Corner(bg, 9)
 
         local page = Create("ScrollingFrame",{
