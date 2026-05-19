@@ -895,69 +895,43 @@ end)
 
         -- Element base frame
         local function CreateElement(h)
-    local el = Create("Frame",{
-        Size               = UDim2.new(1,0,0,h),
-        BackgroundColor3   = Color3.new(1,1,1),
-        BackgroundTransparency = .975,
-        BorderSizePixel    = 0,
-        Parent             = page,
-    })
-    Corner(el, 11)
-    Stroke(el, Color3.new(1,1,1), 1, .93)
+            local el = Create("Frame",{
+                Size               = UDim2.new(1,0,0,h),
+                BackgroundColor3   = Color3.new(1,1,1),
+                BackgroundTransparency = .975,
+                BorderSizePixel    = 0,
+                Parent             = page,
+            })
+            Corner(el, 11)
+            Stroke(el, Color3.new(1,1,1), 1, .93)
 
-    -- Tapa as duas quinas superiores arredondadas com a cor do fundo da content
-    -- Wrapper externo que faz o clip das quinas de cima
-local elWrap = Create("Frame",{
-    Size               = UDim2.new(1,0,0,h),
-    BackgroundTransparency = 1,
-    BorderSizePixel    = 0,
-    ClipsDescendants   = false,
-    Parent             = page,
-})
+            -- Cobre as quinas superiores arredondadas com frame
+            -- da mesma cor e transparência do elemento
+            local topCover = Create("Frame",{
+                Size               = UDim2.new(1,0,0,11),
+                Position           = UDim2.fromOffset(0,0),
+                BackgroundColor3   = Color3.new(1,1,1),
+                BackgroundTransparency = .975,
+                BorderSizePixel    = 0,
+                ZIndex             = el.ZIndex + 1,
+                Parent             = el,
+            })
 
-local el = Create("Frame",{
-    Size               = UDim2.new(1,0,1,11), -- cresce 11px para baixo, escondendo o arredondamento de cima
-    Position           = UDim2.fromOffset(0,-11),  -- sobe 11px, sumindo as quinas de cima
-    BackgroundColor3   = Color3.new(1,1,1),
-    BackgroundTransparency = .975,
-    BorderSizePixel    = 0,
-    ClipsDescendants   = false,
-    Parent             = elWrap,
-})
-Corner(el, 11)
-Stroke(el, Color3.new(1,1,1), 1, .93)
+            local tg = Create("Frame",{
+                Size             = UDim2.new(1,0,0,1),
+                BackgroundTransparency = .6,
+                BorderSizePixel  = 0,
+                ZIndex           = el.ZIndex + 2,
+                Parent           = el,
+            })
+            Gradient(tg,{
+                ColorSequenceKeypoint.new(0,  Color3.new(1,1,1)),
+                ColorSequenceKeypoint.new(.5, Theme.Glow),
+                ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
+            })
 
-local tg = Create("Frame",{
-    Size             = UDim2.new(1,0,0,1),
-    Position         = UDim2.fromOffset(0,11), -- compensa o offset de -11
-    BackgroundTransparency = .6,
-    BorderSizePixel  = 0,
-    ZIndex           = el.ZIndex + 1,
-    Parent           = el,
-})
-Gradient(tg,{
-    ColorSequenceKeypoint.new(0,  Color3.new(1,1,1)),
-    ColorSequenceKeypoint.new(.5, Theme.Glow),
-    ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
-})
-
-return elWrap  -- retorna o wrapper, não o el
-
-    -- Linha superior (agora as quinas superiores do el são visualmente retas)
-    local tg = Create("Frame",{
-        Size             = UDim2.new(1,0,0,1),
-        BackgroundTransparency = .6,
-        BorderSizePixel  = 0,
-        ZIndex           = el.ZIndex + 3,
-        Parent           = el,
-    })
-    Gradient(tg,{
-        ColorSequenceKeypoint.new(0,  Color3.new(1,1,1)),
-        ColorSequenceKeypoint.new(.5, Theme.Glow),
-        ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
-    })
-    return el
-end
+            return el
+        end
 
         -- ── Toggle (com suporte a FloatingButton) ─────────────
         --
@@ -1325,44 +1299,38 @@ end
             local OPEN_H   = CLOSED_H + (#options * 30) + 4
 
             local el = Create("Frame",{
-    Size               = UDim2.new(1,0,0,CLOSED_H),
-    BackgroundColor3   = Color3.new(1,1,1),
-    BackgroundTransparency = .975,
-    BorderSizePixel    = 0,
-    ClipsDescendants   = true,
-    Parent             = page,
-})
-Corner(el, 11)
-Stroke(el, Color3.new(1,1,1), 1, .93)
+                Size               = UDim2.new(1,0,0,CLOSED_H),
+                BackgroundColor3   = Color3.new(1,1,1),
+                BackgroundTransparency = .975,
+                BorderSizePixel    = 0,
+                ClipsDescendants   = true,
+                Parent             = page,
+            })
+            Corner(el, 11)
+            Stroke(el, Color3.new(1,1,1), 1, .93)
 
--- Quinas superiores quadradas (igual ao CreateElement)
-local BG = Color3.fromRGB(9,8,20)
-for _, side in ipairs({"Left","Right"}) do
-    Create("Frame",{
-        Size               = UDim2.fromOffset(12,12),
-        Position           = side == "Left"
-            and UDim2.fromOffset(-1,-1)
-            or  UDim2.new(1,-11,0,-1),
-        BackgroundColor3   = BG,
-        BackgroundTransparency = 0,
-        BorderSizePixel    = 0,
-        ZIndex             = el.ZIndex + 2,
-        Parent             = el,
-    })
-end
+            local topCover = Create("Frame",{
+                Size               = UDim2.new(1,0,0,11),
+                Position           = UDim2.fromOffset(0,0),
+                BackgroundColor3   = Color3.new(1,1,1),
+                BackgroundTransparency = .975,
+                BorderSizePixel    = 0,
+                ZIndex             = el.ZIndex + 1,
+                Parent             = el,
+            })
 
-local tg = Create("Frame",{
-    Size             = UDim2.new(1,0,0,1),
-    BackgroundTransparency = .6,
-    BorderSizePixel  = 0,
-    ZIndex           = el.ZIndex + 3,
-    Parent           = el,
-})
-Gradient(tg,{
-    ColorSequenceKeypoint.new(0,  Color3.new(1,1,1)),
-    ColorSequenceKeypoint.new(.5, Theme.Glow),
-    ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
-})
+            local tg = Create("Frame",{
+                Size             = UDim2.new(1,0,0,1),
+                BackgroundTransparency = .6,
+                BorderSizePixel  = 0,
+                ZIndex           = el.ZIndex + 2,
+                Parent           = el,
+            })
+            Gradient(tg,{
+                ColorSequenceKeypoint.new(0,  Color3.new(1,1,1)),
+                ColorSequenceKeypoint.new(.5, Theme.Glow),
+                ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
+            })
 
             local row = Create("TextButton",{
                 Text               = "",
