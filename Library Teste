@@ -364,8 +364,8 @@ AnimateGradient(Gradient(fbStroke,{
     ColorSequenceKeypoint.new(1,  Theme.Accent3),
 }))
 
--- Avatar
-local wgAvatarBg = Create("Frame",{
+-- Ícone FPS (lado esquerdo)
+local fpsIcon = Create("Frame",{
     Size             = UDim2.fromOffset(26,26),
     Position         = UDim2.fromOffset(7,7),
     BackgroundColor3 = Color3.fromRGB(20,16,42),
@@ -373,44 +373,25 @@ local wgAvatarBg = Create("Frame",{
     ZIndex           = 22,
     Parent           = floatingBar,
 })
-Corner(wgAvatarBg, 999)
-
-local wgRing = Create("Frame",{
-    Size                   = UDim2.fromOffset(30,30),
-    Position               = UDim2.fromOffset(5,5),
-    BackgroundTransparency = 1,
-    BorderSizePixel        = 0,
-    ZIndex                 = 21,
-    Parent                 = floatingBar,
-})
-Corner(wgRing, 999)
-local wgRingS = Stroke(wgRing, Theme.Accent1, 1.5, .3)
-Gradient(wgRingS,{
+Corner(fpsIcon, 6)
+Gradient(fpsIcon,{
     ColorSequenceKeypoint.new(0, Theme.Accent1),
     ColorSequenceKeypoint.new(1, Theme.Accent2),
-})
-
-local wgAvatar = Create("ImageLabel",{
-    Size                   = UDim2.fromScale(1,1),
-    BackgroundTransparency = 1,
-    Image                  = "",
-    ZIndex                 = 23,
-    Parent                 = wgAvatarBg,
-})
-Corner(wgAvatar, 999)
-task.spawn(function()
-    local ok, img = pcall(function()
-        return Players:GetUserThumbnailAsync(
-            LocalPlayer.UserId,
-            Enum.ThumbnailType.HeadShot,
-            Enum.ThumbnailSize.Size48x48)
-    end)
-    if ok then wgAvatar.Image = img end
-end)
-
--- Nomes
+},45)
 Create("TextLabel",{
-    Text                   = LocalPlayer.DisplayName,
+    Text               = "FP",
+    Font               = Enum.Font.GothamBold,
+    TextSize           = 9,
+    TextColor3         = Color3.new(1,1,1),
+    BackgroundTransparency = 1,
+    Size               = UDim2.fromScale(1,1),
+    ZIndex             = 23,
+    Parent             = fpsIcon,
+})
+
+-- FPS label
+local fpsLabel = Create("TextLabel",{
+    Text                   = "0 FPS",
     Font                   = Enum.Font.GothamBold,
     TextSize               = 10,
     TextColor3             = Color3.fromRGB(210,196,255),
@@ -418,12 +399,13 @@ Create("TextLabel",{
     Position               = UDim2.fromOffset(41,5),
     Size                   = UDim2.new(1,-82,0,14),
     TextXAlignment         = Enum.TextXAlignment.Left,
-    TextTruncate           = Enum.TextTruncate.AtEnd,
     ZIndex                 = 22,
     Parent                 = floatingBar,
 })
-Create("TextLabel",{
-    Text                   = "@"..LocalPlayer.Name,
+
+-- Ping label
+local pingLabel = Create("TextLabel",{
+    Text                   = "0 ms",
     Font                   = Enum.Font.Gotham,
     TextSize               = 8,
     TextColor3             = Theme.SubText,
@@ -431,10 +413,35 @@ Create("TextLabel",{
     Position               = UDim2.fromOffset(41,20),
     Size                   = UDim2.new(1,-82,0,12),
     TextXAlignment         = Enum.TextXAlignment.Left,
-    TextTruncate           = Enum.TextTruncate.AtEnd,
     ZIndex                 = 22,
     Parent                 = floatingBar,
 })
+
+-- Atualiza FPS e Ping a cada segundo
+local frameCount = 0
+local elapsed    = 0
+RunService.RenderStepped:Connect(function(dt)
+    frameCount = frameCount + 1
+    elapsed    = elapsed + dt
+    if elapsed >= 1 then
+        local fps  = math.round(frameCount / elapsed)
+        local ping = math.round(Players.LocalPlayer:GetNetworkPing() * 1000)
+        fpsLabel.Text  = fps  .. " FPS"
+        pingLabel.Text = ping .. " ms"
+
+        -- Cor do ping: verde/amarelo/vermelho
+        if ping < 80 then
+            pingLabel.TextColor3 = Color3.fromRGB(96,255,160)
+        elseif ping < 150 then
+            pingLabel.TextColor3 = Color3.fromRGB(255,210,80)
+        else
+            pingLabel.TextColor3 = Color3.fromRGB(255,80,100)
+        end
+
+        frameCount = 0
+        elapsed    = 0
+    end
+end)
 
 -- Botão toggle (lado direito)
 local toggleBtn = Create("TextButton",{
@@ -747,14 +754,18 @@ Dragify(floatingBar)
 
     Dragify(wrap, topbar)
 
+-- Menu começa visível → botão começa BRANCO
+toggleBtn.TextColor3       = Color3.fromRGB(240,236,255)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(18,14,38)
+
 local menuVisible = true
 toggleBtn.MouseButton1Click:Connect(function()
     menuVisible = not menuVisible
     wrap.Visible = menuVisible
-    toggleBtn.Text = "◉"
     TweenService:Create(toggleBtn, Config.Tween, {
+        -- Aberto = branco; Fechado = vermelho
         TextColor3       = menuVisible
-            and Color3.fromRGB(180,160,255)
+            and Color3.fromRGB(240,236,255)
             or  Theme.Accent1,
         BackgroundColor3 = menuVisible
             and Color3.fromRGB(18,14,38)
@@ -860,28 +871,49 @@ end)
 
         -- Element base frame
         local function CreateElement(h)
-            local el = Create("Frame",{
-                Size               = UDim2.new(1,0,0,h),
-                BackgroundColor3   = Color3.new(1,1,1),
-                BackgroundTransparency = .975,
-                BorderSizePixel    = 0,
-                Parent             = page,
-            })
-            Corner(el, 11)
-            Stroke(el, Color3.new(1,1,1), 1, .93)
-            local tg = Create("Frame",{
-                Size             = UDim2.new(1,0,0,1),
-                BackgroundTransparency = .6,
-                BorderSizePixel  = 0,
-                Parent           = el,
-            })
-            Gradient(tg,{
-                ColorSequenceKeypoint.new(0,  Color3.new(1,1,1)),
-                ColorSequenceKeypoint.new(.5, Theme.Glow),
-                ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
-            })
-            return el
-        end
+    local el = Create("Frame",{
+        Size               = UDim2.new(1,0,0,h),
+        BackgroundColor3   = Color3.new(1,1,1),
+        BackgroundTransparency = .975,
+        BorderSizePixel    = 0,
+        ClipsDescendants   = true,
+        Parent             = page,
+    })
+    -- Arredondamento apenas nas bordas de baixo:
+    -- UICorner arredonda tudo, então tapamos as quinas de cima com dois quadrados
+    Corner(el, 11)
+    -- Quadrados brancos (mesma cor do fundo) que cobrem as quinas superiores
+    local function SquareCap(anchorX, posX)
+        Create("Frame",{
+            Size               = UDim2.fromOffset(11,11),
+            Position           = UDim2.new(posX, 0, 0, 0),
+            AnchorPoint        = Vector2.new(anchorX, 0),
+            BackgroundColor3   = Color3.fromRGB(9,8,20), -- Theme.Window
+            BackgroundTransparency = 0,
+            BorderSizePixel    = 0,
+            ZIndex             = el.ZIndex + 1,
+            Parent             = el,
+        })
+    end
+    SquareCap(0, 0)   -- quina superior esquerda
+    SquareCap(1, 1)   -- quina superior direita
+
+    Stroke(el, Color3.new(1,1,1), 1, .93)
+    -- Linha superior (agora toca as quinas sem curvatura)
+    local tg = Create("Frame",{
+        Size             = UDim2.new(1,0,0,1),
+        BackgroundTransparency = .6,
+        BorderSizePixel  = 0,
+        ZIndex           = el.ZIndex + 2,
+        Parent           = el,
+    })
+    Gradient(tg,{
+        ColorSequenceKeypoint.new(0,  Color3.new(1,1,1)),
+        ColorSequenceKeypoint.new(.5, Theme.Glow),
+        ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
+    })
+    return el
+end
 
         -- ── Toggle (com suporte a FloatingButton) ─────────────
         --
