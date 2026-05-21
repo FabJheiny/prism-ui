@@ -9,15 +9,15 @@ local Library = {}
 Library.__index = Library
 
 local Theme = {
-    Background = Color3.fromRGB(5,5,12),
-    Window     = Color3.fromRGB(10,10,22),
-    Sidebar    = Color3.fromRGB(8,8,18),
+    Background = Color3.fromRGB(6,6,16),
+    Window     = Color3.fromRGB(9,8,20),
+    Sidebar    = Color3.fromRGB(8,6,20),
     Border     = Color3.fromRGB(255,255,255),
-    Text     = Color3.fromRGB(235,235,255),
-    SubText    = Color3.fromRGB(110,110,140),
-    Accent1    = Color3.fromRGB(255,80,140),
-    Accent2    = Color3.fromRGB(120,120,255),
-    Accent3    = Color3.fromRGB(0,200,255),
+    Text       = Color3.fromRGB(240,236,255),
+    SubText    = Color3.fromRGB(90,86,120),
+    Accent1    = Color3.fromRGB(255,60,120),
+    Accent2    = Color3.fromRGB(96,96,255),
+    Accent3    = Color3.fromRGB(0,192,255),
     Glow       = Color3.fromRGB(120,80,255),
 }
 
@@ -123,31 +123,26 @@ end
 
 -- ────────────────────────────────────────────────────────────
 -- CreateFloatingActionButton (interno)
--- Cria um botão flutuante arrastável na tela vinculado a um toggle.
--- Retorna o frame raiz para que o toggle possa mostrá-lo/ocultá-lo.
 -- ────────────────────────────────────────────────────────────
 
 local function CreateFloatingActionButton(root, opts)
-    -- opts: { Label, Icon, Description, Position, Callback }
     local label       = opts.Label       or "Action"
     local icon        = opts.Icon        or "▶"
     local description = opts.Description or ""
     local startPos    = opts.Position    or UDim2.new(0.5, -56, 0.85, 0)
     local callback    = opts.Callback
 
-    -- Wrapper pill
     local pill = Create("Frame",{
         Size             = UDim2.fromOffset(112, 44),
         Position         = startPos,
         BackgroundColor3 = Color3.fromRGB(10,8,28),
         BorderSizePixel  = 0,
         ZIndex           = 50,
-        Visible          = false,   -- começa oculto; o toggle controla
+        Visible          = false,
         Parent           = root,
     })
     Corner(pill, 22)
 
-    -- Borda animada igual ao estilo Prism
     local pillStroke = Stroke(pill, Theme.Accent1, 1.5, .3)
     AnimateGradient(Gradient(pillStroke,{
         ColorSequenceKeypoint.new(0,   Theme.Accent1),
@@ -156,10 +151,9 @@ local function CreateFloatingActionButton(root, opts)
         ColorSequenceKeypoint.new(1,   Theme.Accent1),
     }))
 
-    -- Glow de fundo suave
     local glowBg = Create("Frame",{
         Size             = UDim2.fromScale(1,1),
-        BackgroundColor3 = Color3.fromRGB(30, 26, 72),
+        BackgroundColor3 = Theme.Glow,
         BackgroundTransparency = .88,
         BorderSizePixel  = 0,
         ZIndex           = pill.ZIndex - 1,
@@ -167,7 +161,6 @@ local function CreateFloatingActionButton(root, opts)
     })
     Corner(glowBg, 22)
 
-    -- Ícone (lado esquerdo)
     local iconFrame = Create("Frame",{
         Size             = UDim2.fromOffset(32,32),
         Position         = UDim2.fromOffset(6,6),
@@ -183,7 +176,7 @@ local function CreateFloatingActionButton(root, opts)
         ColorSequenceKeypoint.new(1, Theme.Accent2),
     },45)
 
-    local iconLabel = Create("TextLabel",{
+    Create("TextLabel",{
         Text               = icon,
         Font               = Enum.Font.GothamBold,
         TextSize           = 15,
@@ -194,8 +187,7 @@ local function CreateFloatingActionButton(root, opts)
         Parent             = iconFrame,
     })
 
-    -- Texto (lado direito)
-    local textLabel = Create("TextLabel",{
+    Create("TextLabel",{
         Text               = label,
         Font               = Enum.Font.GothamBold,
         TextSize           = 11,
@@ -225,7 +217,6 @@ local function CreateFloatingActionButton(root, opts)
         })
     end
 
-    -- Botão invisível cobrindo apenas a área de texto (clique)
     local hitBtn = Create("TextButton",{
         Text               = "",
         AutoButtonColor    = false,
@@ -237,7 +228,6 @@ local function CreateFloatingActionButton(root, opts)
         Parent             = pill,
     })
 
-    -- Clique: ripple + callback
     hitBtn.MouseButton1Click:Connect(function()
         Ripple(hitBtn)
         TweenService:Create(glowBg, TweenInfo.new(.07), {
@@ -251,7 +241,6 @@ local function CreateFloatingActionButton(root, opts)
         if callback then task.spawn(callback) end
     end)
 
-    -- Hover: só tamanho, sem mexer em Position
     hitBtn.MouseEnter:Connect(function()
         TweenService:Create(pill, TweenInfo.new(.14, Enum.EasingStyle.Quint), {
             Size = UDim2.fromOffset(118, 46),
@@ -263,7 +252,6 @@ local function CreateFloatingActionButton(root, opts)
         }):Play()
     end)
 
--- Drag pelo ícone via botão invisível sobreposto (funciona mesmo após pill ficar visível)
     local draggingPill = false
     local dragStartPos, pillStartPos
 
@@ -303,7 +291,6 @@ local function CreateFloatingActionButton(root, opts)
         end
     end)
 
-    -- Funções de show/hide com animação
     local function Show()
         pill.Visible = true
         pill.BackgroundTransparency = 1
@@ -347,171 +334,110 @@ function Library:CreateWindow(data)
         Parent                 = gui,
     })
 
--- ── Floating Bar (avatar + toggle, arrastrável, topo central) ──
-local floatingBar = Create("Frame",{
-    Size             = UDim2.fromOffset(196, 40),
-    Position         = UDim2.new(0.5, -98, 0, 12),
-    BackgroundColor3 = Color3.fromRGB(10,8,26),
-    BorderSizePixel  = 0,
-    ZIndex           = 20,
-    Parent           = root,
-})
-Corner(floatingBar, 10)
-local fbStroke = Stroke(floatingBar, Theme.Glow, 1, .45)
-AnimateGradient(Gradient(fbStroke,{
-    ColorSequenceKeypoint.new(0,  Theme.Accent1),
-    ColorSequenceKeypoint.new(.5, Theme.Accent2),
-    ColorSequenceKeypoint.new(1,  Theme.Accent3),
-}))
+    -- ── Floating Bar (arrastrável, topo central) ──────────────
+    -- Agora compacta: apenas o ícone-brand como toggle
+    local floatingBar = Create("Frame",{
+        Size             = UDim2.fromOffset(48, 48),
+        Position         = UDim2.new(0.5, -24, 0, 12),
+        BackgroundColor3 = Color3.fromRGB(10,8,26),
+        BorderSizePixel  = 0,
+        ZIndex           = 20,
+        Parent           = root,
+    })
+    Corner(floatingBar, 12)
+    local fbStroke = Stroke(floatingBar, Theme.Glow, 1, .45)
+    AnimateGradient(Gradient(fbStroke,{
+        ColorSequenceKeypoint.new(0,  Theme.Accent1),
+        ColorSequenceKeypoint.new(.5, Theme.Accent2),
+        ColorSequenceKeypoint.new(1,  Theme.Accent3),
+    }))
 
--- Pill esquerdo: FPS
-local fpsPill = Create("Frame",{
-    Size             = UDim2.fromOffset(70, 26),
-    Position         = UDim2.fromOffset(7, 7),
-    BackgroundColor3 = Color3.fromRGB(14,11,32),
-    BorderSizePixel  = 0,
-    ZIndex           = 22,
-    Parent           = floatingBar,
-})
-Corner(fpsPill, 8)
-Stroke(fpsPill, Theme.Accent1, 1, .6)
+    -- Ícone idêntico ao brand do sidebar (gradiente rosa→azul→roxo, símbolo ◉)
+    local toggleIconBg = Create("Frame",{
+        Size             = UDim2.fromOffset(32, 32),
+        Position         = UDim2.fromOffset(8, 8),
+        BorderSizePixel  = 0,
+        ZIndex           = 22,
+        Parent           = floatingBar,
+    })
+    Corner(toggleIconBg, 8)
+    Gradient(toggleIconBg,{
+        ColorSequenceKeypoint.new(0,  Theme.Accent1),
+        ColorSequenceKeypoint.new(.5, Theme.Accent2),
+        ColorSequenceKeypoint.new(1,  Theme.Accent3),
+    }, 45)
 
-local fpsTagL = Create("TextLabel",{
-    Text               = "FPS",
-    Font               = Enum.Font.GothamBold,
-    TextSize           = 8,
-    TextColor3         = Theme.Accent1,
-    BackgroundTransparency = 1,
-    Position           = UDim2.fromOffset(6, 3),
-    Size               = UDim2.fromOffset(22, 10),
-    TextXAlignment     = Enum.TextXAlignment.Left,
-    ZIndex             = 23,
-    Parent             = fpsPill,
-})
+    local toggleIconLabel = Create("TextLabel",{
+        Text               = "◉",
+        Font               = Enum.Font.GothamBold,
+        TextSize           = 16,
+        TextColor3         = Color3.new(1,1,1),
+        BackgroundTransparency = 1,
+        Size               = UDim2.fromScale(1,1),
+        ZIndex             = 23,
+        Parent             = toggleIconBg,
+    })
 
-local fpsValueL = Create("TextLabel",{
-    Text               = "—",
-    Font               = Enum.Font.GothamBold,
-    TextSize           = 11,
-    TextColor3         = Color3.fromRGB(220,210,255),
-    BackgroundTransparency = 1,
-    Position           = UDim2.fromOffset(6, 13),
-    Size               = UDim2.fromOffset(58, 12),
-    TextXAlignment     = Enum.TextXAlignment.Left,
-    ZIndex             = 23,
-    Parent             = fpsPill,
-})
+    -- Botão invisível cobrindo toda a barra (clique para toggle)
+    local toggleBtn = Create("TextButton",{
+        Text               = "",
+        AutoButtonColor    = false,
+        BackgroundTransparency = 1,
+        Size               = UDim2.fromScale(1,1),
+        ZIndex             = 25,
+        Parent             = floatingBar,
+    })
 
--- Pill direito: Ping
-local pingPill = Create("Frame",{
-    Size             = UDim2.fromOffset(70, 26),
-    Position         = UDim2.fromOffset(83, 7),
-    BackgroundColor3 = Color3.fromRGB(14,11,32),
-    BorderSizePixel  = 0,
-    ZIndex           = 22,
-    Parent           = floatingBar,
-})
-Corner(pingPill, 8)
-Stroke(pingPill, Theme.Accent3, 1, .6)
-
-local pingTagL = Create("TextLabel",{
-    Text               = "PING",
-    Font               = Enum.Font.GothamBold,
-    TextSize           = 8,
-    TextColor3         = Theme.Accent3,
-    BackgroundTransparency = 1,
-    Position           = UDim2.fromOffset(6, 3),
-    Size               = UDim2.fromOffset(28, 10),
-    TextXAlignment     = Enum.TextXAlignment.Left,
-    ZIndex             = 23,
-    Parent             = pingPill,
-})
-
-local pingValueL = Create("TextLabel",{
-    Text               = "—",
-    Font               = Enum.Font.GothamBold,
-    TextSize           = 11,
-    TextColor3         = Color3.fromRGB(220,210,255),
-    BackgroundTransparency = 1,
-    Position           = UDim2.fromOffset(6, 13),
-    Size               = UDim2.fromOffset(58, 12),
-    TextXAlignment     = Enum.TextXAlignment.Left,
-    ZIndex             = 23,
-    Parent             = pingPill,
-})
-
--- Atualiza FPS e Ping a cada segundo
-local frameCount = 0
-local elapsed    = 0
-RunService.RenderStepped:Connect(function(dt)
-    frameCount = frameCount + 1
-    elapsed    = elapsed + dt
-    if elapsed >= 1 then
-        local fps  = math.round(frameCount / elapsed)
-        local ping = math.round(Players.LocalPlayer:GetNetworkPing() * 1000)
-        fpsValueL.Text  = fps .. " fps"
-
-        local pingColor
-        if ping < 80 then
-            pingColor = Color3.fromRGB(96,255,160)
-        elseif ping < 150 then
-            pingColor = Color3.fromRGB(255,210,80)
-        else
-            pingColor = Color3.fromRGB(255,80,100)
-        end
-        pingValueL.Text      = ping .. " ms"
-        pingValueL.TextColor3 = pingColor
-
-        frameCount = 0
-        elapsed    = 0
-    end
-end)
-
--- Botão toggle (lado direito)
-local toggleBtn = Create("TextButton",{
-    Text             = "◉",
-    Font             = Enum.Font.GothamBold,
-    TextSize         = 20,
-    TextColor3       = Theme.Accent1,
-    AutoButtonColor  = false,
-    Size             = UDim2.fromOffset(30,30),
-    Position         = UDim2.new(1,-35, 0, 5),
-    BackgroundColor3 = Color3.fromRGB(18,14,38),
-    BorderSizePixel  = 0,
-    ZIndex           = 23,
-    Parent           = floatingBar,
-})
-Corner(toggleBtn, 8)
-Stroke(toggleBtn, Theme.Glow, 1, .55)
-
--- Toda a barra é arrastável
-Dragify(floatingBar)
+    -- Toda a barra é arrastável
+    Dragify(floatingBar)
 
     -- ── Window wrap & prism border ────────────────────────────
     local wrap = Create("Frame",{
-    Size        = Config.WindowSize,
-    Position    = UDim2.fromScale(.5,.5),
-    AnchorPoint = Vector2.new(.5,.5),
-    BackgroundTransparency = 1,
-    Parent      = root,
-})
+        Size        = Config.WindowSize,
+        Position    = UDim2.fromScale(.5,.5),
+        AnchorPoint = Vector2.new(.5,.5),
+        BackgroundTransparency = 1,
+        Parent      = root,
+    })
 
-local window = Create("Frame",{
-    Size             = UDim2.fromScale(1,1),
-    Position         = UDim2.fromOffset(0,0),
-    BackgroundColor3 = Theme.Window,
-    BorderSizePixel  = 0,
-    Parent           = wrap,
-})
-Corner(window, 16)
+    local border = Create("Frame",{
+        Size               = UDim2.fromScale(1,1),
+        BackgroundTransparency = 1,
+        Parent             = wrap,
+    })
+    Corner(border, 18)
+    local borderStroke = Stroke(border, Color3.new(1,1,1), 2, .5)
+    AnimateGradient(Gradient(borderStroke,{
+        ColorSequenceKeypoint.new(0,   Theme.Accent1),
+        ColorSequenceKeypoint.new(.18, Color3.fromRGB(255,140,0)),
+        ColorSequenceKeypoint.new(.35, Color3.fromRGB(255,220,0)),
+        ColorSequenceKeypoint.new(.5,  Color3.fromRGB(96,255,96)),
+        ColorSequenceKeypoint.new(.65, Theme.Accent3),
+        ColorSequenceKeypoint.new(.82, Theme.Accent2),
+        ColorSequenceKeypoint.new(1,   Theme.Accent1),
+    }))
 
-local wrapStroke = Stroke(window, Theme.Accent1, 1.5, .3)
-AnimateGradient(Gradient(wrapStroke, {
-    ColorSequenceKeypoint.new(0,   Theme.Accent1),
-    ColorSequenceKeypoint.new(.33, Theme.Accent2),
-    ColorSequenceKeypoint.new(.66, Theme.Accent3),
-    ColorSequenceKeypoint.new(1,   Theme.Accent1),
-}))
+    local window = Create("Frame",{
+        Size             = UDim2.new(1,-4,1,-4),
+        Position         = UDim2.fromOffset(2,2),
+        BackgroundColor3 = Theme.Window,
+        BorderSizePixel  = 0,
+        Parent           = wrap,
+    })
+    Corner(window, 16)
+
+    Create("ImageLabel",{
+        Image             = "rbxassetid://5028857084",
+        ScaleType         = Enum.ScaleType.Slice,
+        SliceCenter       = Rect.new(24,24,276,276),
+        BackgroundTransparency = 1,
+        ImageColor3       = Theme.Glow,
+        ImageTransparency = .82,
+        Size              = UDim2.new(1,80,1,80),
+        Position          = UDim2.fromOffset(-40,-40),
+        ZIndex            = 0,
+        Parent            = window,
+    })
 
     -- ── Sidebar ───────────────────────────────────────────────
     local sidebar = Create("Frame",{
@@ -529,7 +455,21 @@ AnimateGradient(Gradient(wrapStroke, {
         ZIndex           = sidebar.ZIndex,
         Parent           = sidebar,
     })
+    Stroke(sidebar, Color3.new(1,1,1), 1, .94)
 
+    local shimmer = Create("Frame",{
+        AnchorPoint            = Vector2.new(1,0),
+        Position               = UDim2.new(1,0,0,0),
+        Size                   = UDim2.new(0,1,1,0),
+        BackgroundTransparency = 1,
+        BorderSizePixel        = 0,
+        Parent                 = sidebar,
+    })
+    Gradient(shimmer,{
+        ColorSequenceKeypoint.new(0,  Color3.new(1,1,1)),
+        ColorSequenceKeypoint.new(.5, Theme.Glow),
+        ColorSequenceKeypoint.new(1,  Color3.new(1,1,1)),
+    },90)
 
     -- brand header
     local brand = Create("Frame",{
@@ -742,20 +682,30 @@ AnimateGradient(Gradient(wrapStroke, {
 
     Dragify(wrap, topbar)
 
-local menuVisible = true
-toggleBtn.MouseButton1Click:Connect(function()
-    menuVisible = not menuVisible
-    wrap.Visible = menuVisible
-    toggleBtn.Text = "◉"
-    TweenService:Create(toggleBtn, Config.Tween, {
-        TextColor3       = menuVisible
-            and Theme.Accent1
-            or  Color3.fromRGB(240,236,255),
-        BackgroundColor3 = menuVisible
-            and Color3.fromRGB(30,10,50)
-            or  Color3.fromRGB(18,14,38),
-    }):Play()
-end)
+    -- Toggle: mostra/oculta o menu principal
+    -- O ícone pulsa levemente ao fechar para dar feedback
+    local menuVisible = true
+    toggleBtn.MouseButton1Click:Connect(function()
+        menuVisible = not menuVisible
+        wrap.Visible = menuVisible
+
+        -- Pulso de escala no ícone para feedback visual
+        TweenService:Create(toggleIconBg, TweenInfo.new(.1, Enum.EasingStyle.Back), {
+            Size = UDim2.fromOffset(36, 36),
+            Position = UDim2.fromOffset(6, 6),
+        }):Play()
+        task.delay(.1, function()
+            TweenService:Create(toggleIconBg, TweenInfo.new(.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Size = UDim2.fromOffset(32, 32),
+                Position = UDim2.fromOffset(8, 8),
+            }):Play()
+        end)
+
+        -- Opacidade do símbolo ◉ indica estado aberto/fechado
+        TweenService:Create(toggleIconLabel, Config.Tween, {
+            TextTransparency = menuVisible and 0 or .45,
+        }):Play()
+    end)
 
     -- ── Window object ─────────────────────────────────────────
     local windowObj = { Tabs = {} }
@@ -771,9 +721,9 @@ end)
         })
 
         local glowBar = Create("Frame",{
-    Size             = UDim2.fromOffset(3,0),
-    Position         = UDim2.new(0,10,.5,0),
-    AnchorPoint      = Vector2.new(0,.5),
+            Size             = UDim2.fromOffset(3,0),
+            Position         = UDim2.new(0,0,.5,0),
+            AnchorPoint      = Vector2.new(0,.5),
             BackgroundColor3 = Theme.Accent1,
             BorderSizePixel  = 0,
             Parent           = tabBtn,
@@ -785,17 +735,13 @@ end)
         },90)
 
         local dot = Create("Frame",{
-    Size             = UDim2.fromOffset(5,5),
-    Position         = UDim2.fromOffset(19,17),
+            Size             = UDim2.fromOffset(6,6),
+            Position         = UDim2.fromOffset(14,16),
             BackgroundColor3 = Color3.fromRGB(26,24,56),
             BorderSizePixel  = 0,
             Parent           = tabBtn,
         })
         Corner(dot, 999)
-        Gradient(dot,{                                        -- adiciona isso
-    ColorSequenceKeypoint.new(0, Theme.Accent1),
-    ColorSequenceKeypoint.new(1, Theme.Accent2),
-},90)
 
         local tabText = Create("TextLabel",{
             Text               = name,
@@ -803,20 +749,19 @@ end)
             TextSize           = 13,
             TextColor3         = Color3.fromRGB(58,56,88),
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(30,0),
+            Position           = UDim2.fromOffset(30,0),
             Size               = UDim2.new(1,-30,1,0),
             TextXAlignment     = Enum.TextXAlignment.Left,
             Parent             = tabBtn,
         })
 
-        
         local bg = Create("Frame",{
-    Size               = UDim2.new(1,-8,1,0),
-    BackgroundColor3   = Color3.fromRGB(30, 26, 72),
-    BackgroundTransparency = 1,
-    ZIndex             = -1,
-    Parent             = tabBtn,
-})
+            Size               = UDim2.fromScale(1,1),
+            BackgroundColor3   = Theme.Glow,
+            BackgroundTransparency = 1,
+            ZIndex             = -1,
+            Parent             = tabBtn,
+        })
         Corner(bg, 9)
 
         local page = Create("ScrollingFrame",{
@@ -849,7 +794,7 @@ end)
             TweenService:Create(dot,     Config.Tween, { BackgroundColor3 = Theme.Accent1 }):Play()
             TweenService:Create(tabText, Config.Tween, { TextColor3 = Color3.fromRGB(200,184,255) }):Play()
             TweenService:Create(glowBar, Config.Tween, { Size = UDim2.fromOffset(3,18) }):Play()
-            TweenService:Create(bg,      Config.Tween, { BackgroundTransparency = .82 }):Play()
+            TweenService:Create(bg,      Config.Tween, { BackgroundTransparency = .9 }):Play()
         end
 
         tabBtn.MouseButton1Click:Connect(Select)
@@ -858,7 +803,6 @@ end)
         table.insert(windowObj.Tabs, tabObj)
         if #windowObj.Tabs == 1 then Select() end
 
-        -- Element base frame
         local function CreateElement(h)
             local el = Create("Frame",{
                 Size               = UDim2.new(1,0,0,h),
@@ -883,24 +827,11 @@ end)
             return el
         end
 
-        -- ── Toggle (com suporte a FloatingButton) ─────────────
-        --
-        -- NOVO: d.FloatingButton (opcional)
-        --   Se informado, ao ativar o toggle um botão pill flutuante
-        --   aparece na tela. Ao desativar, some com animação.
-        --
-        --   Campos de d.FloatingButton:
-        --     Label       string  — texto exibido no pill
-        --     Icon        string  — emoji/símbolo no ícone (padrão "▶")
-        --     Description string  — subtexto menor (opcional)
-        --     Position    UDim2   — posição inicial (padrão centro-baixo)
-        --     Callback    function — executada ao clicar no pill
-        --
+        -- ── Toggle ────────────────────────────────────────────
         function tabObj:CreateToggle(d)
             local enabled = d.Default or false
             local el      = CreateElement(58)
 
-            -- Cria o botão flutuante agora (oculto) se configurado
             local fab = nil
             if d.FloatingButton then
                 fab = CreateFloatingActionButton(root, {
@@ -910,7 +841,6 @@ end)
                     Position    = d.FloatingButton.Position,
                     Callback    = d.FloatingButton.Callback,
                 })
-                -- Se o toggle já começa ativado, mostra de imediato
                 if enabled then
                     fab.Frame.Visible = true
                 end
@@ -976,16 +906,7 @@ end)
                 Parent           = track,
             })
             Corner(knob, 999)
-local toggleGlow = Create("Frame",{
-                Size = UDim2.new(1,8,1,8),
-                Position = UDim2.fromOffset(-4,-4),
-                BackgroundColor3 = Theme.Accent1,
-                BackgroundTransparency = .95,
-                BorderSizePixel = 0,
-                ZIndex = track.ZIndex - 1,
-                Parent = track,
-            })
-            Corner(toggleGlow,999)
+
             local function Resize()
                 local h = descL.TextBounds.Y + nameL.TextBounds.Y + 36
                 el.Size = UDim2.new(1,0,0,math.max(h,58))
@@ -1002,17 +923,10 @@ local toggleGlow = Create("Frame",{
                     BackgroundColor3 = state and Color3.new(1,1,1) or Color3.fromRGB(24,22,58),
                 }):Play()
 
-                -- ── Controla visibilidade do FAB ──────────────
                 if fab then
-                    if state then
-                        fab.Show()
-                    else
-                        fab.Hide()
-                    end
+                    if state then fab.Show() else fab.Hide() end
                 end
-TweenService:Create(toggleGlow, Config.Tween, {
-                    BackgroundTransparency = state and .88 or .95
-                }):Play()
+
                 if d.Callback then task.spawn(d.Callback, state) end
             end
 
@@ -1026,7 +940,7 @@ TweenService:Create(toggleGlow, Config.Tween, {
             local max   = d.Max or 100
             local value = d.Default or min
 
-            local el = CreateElement(58)
+            local el = CreateElement(76)
 
             local top = Create("Frame",{
                 BackgroundTransparency = 1,
@@ -1054,7 +968,7 @@ TweenService:Create(toggleGlow, Config.Tween, {
                 Size               = UDim2.fromOffset(50,20),
                 Position           = UDim2.new(1,-50,0,0),
                 TextXAlignment     = Enum.TextXAlignment.Right,
-                TextColor3         = Theme.Accent1,
+                TextColor3         = Color3.new(1,1,1),
                 Parent             = top,
             })
             Gradient(valLabel,{
@@ -1086,8 +1000,8 @@ TweenService:Create(toggleGlow, Config.Tween, {
             end)
 
             local track = Create("Frame",{
-                Size             = UDim2.new(1,-28,0,4),
-                Position         = UDim2.fromOffset(14,36),
+                Size             = UDim2.new(1,-28,0,10),
+                Position         = UDim2.fromOffset(14,44),
                 BackgroundColor3 = Color3.fromRGB(30,26,60),
                 BorderSizePixel  = 0,
                 Parent           = el,
@@ -1109,7 +1023,7 @@ TweenService:Create(toggleGlow, Config.Tween, {
             local thumb = Create("Frame",{
                 AnchorPoint      = Vector2.new(.5,.5),
                 Position         = UDim2.new((value-min)/(max-min),0,.5,0),
-                Size             = UDim2.fromOffset(14,14),
+                Size             = UDim2.fromOffset(22,22),
                 BackgroundColor3 = Theme.Accent1,
                 BorderSizePixel  = 0,
                 ZIndex           = track.ZIndex + 2,
@@ -1120,17 +1034,17 @@ TweenService:Create(toggleGlow, Config.Tween, {
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(255,96,144)),
                 ColorSequenceKeypoint.new(1, Theme.Accent2),
             })
-            local thumbGlow = Create("Frame",{
-                Size = UDim2.new(1,10,1,10),
-                Position = UDim2.fromOffset(-5,-5),
-                BackgroundColor3 = Theme.Accent1,
-                BackgroundTransparency = .90,
-                BorderSizePixel = 0,
-                ZIndex = thumb.ZIndex - 1,
-                Parent = thumb,
+            local thumbDot = Create("Frame",{
+                AnchorPoint      = Vector2.new(.5,.5),
+                Position         = UDim2.fromScale(.5,.5),
+                Size             = UDim2.fromOffset(6,6),
+                BackgroundColor3 = Color3.new(1,1,1),
+                BackgroundTransparency = .35,
+                BorderSizePixel  = 0,
+                Parent           = thumb,
             })
-            Corner(thumbGlow,999)
- 
+            Corner(thumbDot, 999)
+
             local hitZone = Create("TextButton",{
                 Text               = "",
                 BackgroundTransparency = 1,
@@ -1249,16 +1163,6 @@ TweenService:Create(toggleGlow, Config.Tween, {
                 end)
                 if d.Callback then task.spawn(d.Callback) end
             end)
-            btn.MouseEnter:Connect(function()
-                TweenService:Create(btn, TweenInfo.new(.15, Enum.EasingStyle.Quint), {
-                    BackgroundTransparency = .93
-                }):Play()
-            end)
-            btn.MouseLeave:Connect(function()
-                TweenService:Create(btn, TweenInfo.new(.15, Enum.EasingStyle.Quint), {
-                    BackgroundTransparency = .97
-                }):Play()
-            end)
         end
 
         -- ── Dropdown ──────────────────────────────────────────
@@ -1339,15 +1243,10 @@ TweenService:Create(toggleGlow, Config.Tween, {
                 Parent             = row,
             })
 
-            local optList = Create("ScrollingFrame",{
+            local optList = Create("Frame",{
                 BackgroundTransparency = 1,
-                BorderSizePixel        = 0,
-                ScrollBarThickness     = 3,
-                ScrollBarImageColor3   = Theme.Accent2,
                 Position               = UDim2.fromOffset(0,CLOSED_H),
                 Size                   = UDim2.new(1,0,0,#options*30),
-                CanvasSize             = UDim2.new(),
-                AutomaticCanvasSize    = Enum.AutomaticSize.Y,
                 Visible                = false,
                 Parent                 = el,
             })
@@ -1379,16 +1278,8 @@ TweenService:Create(toggleGlow, Config.Tween, {
                 o.MouseButton1Click:Connect(function()
                     current   = opt
                     valL.Text = opt
-                    open      = false
-                    TweenService:Create(el, Config.Tween, {
-                        Size = UDim2.new(1,0,0, CLOSED_H)
-                    }):Play()
-                    TweenService:Create(arrowL, Config.Tween, {
-                        Rotation = 0
-                    }):Play()
-                    task.delay(Config.Tween.Time, function()
-                        optList.Visible = false
-                    end)
+                    open      = true
+                    row.MouseButton1Click:Fire()
                     if d.Callback then task.spawn(d.Callback, opt) end
                 end)
             end
@@ -1462,15 +1353,8 @@ TweenService:Create(toggleGlow, Config.Tween, {
                 box.Size = UDim2.new(1,-28,0,h)
                 el.Size  = UDim2.new(1,0,0,h + 46)
             end)
-            box.Focused:Connect(function()
-                TweenService:Create(box, TweenInfo.new(.15, Enum.EasingStyle.Quint), {
-                    BackgroundTransparency = .2
-                }):Play()
-            end)
             box.FocusLost:Connect(function()
-                TweenService:Create(box, TweenInfo.new(.15, Enum.EasingStyle.Quint), {
-                    BackgroundTransparency = .4
-                }):Play()
+                if d.Callback then task.spawn(d.Callback, box.Text) end
             end)
         end
 
