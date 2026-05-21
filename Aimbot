@@ -1,214 +1,77 @@
-local RobloxUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/libAim"))()
-RobloxUI = RobloxUI or _G.RobloxUI
+-- Troque pela URL raw onde você hospedou a lib
+local LIB_URL = "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/RobloxUI_Lib.lua"
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
+if not _G.RobloxUI then
+    loadstring(game:HttpGet(LIB_URL, true))()
+end
+
+local RobloxUI = _G.RobloxUI
+
+local Players     = game:GetService("Players")
+local RunService  = game:GetService("RunService")
+local UIS         = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+local Camera      = workspace.CurrentCamera
 
 local Settings = {
-    ESP = true,
-    Highlight = true,
-    Team = true,
-    Name = false,
-    Distance = true,
+    ESP       = true,
+    Highlight = true,
+    Team      = true,
+    Name      = false,
+    Distance  = true,
 }
 
 local AimbotSettings = {
-    Enabled = true,
-    KillCheck = true,
-    FOV = 90,
-    ShowFOV = true,
-    IgnoreAllies = true,
-    IgnoreWall = false
+    Enabled      = true,
+    KillCheck    = true,
+    FOV          = 90,
+    ShowFOV      = true,
+    IgnoreAllies = true,
+    IgnoreWall   = false,
 }
 
--- =============================================
--- MENU UI
--- =============================================
 local ui = RobloxUI.new("Esp and Aimbot")
 ui:SetTabNames("ESP", "Aimbot", "Player")
 
-ui:AddToggle("left", "Esp Player", Settings.ESP, function(state) Settings.ESP = state end)
-ui:AddToggle("left", "Name Esp", Settings.Name, function(state) Settings.Name = state end)
-ui:AddToggle("left", "Esp Distance", Settings.Distance, function(state) Settings.Distance = state end)
+ui:AddToggle("left", "Esp Player",   Settings.ESP,      function(s) Settings.ESP      = s end)
+ui:AddToggle("left", "Name Esp",     Settings.Name,     function(s) Settings.Name     = s end)
+ui:AddToggle("left", "Esp Distance", Settings.Distance, function(s) Settings.Distance = s end)
 
-ui:AddSlider("right", "FOV", 20, 500, AimbotSettings.FOV, function(val) AimbotSettings.FOV = val end)
-ui:AddToggle("right", "Aimbot", AimbotSettings.Enabled, function(state) AimbotSettings.Enabled = state end)
-ui:AddToggle("right", "Show FOV", AimbotSettings.ShowFOV, function(state) AimbotSettings.ShowFOV = state end)
-ui:AddToggle("right", "Ignore Wall", AimbotSettings.IgnoreWall, function(state) AimbotSettings.IgnoreWall = state end)
+ui:AddSlider ("right", "FOV",         20, 500, AimbotSettings.FOV,  function(v) AimbotSettings.FOV        = v end)
+ui:AddToggle ("right", "Aimbot",      AimbotSettings.Enabled,        function(s) AimbotSettings.Enabled    = s end)
+ui:AddToggle ("right", "Show FOV",    AimbotSettings.ShowFOV,        function(s) AimbotSettings.ShowFOV    = s end)
+ui:AddToggle ("right", "Ignore Wall", AimbotSettings.IgnoreWall,     function(s) AimbotSettings.IgnoreWall = s end)
 
 local playerSpeed = 16
 
 ui:AddButton("third", "Resetar Personagem", function()
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("Humanoid") then
-        char.Humanoid.Health = 0
-    end
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") then
+        char.Humanoid.Health = 0
+    end
 end)
 
 local infiniteJump = false
-ui:AddToggle("third", "Infinite Jump", false, function(state) infiniteJump = state end)
+ui:AddToggle("third", "Infinite Jump", false, function(s) infiniteJump = s end)
+
 UIS.JumpRequest:Connect(function()
-    if not infiniteJump then return end
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChild("Humanoid")
-    if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    if not infiniteJump then return end
+    local char = LocalPlayer.Character
+    local hum  = char and char:FindFirstChild("Humanoid")
+    if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
 end)
 
-local noClip = false
-local noClipConnection = nil
+local noClip     = false
+local noClipConn = nil
 
-ui:AddToggle("third", "NoClip", false, function(state)
-    noClip = state
-    if noClipConnection then noClipConnection:Disconnect() noClipConnection = nil end
-    if not state then return end
-    noClipConnection = RunService.Stepped:Connect(function()
-        if not noClip then noClipConnection:Disconnect() noClipConnection = nil return end
-        local char = LocalPlayer.Character
-        if not char then return end
-        for _, p in ipairs(char:GetDescendants()) do
-            if p:IsA("BasePart") then p.CanCollide = false end
-        end
-    end)
-end)
-
-ui:AddSlider("third", "WalkSpeed", 16, 200, 16, function(val)
-    playerSpeed = val
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChild("Humanoid")
-    if hum then hum.WalkSpeed = val end
-end)
-
--- =============================================
--- CACHE DE TIMES (evita lookup repetido)
--- =============================================
-local myTeamCache = nil
-local teamCacheTime = 0
-local TEAM_CACHE_TTL = 2
-
-local function getMyTeam()
-    if tick() - teamCacheTime > TEAM_CACHE_TTL then
-        myTeamCache = LocalPlayer.Team
-        teamCacheTime = tick()
-    end
-    return myTeamCache
-end
-
--- =============================================
--- VISIBILITY (raycast otimizado)
--- =============================================
-local visCache = {}
-local VIS_TTL = 0.5 -- antes 0.4, aumentado para menos raycasts
-
-local BODY_PARTS = {"Head", "HumanoidRootPart", "UpperTorso"}
--- reduzido de 7 para 3 partes: mesma precisão, menos raycasts
-
-local rayParams = RaycastParams.new()
-rayParams.FilterType = Enum.RaycastFilterType.Blacklist
-rayParams.IgnoreWater = true
-
-local function isVisible(char, player)
-    local cache = visCache[player]
-    if cache and tick() - cache.t < VIS_TTL then return cache.v end
-
-    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, Camera}
-    local origin = Camera.CFrame.Position
-    local visible = false
-
-    for _, name in ipairs(BODY_PARTS) do
-        local part = char:FindFirstChild(name)
-        if not part then continue end
-        local ray = workspace:Raycast(origin, part.Position - origin, rayParams)
-        if not ray or char:IsAncestorOf(ray.Instance) then
-            visible = true
-            break
-        end
-    end
-
-    visCache[player] = {v = visible, t = tick()}
-    return visible
-end
-
--- =============================================
--- ESP
--- =============================================
-local espData = {}
-
-local VIS_ON  = {Color = Color3.fromRGB(255,0,0),   Fill = 0.35, Outline = 0}
-local VIS_OFF = {Color = Color3.fromRGB(160,0,0),   Fill = 0.6,  Outline = 0.3}
-local TEAM_COLOR = Color3.fromRGB(0,255,0)
-
-local function destroyESP(player)
-    local d = espData[player]
-    if not d then return end
-    if d.Billboard then d.Billboard:Destroy() end
-    if d.Highlight then d.Highlight:Destroy() end
-    espData[player] = nil
-    visCache[player] = nil
-end
-
-local function createESP(player, char)
-    if player == LocalPlayer then return end
-    destroyESP(player)
-    local head = char:WaitForChild("Head", 5)
-    if not head then return end
-
-    local bb = Instance.new("BillboardGui", head)
-    bb.Size = UDim2.new(0, 120, 0, 32)
-    bb.StudsOffset = Vector3.new(0, 5, 0)
-    bb.AlwaysOnTop = true
-
-    local nameL = Instance.new("TextLabel", bb)
-    nameL.Size = UDim2.new(1,0,0,12)
-    nameL.BackgroundTransparency = 1
-    nameL.Font = Enum.Font.Gotham
-    nameL.TextSize = 10
-    nameL.TextColor3 = Color3.new(1,1,1)
-    nameL.TextStrokeTransparency = 0
-
-    local distL = Instance.new("TextLabel", bb)
-    distL.Size = UDim2.new(1,0,0,12)
-    distL.Position = UDim2.new(0,0,0,14)
-    distL.BackgroundTransparency = 1
-    distL.Font = Enum.Font.Gotham
-    distL.TextSize = 10
-    distL.TextColor3 = Color3.new(1,1,1)
-    distL.TextStrokeTransparency = 0
-
-    char:FindFirstChild("ESP_Highlight") and char.ESP_Highlight:Destroy()
-
-    local hl = Instance.new("Highlight")
-    hl.Name = "ESP_Highlight"
-    hl.FillTransparency = 0.6
-    hl.OutlineTransparency = 0
-    hl.Enabled = false
-    hl.Adornee = char
-    hl.Parent = char
-
-    espData[player] = {
-        Billboard = bb,
-        NameLabel = nameL,
-        DistLabel = distL,
-        Highlight = hl,
-        Character = char,
-        lastDist = -1,
-    }
-end
-
-local function setupPlayer(player)
-    player.CharacterAdded:Connect(function(char)
-        task.wait(0.4)
-        createESP(player, char)
-        if player == LocalPlayer then
-            local hum = char:WaitForChild("Humanoid", 5)
-            if hum then
-                hum.WalkSpeed = playerSpeed
-                if noClip and noClipConnection == nil then
-                    if noClip and noClipConnection == nil then
-    noClipConnection = RunService.Stepped:Connect(function()
-        if not noClip then noClipConnection:Disconnect() noClipConnection = nil return end
+local function startNoClip()
+    if noClipConn then return end
+    noClipConn = RunService.Stepped:Connect(function()
+        if not noClip then
+            noClipConn:Disconnect()
+            noClipConn = nil
+            return
+        end
         local char = LocalPlayer.Character
         if not char then return end
         for _, p in ipairs(char:GetDescendants()) do
@@ -216,221 +79,293 @@ local function setupPlayer(player)
         end
     end)
 end
-                end
-            end
-        end
-    end)
-    player.CharacterRemoving:Connect(function()
-        destroyESP(player)
-    end)
-    if player.Character then createESP(player, player.Character) end
+
+ui:AddToggle("third", "NoClip", false, function(s)
+    noClip = s
+    if s then startNoClip() end
+end)
+
+ui:AddSlider("third", "WalkSpeed", 16, 200, 16, function(val)
+    playerSpeed = val
+    local char = LocalPlayer.Character
+    local hum  = char and char:FindFirstChild("Humanoid")
+    if hum then hum.WalkSpeed = val end
+end)
+
+local myTeamCache, teamCacheTime = nil, 0
+local function getMyTeam()
+    if tick() - teamCacheTime > 2 then
+        myTeamCache   = LocalPlayer.Team
+        teamCacheTime = tick()
+    end
+    return myTeamCache
+end
+
+local visCache  = {}
+local rayParams = RaycastParams.new()
+rayParams.FilterType  = Enum.RaycastFilterType.Blacklist
+rayParams.IgnoreWater = true
+local BODY_PARTS = {"Head","HumanoidRootPart","UpperTorso"}
+
+local function isVisible(char, player)
+    local cache = visCache[player]
+    if cache and tick() - cache.t < 0.5 then return cache.v end
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, Camera}
+    local origin  = Camera.CFrame.Position
+    local visible = false
+    for _, name in ipairs(BODY_PARTS) do
+        local part = char:FindFirstChild(name)
+        if not part then continue end
+        local ray = workspace:Raycast(origin, part.Position - origin, rayParams)
+        if not ray or char:IsAncestorOf(ray.Instance) then
+            visible = true break
+        end
+    end
+    visCache[player] = {v = visible, t = tick()}
+    return visible
+end
+
+local espData  = {}
+local VIS_ON   = {Color = Color3.fromRGB(255,0,0), Fill = 0.35, Outline = 0}
+local VIS_OFF  = {Color = Color3.fromRGB(160,0,0), Fill = 0.6,  Outline = 0.3}
+local TEAM_COL = Color3.fromRGB(0,255,0)
+
+local function destroyESP(player)
+    local d = espData[player]
+    if not d then return end
+    if d.Billboard then d.Billboard:Destroy() end
+    if d.Highlight  then d.Highlight:Destroy()  end
+    espData[player]  = nil
+    visCache[player] = nil
+end
+
+local function createESP(player, char)
+    if player == LocalPlayer then return end
+    destroyESP(player)
+    local head = char:WaitForChild("Head", 5)
+    if not head then return end
+
+    local bb = Instance.new("BillboardGui", head)
+    bb.Size        = UDim2.new(0, 120, 0, 32)
+    bb.StudsOffset = Vector3.new(0, 5, 0)
+    bb.AlwaysOnTop = true
+
+    local nameL = Instance.new("TextLabel", bb)
+    nameL.Size                   = UDim2.new(1,0,0,12)
+    nameL.BackgroundTransparency = 1
+    nameL.Font                   = Enum.Font.Gotham
+    nameL.TextSize               = 10
+    nameL.TextColor3             = Color3.new(1,1,1)
+    nameL.TextStrokeTransparency = 0
+
+    local distL = Instance.new("TextLabel", bb)
+    distL.Size                   = UDim2.new(1,0,0,12)
+    distL.Position               = UDim2.new(0,0,0,14)
+    distL.BackgroundTransparency = 1
+    distL.Font                   = Enum.Font.Gotham
+    distL.TextSize               = 10
+    distL.TextColor3             = Color3.new(1,1,1)
+    distL.TextStrokeTransparency = 0
+
+    local existingHL = char:FindFirstChild("ESP_Highlight")
+    if existingHL then existingHL:Destroy() end
+
+    local hl = Instance.new("Highlight")
+    hl.Name                = "ESP_Highlight"
+    hl.FillTransparency    = 0.6
+    hl.OutlineTransparency = 0
+    hl.Enabled             = false
+    hl.Adornee             = char
+    hl.Parent              = char
+
+    espData[player] = {
+        Billboard = bb, NameLabel = nameL,
+        DistLabel = distL, Highlight = hl,
+        Character = char, lastDist  = -1,
+    }
+end
+
+local function setupPlayer(player)
+    player.CharacterAdded:Connect(function(char)
+        task.wait(0.4)
+        createESP(player, char)
+        if player == LocalPlayer then
+            local hum = char:WaitForChild("Humanoid", 5)
+            if hum then
+                hum.WalkSpeed = playerSpeed
+                if noClip then startNoClip() end
+            end
+        end
+    end)
+    player.CharacterRemoving:Connect(function() destroyESP(player) end)
+    if player.Character then createESP(player, player.Character) end
 end
 
 for _, p in ipairs(Players:GetPlayers()) do setupPlayer(p) end
 Players.PlayerAdded:Connect(setupPlayer)
 Players.PlayerRemoving:Connect(function(p) destroyESP(p) end)
 
--- =============================================
--- ESP LOOP — throttled, sem alocações internas
--- =============================================
-local ESP_DELAY = 0.3 -- antes 0.25
 local espTimer = 0
-local halfVP = Vector2.new(0, 0) -- atualizado abaixo
-
 RunService.Heartbeat:Connect(function(dt)
-    espTimer = espTimer + dt
-    if espTimer < ESP_DELAY then return end
-    espTimer = 0
+    espTimer = espTimer + dt
+    if espTimer < 0.3 then return end
+    espTimer = 0
 
-    local myChar = LocalPlayer.Character
-    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
-    if not myHRP then return end
+    local myChar = LocalPlayer.Character
+    local myHRP  = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return end
 
-    local myTeam = getMyTeam()
-    local myPos = myHRP.Position
+    local myTeam = getMyTeam()
+    local myPos  = myHRP.Position
 
-    for player, d in pairs(espData) do
-        local char = d.Character
-        if not char or not char.Parent then continue end
+    for player, d in pairs(espData) do
+        local char = d.Character
+        if not char or not char.Parent then continue end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        local hrp = char:FindFirstChild("HumanoidRootPart")
 
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hum or not hrp or hum.Health <= 0 or not Settings.ESP then
+            d.NameLabel.Visible = false
+            d.DistLabel.Visible = false
+            if d.Highlight then d.Highlight.Enabled = false end
+            continue
+        end
 
-        if not hum or not hrp or hum.Health <= 0 or not Settings.ESP then
-            d.NameLabel.Visible = false
-            d.DistLabel.Visible = false
-            if d.Highlight then d.Highlight.Enabled = false end
-            continue
-        end
+        local _, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+        if not onScreen then
+            d.NameLabel.Visible = false
+            d.DistLabel.Visible = false
+            if d.Highlight then d.Highlight.Enabled = false end
+            continue
+        end
 
-        local _, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-        if not onScreen then
-            d.NameLabel.Visible = false
-            d.DistLabel.Visible = false
-            if d.Highlight then d.Highlight.Enabled = false end
-            continue
-        end
+        local dist = (myPos - hrp.Position).Magnitude
+        if dist > 2500 then
+            d.NameLabel.Visible = false
+            d.DistLabel.Visible = false
+            if d.Highlight then d.Highlight.Enabled = false end
+            continue
+        end
 
-        local dist = (myPos - hrp.Position).Magnitude
-        if dist > 2500 then
-            d.NameLabel.Visible = false
-            d.DistLabel.Visible = false
-            if d.Highlight then d.Highlight.Enabled = false end
-            continue
-        end
+        local vis = isVisible(char, player)
+        local cfg = vis and VIS_ON or VIS_OFF
+        local col = (Settings.Team and myTeam and player.Team == myTeam) and TEAM_COL or cfg.Color
 
-        local vis = isVisible(char, player)
-        local cfg = vis and VIS_ON or VIS_OFF
-        local col = (Settings.Team and myTeam and player.Team == myTeam) and TEAM_COLOR or cfg.Color
+        if d.Highlight then
+            if Settings.Highlight then
+                d.Highlight.Enabled             = true
+                d.Highlight.FillColor           = col
+                d.Highlight.OutlineColor        = col
+                d.Highlight.FillTransparency    = cfg.Fill
+                d.Highlight.OutlineTransparency = cfg.Outline
+            else
+                d.Highlight.Enabled = false
+            end
+        end
 
-        if d.Highlight then
-            if Settings.Highlight then
-                d.Highlight.Enabled = true
-                d.Highlight.FillColor = col
-                d.Highlight.OutlineColor = col
-                d.Highlight.FillTransparency = cfg.Fill
-                d.Highlight.OutlineTransparency = cfg.Outline
-            else
-                d.Highlight.Enabled = false
-            end
-        end
+        d.NameLabel.Visible = Settings.Name
+        if Settings.Name then
+            d.NameLabel.Text       = player.Name
+            d.NameLabel.TextColor3 = col
+        end
 
-        d.NameLabel.Visible = Settings.Name
-        if Settings.Name then
-            d.NameLabel.Text = player.Name
-            d.NameLabel.TextColor3 = col
-        end
-
-        d.DistLabel.Visible = Settings.Distance
-        if Settings.Distance then
-            local fd = math.floor(dist)
-            if d.lastDist ~= fd then
-                d.DistLabel.Text = vis and ("< "..fd.."m >") or ("[W] "..fd.."m")
-                d.lastDist = fd
-            end
-            d.DistLabel.TextColor3 = col
-        end
-    end
+        d.DistLabel.Visible = Settings.Distance
+        if Settings.Distance then
+            local fd = math.floor(dist)
+            if d.lastDist ~= fd then
+                d.DistLabel.Text = vis and ("< "..fd.."m >") or ("[W] "..fd.."m")
+                d.lastDist = fd
+            end
+            d.DistLabel.TextColor3 = col
+        end
+    end
 end)
 
--- =============================================
--- AIMBOT
--- =============================================
-local halfX = Camera.ViewportSize.X * 0.5
-local halfY = Camera.ViewportSize.Y * 0.5
-
 local function getClosestTarget()
-    local best = nil
-    local bestDist = math.huge
-    local myChar = LocalPlayer.Character
-    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
-    if not myHRP then return nil end
+    local myChar = LocalPlayer.Character
+    local myHRP  = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return nil end
+    local myTeam = getMyTeam()
+    local fov    = AimbotSettings.FOV
+    local halfX  = Camera.ViewportSize.X * 0.5
+    local halfY  = Camera.ViewportSize.Y * 0.5
+    local best, bestD = nil, math.huge
 
-    local myTeam = getMyTeam()
-    local fov = AimbotSettings.FOV
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player == LocalPlayer then continue end
-        local char = player.Character
-        if not char then continue end
-
-        if AimbotSettings.IgnoreAllies and myTeam and player.Team == myTeam then continue end
-
-        local head = char:FindFirstChild("Head")
-        local hrp  = char:FindFirstChild("HumanoidRootPart")
-        if not head or not hrp then continue end
-
-        if AimbotSettings.KillCheck then
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if not hum or hum.Health <= 0 then continue end
-        end
-
-        local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
-        if not onScreen then continue end
-
-        local sx = pos.X - halfX
-        local sy = pos.Y - halfY
-        local screenDist = math.sqrt(sx*sx + sy*sy)
-        if screenDist > fov then continue end
-
-        local worldDist = (myHRP.Position - hrp.Position).Magnitude
-        if worldDist > 2000 then continue end
-
-        if not AimbotSettings.IgnoreWall then
-            if not isVisible(char, player) then continue end
-        end
-
-        if worldDist < bestDist then
-            bestDist = worldDist
-            best = head
-        end
-    end
-
-    return best
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player == LocalPlayer then continue end
+        local char = player.Character
+        if not char then continue end
+        if AimbotSettings.IgnoreAllies and myTeam and player.Team == myTeam then continue end
+        local head = char:FindFirstChild("Head")
+        local hrp  = char:FindFirstChild("HumanoidRootPart")
+        if not head or not hrp then continue end
+        if AimbotSettings.KillCheck then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 then continue end
+        end
+        local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
+        if not onScreen then continue end
+        local sx = pos.X - halfX
+        local sy = pos.Y - halfY
+        if math.sqrt(sx*sx + sy*sy) > fov then continue end
+        local wd = (myHRP.Position - hrp.Position).Magnitude
+        if wd > 2000 then continue end
+        if not AimbotSettings.IgnoreWall and not isVisible(char, player) then continue end
+        if wd < bestD then bestD = wd best = head end
+    end
+    return best
 end
 
 local cachedTarget = nil
 RunService.Heartbeat:Connect(function()
-    if not AimbotSettings.Enabled then cachedTarget = nil return end
-    cachedTarget = getClosestTarget()
+    if not AimbotSettings.Enabled then cachedTarget = nil return end
+    cachedTarget = getClosestTarget()
 end)
 
 local BASE_SMOOTH = 0.9
-local curSmooth = BASE_SMOOTH
-local lastCamCF = Camera.CFrame
-local PULL = 0.15
-local RELEASE = 0.25
+local curSmooth   = BASE_SMOOTH
+local lastCamCF   = Camera.CFrame
 
 RunService.RenderStepped:Connect(function()
-    if not cachedTarget then
-        lastCamCF = Camera.CFrame
-        curSmooth = BASE_SMOOTH
-        return
-    end
-
-    local delta = (Camera.CFrame.LookVector - lastCamCF.LookVector).Magnitude
-
-    if delta > RELEASE then
-        cachedTarget = nil
-        curSmooth = 0
-        lastCamCF = Camera.CFrame
-        return
-    end
-
-    if delta > PULL then
-        curSmooth = math.max(0, curSmooth - delta * 3.5)
-    else
-        curSmooth = curSmooth + (BASE_SMOOTH - curSmooth) * 0.05
-    end
-
-    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, cachedTarget.Position), curSmooth)
-    lastCamCF = Camera.CFrame
+    if not cachedTarget then
+        lastCamCF = Camera.CFrame
+        curSmooth = BASE_SMOOTH
+        return
+    end
+    local delta = (Camera.CFrame.LookVector - lastCamCF.LookVector).Magnitude
+    if delta > 0.25 then
+        cachedTarget = nil curSmooth = 0 lastCamCF = Camera.CFrame return
+    end
+    if delta > 0.15 then
+        curSmooth = math.max(0, curSmooth - delta * 3.5)
+    else
+        curSmooth = curSmooth + (BASE_SMOOTH - curSmooth) * 0.05
+    end
+    Camera.CFrame = Camera.CFrame:Lerp(
+        CFrame.new(Camera.CFrame.Position, cachedTarget.Position), curSmooth)
+    lastCamCF = Camera.CFrame
 end)
 
--- =============================================
--- CÍRCULO DO FOV (atualiza só quando muda)
--- =============================================
 local fovCircle = Instance.new("Frame", ui.gui)
-fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
+fovCircle.AnchorPoint            = Vector2.new(0.5, 0.5)
+fovCircle.Position               = UDim2.new(0.5, 0, 0.5, 0)
 fovCircle.BackgroundTransparency = 1
-fovCircle.BorderSizePixel = 0
+fovCircle.BorderSizePixel        = 0
 Instance.new("UICorner", fovCircle).CornerRadius = UDim.new(1, 0)
 
 local fovStroke = Instance.new("UIStroke", fovCircle)
-fovStroke.Color = Color3.new(1,1,1)
-fovStroke.Thickness = 1
+fovStroke.Color           = Color3.new(1,1,1)
+fovStroke.Thickness       = 1
 fovStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 local lastFOV = -1
 RunService.RenderStepped:Connect(function()
-    local show = AimbotSettings.Enabled and AimbotSettings.ShowFOV
-    fovCircle.Visible = show
-    if not show then return end
-    local f = AimbotSettings.FOV
-    if f ~= lastFOV then
-        local s = f * 2
-        fovCircle.Size = UDim2.new(0, s, 0, s)
-        lastFOV = f
-    end
+    local show = AimbotSettings.Enabled and AimbotSettings.ShowFOV
+    fovCircle.Visible = show
+    if not show then return end
+    local f = AimbotSettings.FOV
+    if f ~= lastFOV then
+        fovCircle.Size = UDim2.new(0, f*2, 0, f*2)
+        lastFOV = f
+    end
 end)
