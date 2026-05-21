@@ -2,220 +2,570 @@ local RobloxUI = {}
 RobloxUI.__index = RobloxUI
 
 function RobloxUI.new(title)
-    local self = setmetatable({}, RobloxUI)
+
+    local self =
+        setmetatable(
+            {},
+            RobloxUI
+        )
+
+    local Players =
+        game:GetService("Players")
+
+    local UIS =
+        game:GetService(
+            "UserInputService"
+        )
+
+    local player =
+        Players.LocalPlayer
 
     local pg =
-game:GetService("Players")
-.LocalPlayer
-:WaitForChild("PlayerGui")
+        player:WaitForChild(
+            "PlayerGui"
+        )
 
-local old =
-pg:FindFirstChild("RobloxUI_Lib")
+    local old =
+        pg:FindFirstChild(
+            "RobloxUI_Lib"
+        )
 
-if old then
-    old:Destroy()
-end
-
-self.gui = Instance.new("ScreenGui")
-    self.gui.Name = "RobloxUI_Lib"
-    self.gui.IgnoreGuiInset = true
-    self.gui.ResetOnSpawn = false
-
-    local Players = game:GetService("Players")
-
-self.gui.Parent =
-    Players.LocalPlayer:WaitForChild("PlayerGui")
-
-    -- === MENU FRAME ===
-    self.menuFrame = Instance.new("Frame")
-    self.menuFrame.Name = "MenuFrame"
-    self.menuFrame.Size = UDim2.new(0, 420, 0, 240)
-    self.menuFrame.Position = UDim2.new(0.5, -210, 0.5, -120)
-    self.menuFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-    self.menuFrame.BorderSizePixel = 0
-    self.menuFrame.Active = true
-    self.menuFrame.Draggable = true
-    self.menuFrame.Parent = self.gui
-    local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10)
-corner.Parent = self.menuFrame
-
-    local stroke = Instance.new("UIStroke", self.menuFrame)
-    stroke.Color = Color3.fromRGB(50, 50, 50)
-    stroke.Thickness = 1
-
-    -- === TITLE BAR ===
-    local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 28)
-    titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    titleBar.BorderSizePixel = 0
-    titleBar.Parent = self.menuFrame
-    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 10)
-
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -40, 1, 0)
-    titleLabel.Position = UDim2.new(0, 10, 0, 0)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title or "Menu"
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 13
-    titleLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    titleLabel.Parent = titleBar
-
-    -- === BOTÃƒO OCULTAR/MOSTRAR (âˆ’ / +) ===
-    local contentVisible = true
-
-    self.contentFrame = Instance.new("Frame")
-    self.contentFrame.Size = UDim2.new(1, 0, 1, -28)
-    self.contentFrame.Position = UDim2.new(0, 0, 0, 28)
-    self.contentFrame.BackgroundTransparency = 1
-    self.contentFrame.BorderSizePixel = 0
-    self.contentFrame.Parent = self.menuFrame
-
-    local hideBtn = Instance.new("TextButton")
-    hideBtn.Size = UDim2.new(0, 22, 0, 18)
-    hideBtn.Position = UDim2.new(1, -26, 0.5, -9)
-    hideBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    hideBtn.BorderSizePixel = 0
-    hideBtn.Font = Enum.Font.GothamBold
-    hideBtn.TextSize = 14
-    hideBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
-    hideBtn.Text = "-"
-    hideBtn.AutoButtonColor = false
-    hideBtn.Parent = titleBar
-    local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 4)
-corner.Parent = hideBtn
-
-    hideBtn.MouseButton1Click:Connect(function()
-        contentVisible = not contentVisible
-        self.contentFrame.Visible = contentVisible
-        if contentVisible then
-            hideBtn.Text = "-"
-            self.menuFrame.Size = UDim2.new(0, 420, 0, 240)
-        else
-            hideBtn.Text = "+"
-            self.menuFrame.Size = UDim2.new(0, 420, 0, 28)
-        end
-    end)
-
-    -- === DIVISOR HORIZONTAL ===
-    local divider = Instance.new("Frame")
-    divider.Size = UDim2.new(1, -20, 0, 1)
-    divider.Position = UDim2.new(0, 10, 0, 0)
-    divider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    divider.BorderSizePixel = 0
-    divider.Parent = self.contentFrame
-
-    -- === LABELS DAS ABAS ===
-    -- Aba 1 (esquerda)
-    self.leftTabLabel = Instance.new("TextLabel")
-    self.leftTabLabel.Size = UDim2.new(1/3, -2, 0, 20)
-    self.leftTabLabel.Position = UDim2.new(0, 0, 0, 1)
-    self.leftTabLabel.BackgroundTransparency = 1
-    self.leftTabLabel.Text = ""
-    self.leftTabLabel.Font = Enum.Font.GothamSemibold
-    self.leftTabLabel.TextSize = 11
-    self.leftTabLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-    self.leftTabLabel.TextXAlignment = Enum.TextXAlignment.Center
-    self.leftTabLabel.Parent = self.contentFrame
-
-    -- Aba 2 (centro)
-    self.rightTabLabel = Instance.new("TextLabel")
-    self.rightTabLabel.Size = UDim2.new(1/3, -2, 0, 20)
-    self.rightTabLabel.Position = UDim2.new(1/3, 1, 0, 1)
-    self.rightTabLabel.BackgroundTransparency = 1
-    self.rightTabLabel.Text = ""
-    self.rightTabLabel.Font = Enum.Font.GothamSemibold
-    self.rightTabLabel.TextSize = 11
-    self.rightTabLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-    self.rightTabLabel.TextXAlignment = Enum.TextXAlignment.Center
-    self.rightTabLabel.Parent = self.contentFrame
-
-    -- Aba 3 (direita)
-    self.thirdTabLabel = Instance.new("TextLabel")
-    self.thirdTabLabel.Size = UDim2.new(1/3, -2, 0, 20)
-    self.thirdTabLabel.Position = UDim2.new(2/3, 1, 0, 1)
-    self.thirdTabLabel.BackgroundTransparency = 1
-    self.thirdTabLabel.Text = ""
-    self.thirdTabLabel.Font = Enum.Font.GothamSemibold
-    self.thirdTabLabel.TextSize = 11
-    self.thirdTabLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-    self.thirdTabLabel.TextXAlignment = Enum.TextXAlignment.Center
-    self.thirdTabLabel.Parent = self.contentFrame
-
-    -- === DIVISORES VERTICAIS ===
-    local line1 = Instance.new("Frame")
-    line1.Size = UDim2.new(0, 1, 1, -26)
-    line1.Position = UDim2.new(1/3, 0, 0, 22)
-    line1.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    line1.BorderSizePixel = 0
-    line1.Parent = self.contentFrame
-
-    local line2 = Instance.new("Frame")
-    line2.Size = UDim2.new(0, 1, 1, -26)
-    line2.Position = UDim2.new(2/3, 0, 0, 22)
-    line2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    line2.BorderSizePixel = 0
-    line2.Parent = self.contentFrame
-
-    -- === CONTAINERS ===
-    local function makeContainer(xScale, xOffset)
-        local c = Instance.new("ScrollingFrame")
-        c.Size = UDim2.new(1/3, -10, 1, -30)
-        c.Position = UDim2.new(xScale, xOffset, 0, 26)
-        c.BackgroundTransparency = 1
-        c.BorderSizePixel = 0
-        c.ScrollBarThickness = 0
-        c.CanvasSize = UDim2.new(0, 0, 0, 0)
-        c.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        c.Parent = self.contentFrame
-        local layout = Instance.new("UIListLayout", c)
-        layout.Padding = UDim.new(0, 4)
-        layout.SortOrder = Enum.SortOrder.LayoutOrder
-        return c
+    if old then
+        old:Destroy()
     end
 
-    self.leftContainer  = makeContainer(0,     5)
-    self.rightContainer = makeContainer(1/3,   5)
-    self.thirdContainer = makeContainer(2/3,   5)
+    self.gui =
+        Instance.new(
+            "ScreenGui"
+        )
 
-    -- === BOTÃƒO FLUTUANTE ===
-    local toggleBtn = Instance.new("ImageButton")
-    toggleBtn.Size = UDim2.new(0, 44, 0, 44)
-    toggleBtn.Position = UDim2.new(0, 16, 0.5, -22)
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-    toggleBtn.Image = "rbxassetid://126717501064463"
-    toggleBtn.ScaleType = Enum.ScaleType.Fit
-    toggleBtn.Active = true
-    toggleBtn.Draggable = true
-    toggleBtn.Parent = self.gui
-    Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1, 0)
+    self.gui.Name =
+        "RobloxUI_Lib"
 
-    local btnStroke = Instance.new("UIStroke", toggleBtn)
-    btnStroke.Color = Color3.fromRGB(55, 55, 55)
-    btnStroke.Thickness = 1
+    self.gui.ResetOnSpawn =
+        false
 
-    local menuVisible = true
-    toggleBtn.MouseButton1Click:Connect(function()
-        menuVisible = not menuVisible
-        self.menuFrame.Visible = menuVisible
-    end)
+    self.gui.IgnoreGuiInset =
+        true
+
+    self.gui.Parent =
+        pg
+
+
+
+    -- MENU
+
+    self.menuFrame =
+        Instance.new(
+            "Frame"
+        )
+
+    self.menuFrame.Name =
+        "MenuFrame"
+
+    self.menuFrame.Size =
+        UDim2.new(
+            0,
+            420,
+            0,
+            240
+        )
+
+    self.menuFrame.Position =
+        UDim2.new(
+            .5,
+            -210,
+            .5,
+            -120
+        )
+
+    self.menuFrame.BackgroundColor3 =
+        Color3.fromRGB(
+            10,
+            10,
+            10
+        )
+
+    self.menuFrame.BorderSizePixel =
+        0
+
+    self.menuFrame.Active =
+        true
+
+    self.menuFrame.Parent =
+        self.gui
+
+
+    local menuCorner =
+        Instance.new(
+            "UICorner"
+        )
+
+    menuCorner.CornerRadius =
+        UDim.new(
+            0,
+            10
+        )
+
+    menuCorner.Parent =
+        self.menuFrame
+
+
+    local menuStroke =
+        Instance.new(
+            "UIStroke"
+        )
+
+    menuStroke.Color =
+        Color3.fromRGB(
+            50,
+            50,
+            50
+        )
+
+    menuStroke.Parent =
+        self.menuFrame
+
+
+
+    -- TITLE BAR
+
+    local titleBar =
+        Instance.new(
+            "Frame"
+        )
+
+    titleBar.Size =
+        UDim2.new(
+            1,
+            0,
+            0,
+            28
+        )
+
+    titleBar.BackgroundColor3 =
+        Color3.fromRGB(
+            15,
+            15,
+            15
+        )
+
+    titleBar.BorderSizePixel =
+        0
+
+    titleBar.Parent =
+        self.menuFrame
+
+
+    local titleCorner =
+        Instance.new(
+            "UICorner"
+        )
+
+    titleCorner.CornerRadius =
+        UDim.new(
+            0,
+            10
+        )
+
+    titleCorner.Parent =
+        titleBar
+
+
+    local titleLabel =
+        Instance.new(
+            "TextLabel"
+        )
+
+    titleLabel.Size =
+        UDim2.new(
+            1,
+            -40,
+            1,
+            0
+        )
+
+    titleLabel.Position =
+        UDim2.new(
+            0,
+            10,
+            0,
+            0
+        )
+
+    titleLabel.BackgroundTransparency =
+        1
+
+    titleLabel.Text =
+        title
+        or
+        "Menu"
+
+    titleLabel.TextColor3 =
+        Color3.fromRGB(
+            220,
+            220,
+            220
+        )
+
+    titleLabel.Font =
+        Enum.Font.GothamBold
+
+    titleLabel.TextSize =
+        13
+
+    titleLabel.TextXAlignment =
+        Enum.TextXAlignment.Left
+
+    titleLabel.Parent =
+        titleBar
+
+
+
+    -- DRAG MOBILE
+
+    do
+
+        local dragging =
+            false
+
+        local dragStart
+
+        local startPos
+
+        titleBar.InputBegan:Connect(
+            function(input)
+
+                if
+                    input.UserInputType
+                    ==
+                    Enum.UserInputType.Touch
+
+                    or
+
+                    input.UserInputType
+                    ==
+                    Enum.UserInputType.MouseButton1
+
+                then
+
+                    dragging =
+                        true
+
+                    dragStart =
+                        input.Position
+
+                    startPos =
+                        self.menuFrame.Position
+                end
+
+            end
+        )
+
+        UIS.InputEnded:Connect(
+            function()
+
+                dragging =
+                    false
+
+            end
+        )
+
+        UIS.InputChanged:Connect(
+            function(input)
+
+                if
+                    not dragging
+                then
+                    return
+                end
+
+                local delta =
+                    input.Position
+                    -
+                    dragStart
+
+                self.menuFrame.Position =
+                    UDim2.new(
+                        startPos.X.Scale,
+                        startPos.X.Offset
+                        +
+                        delta.X,
+
+                        startPos.Y.Scale,
+                        startPos.Y.Offset
+                        +
+                        delta.Y
+                    )
+
+            end
+        )
+
+    end
+
+
+
+    -- CONTENT
+
+    self.contentFrame =
+        Instance.new(
+            "Frame"
+        )
+
+    self.contentFrame.Size =
+        UDim2.new(
+            1,
+            0,
+            1,
+            -28
+        )
+
+    self.contentFrame.Position =
+        UDim2.new(
+            0,
+            0,
+            0,
+            28
+        )
+
+    self.contentFrame.BackgroundTransparency =
+        1
+
+    self.contentFrame.Parent =
+        self.menuFrame
+
+
+
+    -- TAB LABELS
+
+    local function makeTab(x)
+
+        local l =
+            Instance.new(
+                "TextLabel"
+            )
+
+        l.Size =
+            UDim2.new(
+                1/3,
+                0,
+                0,
+                20
+            )
+
+        l.Position =
+            UDim2.new(
+                x,
+                0,
+                0,
+                0
+            )
+
+        l.BackgroundTransparency =
+            1
+
+        l.Text =
+            ""
+
+        l.Font =
+            Enum.Font.GothamSemibold
+
+        l.TextSize =
+            11
+
+        l.TextColor3 =
+            Color3.fromRGB(
+                140,
+                140,
+                140
+            )
+
+        l.Parent =
+            self.contentFrame
+
+        return l
+
+    end
+
+
+    self.leftTabLabel =
+        makeTab(
+            0
+        )
+
+    self.rightTabLabel =
+        makeTab(
+            1/3
+        )
+
+    self.thirdTabLabel =
+        makeTab(
+            2/3
+        )
+
+
+
+    -- CONTAINERS
+
+    local function makeContainer(
+        x
+    )
+
+        local c =
+            Instance.new(
+                "ScrollingFrame"
+            )
+
+        c.Size =
+            UDim2.new(
+                1/3,
+                -10,
+                1,
+                -30
+            )
+
+        c.Position =
+            UDim2.new(
+                x,
+                5,
+                0,
+                26
+            )
+
+        c.BackgroundTransparency =
+            1
+
+        c.BorderSizePixel =
+            0
+
+        c.ScrollBarThickness =
+            0
+
+        c.AutomaticCanvasSize =
+            Enum.AutomaticSize.Y
+
+        c.CanvasSize =
+            UDim2.new()
+
+        c.Parent =
+            self.contentFrame
+
+
+        local layout =
+            Instance.new(
+                "UIListLayout"
+            )
+
+        layout.Padding =
+            UDim.new(
+                0,
+                4
+            )
+
+        layout.Parent =
+            c
+
+        return c
+
+    end
+
+
+    self.leftContainer =
+        makeContainer(
+            0
+        )
+
+    self.rightContainer =
+        makeContainer(
+            1/3
+        )
+
+    self.thirdContainer =
+        makeContainer(
+            2/3
+        )
+
+
+
+    -- FLOAT BUTTON
+
+    local toggleBtn =
+        Instance.new(
+            "ImageButton"
+        )
+
+    toggleBtn.Size =
+        UDim2.new(
+            0,
+            44,
+            0,
+            44
+        )
+
+    toggleBtn.Position =
+        UDim2.new(
+            0,
+            16,
+            .5,
+            -22
+        )
+
+    toggleBtn.Image =
+        "rbxassetid://126717501064463"
+
+    toggleBtn.BackgroundColor3 =
+        Color3.fromRGB(
+            18,
+            18,
+            18
+        )
+
+    toggleBtn.Parent =
+        self.gui
+
+
+    local visible =
+        true
+
+    toggleBtn.Activated:Connect(
+        function()
+
+            visible =
+                not visible
+
+            self.menuFrame.Visible =
+                visible
+
+        end
+    )
+
+
 
     return self
+
 end
 
--- =============================================
--- HELPER: resolve container pelo side
--- =============================================
-function RobloxUI:_getContainer(side)
-    if side == "left"  then return self.leftContainer  end
-    if side == "right" then return self.rightContainer end
-    if side == "third" then return self.thirdContainer end
+
+
+function RobloxUI:_getContainer(
+    side
+)
+
+    if side=="left" then
+        return self.leftContainer
+    end
+
+    if side=="right" then
+        return self.rightContainer
+    end
+
+    if side=="third" then
+        return self.thirdContainer
+    end
+
     return self.leftContainer
-end
 
+end
 -- =============================================
 -- TOGGLE
 -- =============================================
@@ -224,40 +574,51 @@ function RobloxUI:AddToggle(side, text, default, callback)
     local state = default or false
 
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 26)
-    btn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-    btn.AutoButtonColor = false
+    btn.Name = "Toggle"
+    btn.Size = UDim2.new(1,-4,0,28)
+    btn.BackgroundColor3 = Color3.fromRGB(18,18,18)
     btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
     btn.Text = ""
     btn.Parent = container
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
-    local indicator = Instance.new("Frame")
-    indicator.Size = UDim2.new(0, 6, 0, 6)
-    indicator.Position = UDim2.new(0, 7, 0.5, -3)
-    indicator.BorderSizePixel = 0
-    indicator.Parent = btn
-    Instance.new("UICorner", indicator).CornerRadius = UDim.new(1, 0)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,6)
+    corner.Parent = btn
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(50,50,50)
+    stroke.Thickness = 1
+    stroke.Parent = btn
+
+    local dot = Instance.new("Frame")
+    dot.Size = UDim2.new(0,8,0,8)
+    dot.Position = UDim2.new(0,8,0.5,-4)
+    dot.BorderSizePixel = 0
+    dot.Parent = btn
+
+    local dotCorner = Instance.new("UICorner")
+    dotCorner.CornerRadius = UDim.new(1,0)
+    dotCorner.Parent = dot
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 1, 0)
-    label.Position = UDim2.new(0, 18, 0, 0)
     label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0,24,0,0)
+    label.Size = UDim2.new(1,-30,1,0)
     label.Font = Enum.Font.Gotham
     label.TextSize = 11
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.TextColor3 = Color3.fromRGB(210, 210, 210)
     label.Parent = btn
 
     local function refresh()
         if state then
-            indicator.BackgroundColor3 = Color3.fromRGB(80, 200, 120)
-            label.Text = text .. "  ON"
-            label.TextColor3 = Color3.fromRGB(230, 230, 230)
+            dot.BackgroundColor3 = Color3.fromRGB(80,200,120)
+            label.TextColor3 = Color3.fromRGB(230,230,230)
+            label.Text = text.."  ON"
         else
-            indicator.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-            label.Text = text .. "  OFF"
-            label.TextColor3 = Color3.fromRGB(130, 130, 130)
+            dot.BackgroundColor3 = Color3.fromRGB(80,80,80)
+            label.TextColor3 = Color3.fromRGB(130,130,130)
+            label.Text = text.."  OFF"
         end
     end
 
@@ -266,176 +627,283 @@ function RobloxUI:AddToggle(side, text, default, callback)
     btn.MouseButton1Click:Connect(function()
         state = not state
         refresh()
-        if callback then callback(state) end
+
+        if callback then
+            task.spawn(callback,state)
+        end
     end)
 
     return {
-        SetState = function(v) state = v refresh() end,
-        GetState = function() return state end
+        SetState=function(v)
+            state=v
+            refresh()
+        end,
+
+        GetState=function()
+            return state
+        end
     }
 end
 
--- =============================================
--- BOTÃƒO CLICÃVEL
--- =============================================
-function RobloxUI:AddButton(side, text, callback)
-    local container = self:_getContainer(side)
 
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 26)
-    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 11
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.AutoButtonColor = false
-    btn.BorderSizePixel = 0
-    btn.Text = text
-    btn.Parent = container
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+-- =============================================
+-- BUTTON
+-- =============================================
+function RobloxUI:AddButton(side,text,callback)
 
-    local s = Instance.new("UIStroke", btn)
-    s.Color = Color3.fromRGB(55, 55, 55)
-    s.Thickness = 1
+    local container=self:_getContainer(side)
+
+    local btn=Instance.new("TextButton")
+    btn.Name="Button"
+    btn.Size=UDim2.new(1,-4,0,28)
+    btn.BackgroundColor3=Color3.fromRGB(25,25,25)
+    btn.BorderSizePixel=0
+    btn.AutoButtonColor=false
+    btn.Font=Enum.Font.GothamSemibold
+    btn.TextSize=11
+    btn.Text=text
+    btn.TextColor3=Color3.fromRGB(210,210,210)
+    btn.Parent=container
+
+    local corner=Instance.new("UICorner")
+    corner.CornerRadius=UDim.new(0,6)
+    corner.Parent=btn
+
+    local stroke=Instance.new("UIStroke")
+    stroke.Color=Color3.fromRGB(55,55,55)
+    stroke.Thickness=1
+    stroke.Parent=btn
 
     btn.MouseButton1Down:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.BackgroundColor3=Color3.fromRGB(38,38,38)
     end)
 
-    btn.Activated:Connect(function()
-    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-
-    if callback then
-        callback()
-    end
-end)
+    btn.MouseButton1Up:Connect(function()
+        btn.BackgroundColor3=Color3.fromRGB(25,25,25)
+    end)
 
     btn.MouseLeave:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-        btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        btn.BackgroundColor3=Color3.fromRGB(25,25,25)
+    end)
+
+    btn.MouseButton1Click:Connect(function()
+        if callback then
+            task.spawn(callback)
+        end
     end)
 
     return btn
 end
-
 -- =============================================
--- SLIDER COM BOLINHA
+-- SLIDER
 -- =============================================
 function RobloxUI:AddSlider(side, text, min, max, default, callback)
+
     local container = self:_getContainer(side)
-    local value = default or min
+
+    local value = math.clamp(default or min, min, max)
     local dragging = false
 
-    local wrapper = Instance.new("Frame")
-    wrapper.Size = UDim2.new(1, 0, 0, 46)
-    wrapper.BackgroundTransparency = 1
-    wrapper.BorderSizePixel = 0
-    wrapper.Parent = container
+    local holder = Instance.new("Frame")
+    holder.Name = "Slider"
+    holder.Size = UDim2.new(1,-4,0,48)
+    holder.BackgroundTransparency = 1
+    holder.Parent = container
 
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0, 16)
-    titleLabel.Position = UDim2.new(0, 2, 0, 0)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Font = Enum.Font.GothamSemibold
-    titleLabel.TextSize = 10
-    titleLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    titleLabel.Text = text .. ": " .. value
-    titleLabel.Parent = wrapper
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1,0,0,16)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextColor3 = Color3.fromRGB(220,220,220)
+    label.Parent = holder
 
     local track = Instance.new("Frame")
-    track.Size = UDim2.new(1, -4, 0, 4)
-    track.Position = UDim2.new(0, 2, 0, 26)
-    track.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    track.Size = UDim2.new(1,0,0,6)
+    track.Position = UDim2.new(0,0,0,26)
+    track.BackgroundColor3 = Color3.fromRGB(28,28,28)
     track.BorderSizePixel = 0
-    track.Parent = wrapper
-    Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
+    track.Parent = holder
+
+    local trackCorner = Instance.new("UICorner")
+    trackCorner.CornerRadius = UDim.new(1,0)
+    trackCorner.Parent = track
 
     local fill = Instance.new("Frame")
-    fill.Size = UDim2.new(0, 0, 1, 0)
-    fill.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
+    fill.Size = UDim2.new(0,0,1,0)
+    fill.BackgroundColor3 = Color3.fromRGB(80,160,255)
     fill.BorderSizePixel = 0
     fill.Parent = track
-    Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1,0)
+    fillCorner.Parent = fill
 
     local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 13, 0, 13)
-    knob.AnchorPoint = Vector2.new(0.5, 0.5)
-    knob.Position = UDim2.new(0, 0, 0.5, 0)
-    knob.BackgroundColor3 = Color3.new(1, 1, 1)
+    knob.Size = UDim2.new(0,12,0,12)
+    knob.AnchorPoint = Vector2.new(.5,.5)
+    knob.Position = UDim2.new(0,0,.5,0)
+    knob.BackgroundColor3 = Color3.new(1,1,1)
     knob.BorderSizePixel = 0
-    knob.ZIndex = 5
     knob.Parent = track
-    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
 
-    local knobStroke = Instance.new("UIStroke", knob)
-    knobStroke.Color = Color3.fromRGB(80, 160, 255)
-    knobStroke.Thickness = 1.5
+    local knobCorner = Instance.new("UICorner")
+    knobCorner.CornerRadius = UDim.new(1,0)
+    knobCorner.Parent = knob
 
-    local function updateSlider(inputX)
-        local rel = math.clamp((inputX - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
-        value = math.floor(min + (max - min) * rel)
-        fill.Size = UDim2.new(rel, 0, 1, 0)
-        knob.Position = UDim2.new(rel, 0, 0.5, 0)
-        titleLabel.Text = text .. ": " .. value
-        if callback then callback(value) end
+    local function redraw()
+
+        local rel = (value-min)/(max-min)
+
+        fill.Size = UDim2.new(rel,0,1,0)
+        knob.Position = UDim2.new(rel,0,.5,0)
+
+        label.Text =
+            text ..
+            ": " ..
+            tostring(math.floor(value))
+
     end
 
-    local initRel = (value - min) / (max - min)
-    fill.Size = UDim2.new(initRel, 0, 1, 0)
-    knob.Position = UDim2.new(initRel, 0, 0.5, 0)
+    local function update(x)
+
+        local rel =
+            math.clamp(
+                (x-track.AbsolutePosition.X)
+                /
+                track.AbsoluteSize.X,
+                0,
+                1
+            )
+
+        value =
+            min +
+            ((max-min)*rel)
+
+        value =
+            math.floor(value)
+
+        redraw()
+
+        if callback then
+            task.spawn(callback,value)
+        end
+
+    end
+
+    redraw()
 
     track.InputBegan:Connect(function(inp)
-        if inp.UserInputType == Enum.UserInputType.MouseButton1
-            or inp.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            updateSlider(inp.Position.X)
+
+        if inp.UserInputType==Enum.UserInputType.MouseButton1
+        or inp.UserInputType==Enum.UserInputType.Touch then
+
+            dragging=true
+            update(inp.Position.X)
+
         end
+
     end)
 
     knob.InputBegan:Connect(function(inp)
-        if inp.UserInputType == Enum.UserInputType.MouseButton1
-            or inp.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
+
+        if inp.UserInputType==Enum.UserInputType.MouseButton1
+        or inp.UserInputType==Enum.UserInputType.Touch then
+
+            dragging=true
+
         end
+
     end)
 
-    game:GetService("UserInputService").InputChanged:Connect(function(inp)
-        if dragging and (inp.UserInputType == Enum.UserInputType.MouseMovement
-            or inp.UserInputType == Enum.UserInputType.Touch) then
-            updateSlider(inp.Position.X)
+    local UIS =
+        game:GetService(
+            "UserInputService"
+        )
+
+    UIS.InputChanged:Connect(function(inp)
+
+        if not dragging then
+            return
         end
+
+        if inp.UserInputType==Enum.UserInputType.MouseMovement
+        or inp.UserInputType==Enum.UserInputType.Touch then
+
+            update(inp.Position.X)
+
+        end
+
     end)
 
-    game:GetService("UserInputService").InputEnded:Connect(function(inp)
-        if inp.UserInputType == Enum.UserInputType.MouseButton1
-            or inp.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
+    UIS.InputEnded:Connect(function(inp)
+
+        if inp.UserInputType==Enum.UserInputType.MouseButton1
+        or inp.UserInputType==Enum.UserInputType.Touch then
+
+            dragging=false
+
         end
+
     end)
 
     return {
-        GetValue = function() return value end,
-        SetValue = function(v)
-            value = math.clamp(v, min, max)
-            local rel = (value - min) / (max - min)
-            fill.Size = UDim2.new(rel, 0, 1, 0)
-            knob.Position = UDim2.new(rel, 0, 0.5, 0)
-            titleLabel.Text = text .. ": " .. value
+
+        GetValue=function()
+
+            return value
+
+        end,
+
+        SetValue=function(v)
+
+            value =
+                math.clamp(
+                    v,
+                    min,
+                    max
+                )
+
+            redraw()
+
         end
+
     }
+
 end
 
+
 -- =============================================
--- NOMES DAS ABAS
+-- TAB NAMES
 -- =============================================
-function RobloxUI:SetTabNames(leftName, rightName, thirdName)
-    self.leftTabLabel.Text  = leftName  or ""
-    self.rightTabLabel.Text = rightName or ""
-    self.thirdTabLabel.Text = thirdName or ""
+function RobloxUI:SetTabNames(
+    left,
+    right,
+    third
+)
+
+    if self.leftTabLabel then
+        self.leftTabLabel.Text =
+            left or ""
+    end
+
+    if self.rightTabLabel then
+        self.rightTabLabel.Text =
+            right or ""
+    end
+
+    if self.thirdTabLabel then
+        self.thirdTabLabel.Text =
+            third or ""
+    end
+
 end
 
+
+-- =============================================
+-- FINALIZAÇÃO
+-- =============================================
 _G.RobloxUI = RobloxUI
 
 return RobloxUI
