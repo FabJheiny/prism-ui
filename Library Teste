@@ -13,7 +13,7 @@ local Theme = {
     Window     = Color3.fromRGB(10,10,22),
     Sidebar    = Color3.fromRGB(8,8,18),
     Border     = Color3.fromRGB(255,255,255),
-    Text       = Color3.fromRGB(235,235,255),
+    Text     = Color3.fromRGB(235,235,255),
     SubText    = Color3.fromRGB(110,110,140),
     Accent1    = Color3.fromRGB(255,80,140),
     Accent2    = Color3.fromRGB(120,120,255),
@@ -122,27 +122,32 @@ local function AnimateGradient(g)
 end
 
 -- ────────────────────────────────────────────────────────────
--- CreateFloatingActionButton
+-- CreateFloatingActionButton (interno)
+-- Cria um botão flutuante arrastável na tela vinculado a um toggle.
+-- Retorna o frame raiz para que o toggle possa mostrá-lo/ocultá-lo.
 -- ────────────────────────────────────────────────────────────
 
 local function CreateFloatingActionButton(root, opts)
+    -- opts: { Label, Icon, Description, Position, Callback }
     local label       = opts.Label       or "Action"
     local icon        = opts.Icon        or "▶"
     local description = opts.Description or ""
     local startPos    = opts.Position    or UDim2.new(0.5, -56, 0.85, 0)
     local callback    = opts.Callback
 
+    -- Wrapper pill
     local pill = Create("Frame",{
         Size             = UDim2.fromOffset(112, 44),
         Position         = startPos,
         BackgroundColor3 = Color3.fromRGB(10,8,28),
         BorderSizePixel  = 0,
         ZIndex           = 50,
-        Visible          = false,
+        Visible          = false,   -- começa oculto; o toggle controla
         Parent           = root,
     })
     Corner(pill, 22)
 
+    -- Borda animada igual ao estilo Prism
     local pillStroke = Stroke(pill, Theme.Accent1, 1.5, .3)
     AnimateGradient(Gradient(pillStroke,{
         ColorSequenceKeypoint.new(0,   Theme.Accent1),
@@ -151,9 +156,10 @@ local function CreateFloatingActionButton(root, opts)
         ColorSequenceKeypoint.new(1,   Theme.Accent1),
     }))
 
+    -- Glow de fundo suave
     local glowBg = Create("Frame",{
         Size             = UDim2.fromScale(1,1),
-         BackgroundColor3 = Color3.fromRGB(30, 26, 72),
+        BackgroundColor3 = Color3.fromRGB(30, 26, 72),
         BackgroundTransparency = .88,
         BorderSizePixel  = 0,
         ZIndex           = pill.ZIndex - 1,
@@ -161,17 +167,7 @@ local function CreateFloatingActionButton(root, opts)
     })
     Corner(glowBg, 22)
 
-    local floatingShadow = Create("Frame",{
-        Size             = UDim2.new(1,16,1,16),
-        Position         = UDim2.fromOffset(-8,-8),
-        BackgroundColor3 = Theme.Glow,
-        BackgroundTransparency = .95,
-        BorderSizePixel  = 0,
-        ZIndex           = pill.ZIndex - 2,
-        Parent           = pill,
-    })
-    Corner(floatingShadow, 999)
-
+    -- Ícone (lado esquerdo)
     local iconFrame = Create("Frame",{
         Size             = UDim2.fromOffset(32,32),
         Position         = UDim2.fromOffset(6,6),
@@ -198,6 +194,7 @@ local function CreateFloatingActionButton(root, opts)
         Parent             = iconFrame,
     })
 
+    -- Texto (lado direito)
     local textLabel = Create("TextLabel",{
         Text               = label,
         Font               = Enum.Font.GothamBold,
@@ -228,6 +225,7 @@ local function CreateFloatingActionButton(root, opts)
         })
     end
 
+    -- Botão invisível cobrindo apenas a área de texto (clique)
     local hitBtn = Create("TextButton",{
         Text               = "",
         AutoButtonColor    = false,
@@ -239,6 +237,7 @@ local function CreateFloatingActionButton(root, opts)
         Parent             = pill,
     })
 
+    -- Clique: ripple + callback
     hitBtn.MouseButton1Click:Connect(function()
         Ripple(hitBtn)
         TweenService:Create(glowBg, TweenInfo.new(.07), {
@@ -252,6 +251,7 @@ local function CreateFloatingActionButton(root, opts)
         if callback then task.spawn(callback) end
     end)
 
+    -- Hover: só tamanho, sem mexer em Position
     hitBtn.MouseEnter:Connect(function()
         TweenService:Create(pill, TweenInfo.new(.14, Enum.EasingStyle.Quint), {
             Size = UDim2.fromOffset(118, 46),
@@ -263,6 +263,7 @@ local function CreateFloatingActionButton(root, opts)
         }):Play()
     end)
 
+-- Drag pelo ícone via botão invisível sobreposto (funciona mesmo após pill ficar visível)
     local draggingPill = false
     local dragStartPos, pillStartPos
 
@@ -302,6 +303,7 @@ local function CreateFloatingActionButton(root, opts)
         end
     end)
 
+    -- Funções de show/hide com animação
     local function Show()
         pill.Visible = true
         pill.BackgroundTransparency = 1
@@ -345,143 +347,147 @@ function Library:CreateWindow(data)
         Parent                 = gui,
     })
 
-    -- ── Floating Bar ──
-    local floatingBar = Create("Frame",{
-        Size             = UDim2.fromOffset(196, 40),
-        Position         = UDim2.new(0.5, -98, 0, 12),
-        BackgroundColor3 = Color3.fromRGB(10,8,26),
-        BorderSizePixel  = 0,
-        ZIndex           = 20,
-        Parent           = root,
-    })
-    Corner(floatingBar, 10)
-    local fbStroke = Stroke(floatingBar, Theme.Glow, 1, .45)
-    AnimateGradient(Gradient(fbStroke,{
-        ColorSequenceKeypoint.new(0,  Theme.Accent1),
-        ColorSequenceKeypoint.new(.5, Theme.Accent2),
-        ColorSequenceKeypoint.new(1,  Theme.Accent3),
-    }))
+-- ── Floating Bar (avatar + toggle, arrastrável, topo central) ──
+local floatingBar = Create("Frame",{
+    Size             = UDim2.fromOffset(196, 40),
+    Position         = UDim2.new(0.5, -98, 0, 12),
+    BackgroundColor3 = Color3.fromRGB(10,8,26),
+    BorderSizePixel  = 0,
+    ZIndex           = 20,
+    Parent           = root,
+})
+Corner(floatingBar, 10)
+local fbStroke = Stroke(floatingBar, Theme.Glow, 1, .45)
+AnimateGradient(Gradient(fbStroke,{
+    ColorSequenceKeypoint.new(0,  Theme.Accent1),
+    ColorSequenceKeypoint.new(.5, Theme.Accent2),
+    ColorSequenceKeypoint.new(1,  Theme.Accent3),
+}))
 
-    -- FPS pill
-    local fpsPill = Create("Frame",{
-        Size             = UDim2.fromOffset(70, 26),
-        Position         = UDim2.fromOffset(7, 7),
-        BackgroundColor3 = Color3.fromRGB(14,11,32),
-        BorderSizePixel  = 0,
-        ZIndex           = 22,
-        Parent           = floatingBar,
-    })
-    Corner(fpsPill, 8)
-    Stroke(fpsPill, Theme.Accent1, 1, .6)
+-- Pill esquerdo: FPS
+local fpsPill = Create("Frame",{
+    Size             = UDim2.fromOffset(70, 26),
+    Position         = UDim2.fromOffset(7, 7),
+    BackgroundColor3 = Color3.fromRGB(14,11,32),
+    BorderSizePixel  = 0,
+    ZIndex           = 22,
+    Parent           = floatingBar,
+})
+Corner(fpsPill, 8)
+Stroke(fpsPill, Theme.Accent1, 1, .6)
 
-    Create("TextLabel",{
-        Text               = "FPS",
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 8,
-        TextColor3         = Theme.Accent1,
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(6, 3),
-        Size               = UDim2.fromOffset(22, 10),
-        TextXAlignment     = Enum.TextXAlignment.Left,
-        ZIndex             = 23,
-        Parent             = fpsPill,
-    })
+local fpsTagL = Create("TextLabel",{
+    Text               = "FPS",
+    Font               = Enum.Font.GothamBold,
+    TextSize           = 8,
+    TextColor3         = Theme.Accent1,
+    BackgroundTransparency = 1,
+    Position           = UDim2.fromOffset(6, 3),
+    Size               = UDim2.fromOffset(22, 10),
+    TextXAlignment     = Enum.TextXAlignment.Left,
+    ZIndex             = 23,
+    Parent             = fpsPill,
+})
 
-    local fpsValueL = Create("TextLabel",{
-        Text               = "—",
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 11,
-        TextColor3         = Color3.fromRGB(220,210,255),
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(6, 13),
-        Size               = UDim2.fromOffset(58, 12),
-        TextXAlignment     = Enum.TextXAlignment.Left,
-        ZIndex             = 23,
-        Parent             = fpsPill,
-    })
+local fpsValueL = Create("TextLabel",{
+    Text               = "—",
+    Font               = Enum.Font.GothamBold,
+    TextSize           = 11,
+    TextColor3         = Color3.fromRGB(220,210,255),
+    BackgroundTransparency = 1,
+    Position           = UDim2.fromOffset(6, 13),
+    Size               = UDim2.fromOffset(58, 12),
+    TextXAlignment     = Enum.TextXAlignment.Left,
+    ZIndex             = 23,
+    Parent             = fpsPill,
+})
 
-    -- Ping pill
-    local pingPill = Create("Frame",{
-        Size             = UDim2.fromOffset(70, 26),
-        Position         = UDim2.fromOffset(83, 7),
-        BackgroundColor3 = Color3.fromRGB(14,11,32),
-        BorderSizePixel  = 0,
-        ZIndex           = 22,
-        Parent           = floatingBar,
-    })
-    Corner(pingPill, 8)
-    Stroke(pingPill, Theme.Accent3, 1, .6)
+-- Pill direito: Ping
+local pingPill = Create("Frame",{
+    Size             = UDim2.fromOffset(70, 26),
+    Position         = UDim2.fromOffset(83, 7),
+    BackgroundColor3 = Color3.fromRGB(14,11,32),
+    BorderSizePixel  = 0,
+    ZIndex           = 22,
+    Parent           = floatingBar,
+})
+Corner(pingPill, 8)
+Stroke(pingPill, Theme.Accent3, 1, .6)
 
-    Create("TextLabel",{
-        Text               = "PING",
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 8,
-        TextColor3         = Theme.Accent3,
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(6, 3),
-        Size               = UDim2.fromOffset(28, 10),
-        TextXAlignment     = Enum.TextXAlignment.Left,
-        ZIndex             = 23,
-        Parent             = pingPill,
-    })
+local pingTagL = Create("TextLabel",{
+    Text               = "PING",
+    Font               = Enum.Font.GothamBold,
+    TextSize           = 8,
+    TextColor3         = Theme.Accent3,
+    BackgroundTransparency = 1,
+    Position           = UDim2.fromOffset(6, 3),
+    Size               = UDim2.fromOffset(28, 10),
+    TextXAlignment     = Enum.TextXAlignment.Left,
+    ZIndex             = 23,
+    Parent             = pingPill,
+})
 
-    local pingValueL = Create("TextLabel",{
-        Text               = "—",
-        Font               = Enum.Font.GothamBold,
-        TextSize           = 11,
-        TextColor3         = Color3.fromRGB(220,210,255),
-        BackgroundTransparency = 1,
-        Position           = UDim2.fromOffset(6, 13),
-        Size               = UDim2.fromOffset(58, 12),
-        TextXAlignment     = Enum.TextXAlignment.Left,
-        ZIndex             = 23,
-        Parent             = pingPill,
-    })
+local pingValueL = Create("TextLabel",{
+    Text               = "—",
+    Font               = Enum.Font.GothamBold,
+    TextSize           = 11,
+    TextColor3         = Color3.fromRGB(220,210,255),
+    BackgroundTransparency = 1,
+    Position           = UDim2.fromOffset(6, 13),
+    Size               = UDim2.fromOffset(58, 12),
+    TextXAlignment     = Enum.TextXAlignment.Left,
+    ZIndex             = 23,
+    Parent             = pingPill,
+})
 
-    local frameCount = 0
-    local elapsed    = 0
-    RunService.RenderStepped:Connect(function(dt)
-        frameCount = frameCount + 1
-        elapsed    = elapsed + dt
-        if elapsed >= 1 then
-            local fps  = math.round(frameCount / elapsed)
-            local ping = math.round(Players.LocalPlayer:GetNetworkPing() * 1000)
-            fpsValueL.Text = fps .. " fps"
-            local pingColor
-            if ping < 80 then
-                pingColor = Color3.fromRGB(96,255,160)
-            elseif ping < 150 then
-                pingColor = Color3.fromRGB(255,210,80)
-            else
-                pingColor = Color3.fromRGB(255,80,100)
-            end
-            pingValueL.Text       = ping .. " ms"
-            pingValueL.TextColor3 = pingColor
-            frameCount = 0
-            elapsed    = 0
+-- Atualiza FPS e Ping a cada segundo
+local frameCount = 0
+local elapsed    = 0
+RunService.RenderStepped:Connect(function(dt)
+    frameCount = frameCount + 1
+    elapsed    = elapsed + dt
+    if elapsed >= 1 then
+        local fps  = math.round(frameCount / elapsed)
+        local ping = math.round(Players.LocalPlayer:GetNetworkPing() * 1000)
+        fpsValueL.Text  = fps .. " fps"
+
+        local pingColor
+        if ping < 80 then
+            pingColor = Color3.fromRGB(96,255,160)
+        elseif ping < 150 then
+            pingColor = Color3.fromRGB(255,210,80)
+        else
+            pingColor = Color3.fromRGB(255,80,100)
         end
-    end)
+        pingValueL.Text      = ping .. " ms"
+        pingValueL.TextColor3 = pingColor
 
-    -- Toggle button
-    local toggleBtn = Create("TextButton",{
-        Text             = "◉",
-        Font             = Enum.Font.GothamBold,
-        TextSize         = 20,
-        TextColor3       = Theme.Accent1,
-        AutoButtonColor  = false,
-        Size             = UDim2.fromOffset(30,30),
-        Position         = UDim2.new(1,-35, 0, 5),
-        BackgroundColor3 = Color3.fromRGB(18,14,38),
-        BorderSizePixel  = 0,
-        ZIndex           = 23,
-        Parent           = floatingBar,
-    })
-    Corner(toggleBtn, 8)
-    Stroke(toggleBtn, Theme.Glow, 1, .55)
+        frameCount = 0
+        elapsed    = 0
+    end
+end)
 
-    Dragify(floatingBar)
+-- Botão toggle (lado direito)
+local toggleBtn = Create("TextButton",{
+    Text             = "◉",
+    Font             = Enum.Font.GothamBold,
+    TextSize         = 20,
+    TextColor3       = Theme.Accent1,
+    AutoButtonColor  = false,
+    Size             = UDim2.fromOffset(30,30),
+    Position         = UDim2.new(1,-35, 0, 5),
+    BackgroundColor3 = Color3.fromRGB(18,14,38),
+    BorderSizePixel  = 0,
+    ZIndex           = 23,
+    Parent           = floatingBar,
+})
+Corner(toggleBtn, 8)
+Stroke(toggleBtn, Theme.Glow, 1, .55)
 
-    -- ── Window wrap ──
+-- Toda a barra é arrastável
+Dragify(floatingBar)
+
+    -- ── Window wrap & prism border ────────────────────────────
     local wrap = Create("Frame",{
         Size        = Config.WindowSize,
         Position    = UDim2.fromScale(.5,.5),
@@ -490,25 +496,34 @@ function Library:CreateWindow(data)
         Parent      = root,
     })
     Corner(wrap, 16)
-
-    local wrapStroke = Stroke(wrap, Theme.Accent1, 1.5, .3)
-AnimateGradient(Gradient(wrapStroke, {
-    ColorSequenceKeypoint.new(0,   Theme.Accent1),
-    ColorSequenceKeypoint.new(.33, Theme.Accent2),
-    ColorSequenceKeypoint.new(.66, Theme.Accent3),
-    ColorSequenceKeypoint.new(1,   Theme.Accent1),
-}))
-
+    -- ── Prism Border Animada ──────────────────────────────────
+local prismBorder = Stroke(wrap, Theme.Accent1, 2, 0)
+local prismGrad = Gradient(prismBorder, {
+    ColorSequenceKeypoint.new(0,    Theme.Accent1),
+    ColorSequenceKeypoint.new(.25,  Theme.Accent2),
+    ColorSequenceKeypoint.new(.5,   Theme.Accent3),
+    ColorSequenceKeypoint.new(.75,  Theme.Accent2),
+    ColorSequenceKeypoint.new(1,    Theme.Accent1),
+})
+task.spawn(function()
+    while wrap and wrap.Parent do
+        TweenService:Create(prismGrad, TweenInfo.new(3, Enum.EasingStyle.Linear), {
+            Rotation = prismGrad.Rotation + 360
+        }):Play()
+        task.wait(3)
+    end
+end)
+-- ─────────────────────────────────────────────────────────
     local window = Create("Frame",{
-        Size             = UDim2.new(1,-4,1,-4),
-        Position         = UDim2.fromOffset(2,2),
-        BackgroundColor3 = Theme.Window,
-        BorderSizePixel  = 0,
-        Parent           = wrap,
-    })
-    Corner(window, 16)
+    Size             = UDim2.fromScale(1,1),
+    Position         = UDim2.fromOffset(0,0),
+    BackgroundColor3 = Theme.Window,
+    BorderSizePixel  = 0,
+    Parent           = wrap,
+})
+Corner(window, 16)
 
-    -- ── Sidebar ──
+    -- ── Sidebar ───────────────────────────────────────────────
     local sidebar = Create("Frame",{
         Size             = UDim2.new(0,Config.SidebarWidth,1,0),
         BackgroundColor3 = Theme.Sidebar,
@@ -525,20 +540,8 @@ AnimateGradient(Gradient(wrapStroke, {
         Parent           = sidebar,
     })
 
-    local sidebarGlow = Create("Frame",{
-        Size             = UDim2.new(0,1,1,-20),
-        Position         = UDim2.new(1,-1,0,10),
-        BackgroundTransparency = .3,
-        BorderSizePixel  = 0,
-        Parent           = sidebar,
-    })
-    Gradient(sidebarGlow,{
-        ColorSequenceKeypoint.new(0,  Theme.Accent1),
-        ColorSequenceKeypoint.new(.5, Theme.Accent2),
-        ColorSequenceKeypoint.new(1,  Theme.Accent3),
-    },90)
 
-    -- Brand header
+    -- brand header
     local brand = Create("Frame",{
         Size               = UDim2.new(1,0,0,82),
         BackgroundTransparency = 1,
@@ -609,7 +612,7 @@ AnimateGradient(Gradient(wrapStroke, {
     })
     Create("UIListLayout",{ Padding = UDim.new(0,3), Parent = tabList })
 
-    -- ── Player card ──
+    -- ── Player card ───────────────────────────────────────────
     local playerCard = Create("Frame",{
         Size             = UDim2.new(1,-12,0,50),
         Position         = UDim2.new(0,6,1,-58),
@@ -699,7 +702,7 @@ AnimateGradient(Gradient(wrapStroke, {
         Parent             = playerCard,
     })
 
-    -- ── Content ──
+    -- ── Content ───────────────────────────────────────────────
     local content = Create("Frame",{
         Position           = UDim2.new(0,Config.SidebarWidth,0,0),
         Size               = UDim2.new(1,-Config.SidebarWidth,1,0),
@@ -749,37 +752,37 @@ AnimateGradient(Gradient(wrapStroke, {
 
     Dragify(wrap, topbar)
 
-    local menuVisible = true
-    toggleBtn.MouseButton1Click:Connect(function()
-        menuVisible = not menuVisible
-        wrap.Visible = menuVisible
-        toggleBtn.Text = "◉"
-        TweenService:Create(toggleBtn, Config.Tween, {
-            TextColor3       = menuVisible
-                and Theme.Accent1
-                or  Color3.fromRGB(240,236,255),
-            BackgroundColor3 = menuVisible
-                and Color3.fromRGB(30,10,50)
-                or  Color3.fromRGB(18,14,38),
-        }):Play()
-    end)
+local menuVisible = true
+toggleBtn.MouseButton1Click:Connect(function()
+    menuVisible = not menuVisible
+    wrap.Visible = menuVisible
+    toggleBtn.Text = "◉"
+    TweenService:Create(toggleBtn, Config.Tween, {
+        TextColor3       = menuVisible
+            and Theme.Accent1
+            or  Color3.fromRGB(240,236,255),
+        BackgroundColor3 = menuVisible
+            and Color3.fromRGB(30,10,50)
+            or  Color3.fromRGB(18,14,38),
+    }):Play()
+end)
 
-    -- ── Window object ──
+    -- ── Window object ─────────────────────────────────────────
     local windowObj = { Tabs = {} }
 
     function windowObj:CreateTab(name)
         local tabBtn = Create("TextButton",{
             Text               = "",
-            Size               = UDim2.new(1,-20,0,38),
-            Position           = UDim2.fromOffset(10,0),
+            Size               = UDim2.new(1,-16,0,38),
+            Position           = UDim2.fromOffset(8,0),
             BackgroundTransparency = 1,
             AutoButtonColor    = false,
             Parent             = tabList,
         })
 
-   local glowBar = Create("Frame",{
+        local glowBar = Create("Frame",{
     Size             = UDim2.fromOffset(3,0),
-    Position         = UDim2.new(0,6,.5,0),   -- era 0, agora 6
+    Position         = UDim2.new(0,10,.5,0),
     AnchorPoint      = Vector2.new(0,.5),
             BackgroundColor3 = Theme.Accent1,
             BorderSizePixel  = 0,
@@ -792,8 +795,8 @@ AnimateGradient(Gradient(wrapStroke, {
         },90)
 
         local dot = Create("Frame",{
-            Size             = UDim2.fromOffset(6,6),
-            Position         = UDim2.fromOffset(18,15),
+    Size             = UDim2.fromOffset(5,5),
+    Position         = UDim2.fromOffset(19,17),
             BackgroundColor3 = Color3.fromRGB(26,24,56),
             BorderSizePixel  = 0,
             Parent           = tabBtn,
@@ -810,12 +813,13 @@ AnimateGradient(Gradient(wrapStroke, {
             TextSize           = 13,
             TextColor3         = Color3.fromRGB(58,56,88),
             BackgroundTransparency = 1,
-            Position           = UDim2.fromOffset(34,0),
+            Position = UDim2.fromOffset(30,0),
             Size               = UDim2.new(1,-30,1,0),
             TextXAlignment     = Enum.TextXAlignment.Left,
             Parent             = tabBtn,
         })
 
+        
         local bg = Create("Frame",{
     Size               = UDim2.new(1,-8,1,0),
     BackgroundColor3   = Color3.fromRGB(30, 26, 72),
@@ -824,11 +828,6 @@ AnimateGradient(Gradient(wrapStroke, {
     Parent             = tabBtn,
 })
         Corner(bg, 9)
-        Create("UIPadding",{
-            PaddingLeft  = UDim.new(0,2),
-            PaddingRight = UDim.new(0,2),
-            Parent       = bg,
-        })
 
         local page = Create("ScrollingFrame",{
             Visible                = false,
@@ -864,28 +863,6 @@ AnimateGradient(Gradient(wrapStroke, {
         end
 
         tabBtn.MouseButton1Click:Connect(Select)
-
-        tabBtn.MouseEnter:Connect(function()
-            if not page.Visible then
-                TweenService:Create(bg, TweenInfo.new(.16, Enum.EasingStyle.Quint), {
-                    BackgroundTransparency = .95
-                }):Play()
-                TweenService:Create(tabText, TweenInfo.new(.16, Enum.EasingStyle.Quint), {
-                    TextColor3 = Color3.fromRGB(160,150,210)
-                }):Play()
-            end
-        end)
-        tabBtn.MouseLeave:Connect(function()
-            if not page.Visible then
-                TweenService:Create(bg, TweenInfo.new(.16, Enum.EasingStyle.Quint), {
-                    BackgroundTransparency = 1
-                }):Play()
-                TweenService:Create(tabText, TweenInfo.new(.16, Enum.EasingStyle.Quint), {
-                    TextColor3 = Color3.fromRGB(58,56,88)
-                }):Play()
-            end
-        end)
-
         tabObj.Page = page; tabObj.Dot = dot; tabObj.Text = tabText
         tabObj.Glow = glowBar; tabObj.Bg = bg
         table.insert(windowObj.Tabs, tabObj)
@@ -916,11 +893,24 @@ AnimateGradient(Gradient(wrapStroke, {
             return el
         end
 
-        -- ── Toggle ──
+        -- ── Toggle (com suporte a FloatingButton) ─────────────
+        --
+        -- NOVO: d.FloatingButton (opcional)
+        --   Se informado, ao ativar o toggle um botão pill flutuante
+        --   aparece na tela. Ao desativar, some com animação.
+        --
+        --   Campos de d.FloatingButton:
+        --     Label       string  — texto exibido no pill
+        --     Icon        string  — emoji/símbolo no ícone (padrão "▶")
+        --     Description string  — subtexto menor (opcional)
+        --     Position    UDim2   — posição inicial (padrão centro-baixo)
+        --     Callback    function — executada ao clicar no pill
+        --
         function tabObj:CreateToggle(d)
             local enabled = d.Default or false
             local el      = CreateElement(58)
 
+            -- Cria o botão flutuante agora (oculto) se configurado
             local fab = nil
             if d.FloatingButton then
                 fab = CreateFloatingActionButton(root, {
@@ -930,6 +920,7 @@ AnimateGradient(Gradient(wrapStroke, {
                     Position    = d.FloatingButton.Position,
                     Callback    = d.FloatingButton.Callback,
                 })
+                -- Se o toggle já começa ativado, mostra de imediato
                 if enabled then
                     fab.Frame.Visible = true
                 end
@@ -995,18 +986,16 @@ AnimateGradient(Gradient(wrapStroke, {
                 Parent           = track,
             })
             Corner(knob, 999)
-
-            local toggleGlow = Create("Frame",{
-                Size             = UDim2.new(1,8,1,8),
-                Position         = UDim2.fromOffset(-4,-4),
+local toggleGlow = Create("Frame",{
+                Size = UDim2.new(1,8,1,8),
+                Position = UDim2.fromOffset(-4,-4),
                 BackgroundColor3 = Theme.Accent1,
                 BackgroundTransparency = .95,
-                BorderSizePixel  = 0,
-                ZIndex           = track.ZIndex - 1,
-                Parent           = track,
+                BorderSizePixel = 0,
+                ZIndex = track.ZIndex - 1,
+                Parent = track,
             })
-            Corner(toggleGlow, 999)
-
+            Corner(toggleGlow,999)
             local function Resize()
                 local h = descL.TextBounds.Y + nameL.TextBounds.Y + 36
                 el.Size = UDim2.new(1,0,0,math.max(h,58))
@@ -1022,14 +1011,18 @@ AnimateGradient(Gradient(wrapStroke, {
                     Position         = state and UDim2.fromOffset(21,3) or UDim2.fromOffset(3,3),
                     BackgroundColor3 = state and Color3.new(1,1,1) or Color3.fromRGB(24,22,58),
                 }):Play()
-                TweenService:Create(toggleGlow, Config.Tween, {
+
+                -- ── Controla visibilidade do FAB ──────────────
+                if fab then
+                    if state then
+                        fab.Show()
+                    else
+                        fab.Hide()
+                    end
+                end
+TweenService:Create(toggleGlow, Config.Tween, {
                     BackgroundTransparency = state and .88 or .95
                 }):Play()
-
-                if fab then
-                    if state then fab.Show() else fab.Hide() end
-                end
-
                 if d.Callback then task.spawn(d.Callback, state) end
             end
 
@@ -1037,7 +1030,7 @@ AnimateGradient(Gradient(wrapStroke, {
             return { Set = Set, Get = function() return enabled end }
         end
 
-        -- ── Slider ──
+        -- ── Slider ────────────────────────────────────────────
         function tabObj:CreateSlider(d)
             local min   = d.Min or 0
             local max   = d.Max or 100
@@ -1137,18 +1130,17 @@ AnimateGradient(Gradient(wrapStroke, {
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(255,96,144)),
                 ColorSequenceKeypoint.new(1, Theme.Accent2),
             })
-
             local thumbGlow = Create("Frame",{
-                Size             = UDim2.new(1,10,1,10),
-                Position         = UDim2.fromOffset(-5,-5),
+                Size = UDim2.new(1,10,1,10),
+                Position = UDim2.fromOffset(-5,-5),
                 BackgroundColor3 = Theme.Accent1,
                 BackgroundTransparency = .90,
-                BorderSizePixel  = 0,
-                ZIndex           = thumb.ZIndex - 1,
-                Parent           = thumb,
+                BorderSizePixel = 0,
+                ZIndex = thumb.ZIndex - 1,
+                Parent = thumb,
             })
-            Corner(thumbGlow, 999)
-
+            Corner(thumbGlow,999)
+ 
             local hitZone = Create("TextButton",{
                 Text               = "",
                 BackgroundTransparency = 1,
@@ -1227,7 +1219,7 @@ AnimateGradient(Gradient(wrapStroke, {
             return { Set = SyncUI, Get = function() return value end }
         end
 
-        -- ── Button ──
+        -- ── Button ────────────────────────────────────────────
         function tabObj:CreateButton(d)
             local btn = Create("TextButton",{
                 Text             = d.Name or "Button",
@@ -1279,13 +1271,13 @@ AnimateGradient(Gradient(wrapStroke, {
             end)
         end
 
-        -- ── Dropdown ──
+        -- ── Dropdown ──────────────────────────────────────────
         function tabObj:CreateDropdown(d)
             local options  = d.Options or {}
             local current  = d.Default or options[1] or "None"
             local open     = false
             local CLOSED_H = 44
-            local OPEN_H   = CLOSED_H + math.min(#options, 4) * 30 + 4
+            local OPEN_H   = CLOSED_H + (#options * 30) + 4
 
             local el = Create("Frame",{
                 Size               = UDim2.new(1,0,0,CLOSED_H),
@@ -1363,7 +1355,7 @@ AnimateGradient(Gradient(wrapStroke, {
                 ScrollBarThickness     = 3,
                 ScrollBarImageColor3   = Theme.Accent2,
                 Position               = UDim2.fromOffset(0,CLOSED_H),
-                Size                   = UDim2.new(1,0,0,math.min(#options,4)*30),
+                Size                   = UDim2.new(1,0,0,#options*30),
                 CanvasSize             = UDim2.new(),
                 AutomaticCanvasSize    = Enum.AutomaticSize.Y,
                 Visible                = false,
@@ -1435,7 +1427,7 @@ AnimateGradient(Gradient(wrapStroke, {
             }
         end
 
-        -- ── Textbox ──
+        -- ── Textbox ───────────────────────────────────────────
         function tabObj:CreateTextbox(d)
             local el = CreateElement(88)
             Create("TextLabel",{
@@ -1489,11 +1481,10 @@ AnimateGradient(Gradient(wrapStroke, {
                 TweenService:Create(box, TweenInfo.new(.15, Enum.EasingStyle.Quint), {
                     BackgroundTransparency = .4
                 }):Play()
-                if d.Callback then task.spawn(d.Callback, box.Text) end
             end)
         end
 
-        -- ── Label ──
+        -- ── Label ─────────────────────────────────────────────
         function tabObj:CreateLabel(text)
             local el = Create("Frame",{
                 Size               = UDim2.new(1,0,0,32),
@@ -1523,7 +1514,7 @@ AnimateGradient(Gradient(wrapStroke, {
             })
         end
 
-        -- ── Paragraph ──
+        -- ── Paragraph ─────────────────────────────────────────
         function tabObj:CreateParagraph(d)
             local el = CreateElement(72)
             local titleL = Create("TextLabel",{
