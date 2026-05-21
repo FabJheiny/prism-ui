@@ -388,44 +388,8 @@ function Library:CreateWindow(data)
         Parent             = floatingBar,
     })
 
-    -- Drag direto no toggleBtn para não bloquear o input do frame
-    do
-        local fbDragging = false
-        local fbDragStart, fbBarStart
-        local fbMoved = false
-
-        toggleBtn.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-                fbDragging  = true
-                fbMoved     = false
-                fbDragStart = input.Position
-                fbBarStart  = floatingBar.Position
-            end
-        end)
-
-        UserInputService.InputChanged:Connect(function(input)
-            if not fbDragging then return end
-            if input.UserInputType ~= Enum.UserInputType.MouseMovement
-            and input.UserInputType ~= Enum.UserInputType.Touch then return end
-            local delta = input.Position - fbDragStart
-            if math.abs(delta.X) > 3 or math.abs(delta.Y) > 3 then
-                fbMoved = true
-            end
-            if fbMoved then
-                floatingBar.Position = UDim2.new(
-                    fbBarStart.X.Scale, fbBarStart.X.Offset + delta.X,
-                    fbBarStart.Y.Scale, fbBarStart.Y.Offset + delta.Y)
-            end
-        end)
-
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-                fbDragging = false
-            end
-        end)
-    end
+    -- Toda a barra é arrastável
+    Dragify(floatingBar)
 
     -- ── Window wrap & prism border ────────────────────────────
     local wrap = Create("Frame",{
@@ -1466,4 +1430,3 @@ function Library:CreateWindow(data)
 end
 
 return setmetatable({}, Library)
-
