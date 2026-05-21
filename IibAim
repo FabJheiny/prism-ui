@@ -3,569 +3,216 @@ RobloxUI.__index = RobloxUI
 
 function RobloxUI.new(title)
 
-    local self =
-        setmetatable(
-            {},
-            RobloxUI
-        )
+    local self = setmetatable({}, RobloxUI)
 
-    local Players =
-        game:GetService("Players")
+    local Players = game:GetService("Players")
+    local UIS = game:GetService("UserInputService")
+    local player = Players.LocalPlayer
+    local pg = player:WaitForChild("PlayerGui")
 
-    local UIS =
-        game:GetService(
-            "UserInputService"
-        )
+    local old = pg:FindFirstChild("RobloxUI_Lib")
+    if old then old:Destroy() end
 
-    local player =
-        Players.LocalPlayer
+    -- GUARDA CONEXÕES PARA CLEANUP
+    self._connections = {}
 
-    local pg =
-        player:WaitForChild(
-            "PlayerGui"
-        )
+    self.gui = Instance.new("ScreenGui")
+    self.gui.Name = "RobloxUI_Lib"
+    self.gui.ResetOnSpawn = false
+    self.gui.IgnoreGuiInset = true
+    self.gui.Parent = pg
 
-    local old =
-        pg:FindFirstChild(
-            "RobloxUI_Lib"
-        )
-
-    if old then
-        old:Destroy()
-    end
-
-    self.gui =
-        Instance.new(
-            "ScreenGui"
-        )
-
-    self.gui.Name =
-        "RobloxUI_Lib"
-
-    self.gui.ResetOnSpawn =
-        false
-
-    self.gui.IgnoreGuiInset =
-        true
-
-    self.gui.Parent =
-        pg
-
-
+    self._UIS = UIS
 
     -- MENU
+    self.menuFrame = Instance.new("Frame")
+    self.menuFrame.Name = "MenuFrame"
+    self.menuFrame.Size = UDim2.new(0, 420, 0, 240)
+    self.menuFrame.Position = UDim2.new(.5, -210, .5, -120)
+    self.menuFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    self.menuFrame.BorderSizePixel = 0
+    self.menuFrame.Active = true
+    self.menuFrame.Parent = self.gui
 
-    self.menuFrame =
-        Instance.new(
-            "Frame"
-        )
+    local menuCorner = Instance.new("UICorner")
+    menuCorner.CornerRadius = UDim.new(0, 10)
+    menuCorner.Parent = self.menuFrame
 
-    self.menuFrame.Name =
-        "MenuFrame"
-
-    self.menuFrame.Size =
-        UDim2.new(
-            0,
-            420,
-            0,
-            240
-        )
-
-    self.menuFrame.Position =
-        UDim2.new(
-            .5,
-            -210,
-            .5,
-            -120
-        )
-
-    self.menuFrame.BackgroundColor3 =
-        Color3.fromRGB(
-            10,
-            10,
-            10
-        )
-
-    self.menuFrame.BorderSizePixel =
-        0
-
-    self.menuFrame.Active =
-        true
-
-    self.menuFrame.Parent =
-        self.gui
-
-
-    local menuCorner =
-        Instance.new(
-            "UICorner"
-        )
-
-    menuCorner.CornerRadius =
-        UDim.new(
-            0,
-            10
-        )
-
-    menuCorner.Parent =
-        self.menuFrame
-
-
-    local menuStroke =
-        Instance.new(
-            "UIStroke"
-        )
-
-    menuStroke.Color =
-        Color3.fromRGB(
-            50,
-            50,
-            50
-        )
-
-    menuStroke.Parent =
-        self.menuFrame
-
-
+    local menuStroke = Instance.new("UIStroke")
+    menuStroke.Color = Color3.fromRGB(50, 50, 50)
+    menuStroke.Parent = self.menuFrame
 
     -- TITLE BAR
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 28)
+    titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = self.menuFrame
 
-    local titleBar =
-        Instance.new(
-            "Frame"
-        )
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 10)
+    titleCorner.Parent = titleBar
 
-    titleBar.Size =
-        UDim2.new(
-            1,
-            0,
-            0,
-            28
-        )
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -40, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title or "Menu"
+    titleLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 13
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
 
-    titleBar.BackgroundColor3 =
-        Color3.fromRGB(
-            15,
-            15,
-            15
-        )
-
-    titleBar.BorderSizePixel =
-        0
-
-    titleBar.Parent =
-        self.menuFrame
-
-
-    local titleCorner =
-        Instance.new(
-            "UICorner"
-        )
-
-    titleCorner.CornerRadius =
-        UDim.new(
-            0,
-            10
-        )
-
-    titleCorner.Parent =
-        titleBar
-
-
-    local titleLabel =
-        Instance.new(
-            "TextLabel"
-        )
-
-    titleLabel.Size =
-        UDim2.new(
-            1,
-            -40,
-            1,
-            0
-        )
-
-    titleLabel.Position =
-        UDim2.new(
-            0,
-            10,
-            0,
-            0
-        )
-
-    titleLabel.BackgroundTransparency =
-        1
-
-    titleLabel.Text =
-        title
-        or
-        "Menu"
-
-    titleLabel.TextColor3 =
-        Color3.fromRGB(
-            220,
-            220,
-            220
-        )
-
-    titleLabel.Font =
-        Enum.Font.GothamBold
-
-    titleLabel.TextSize =
-        13
-
-    titleLabel.TextXAlignment =
-        Enum.TextXAlignment.Left
-
-    titleLabel.Parent =
-        titleBar
-
-
-
-    -- DRAG MOBILE
-
+    -- DRAG
     do
-
-        local dragging =
-            false
-
+        local dragging = false
         local dragStart
-
         local startPos
 
-        titleBar.InputBegan:Connect(
-            function(input)
-
-                if
-                    input.UserInputType
-                    ==
-                    Enum.UserInputType.Touch
-
-                    or
-
-                    input.UserInputType
-                    ==
-                    Enum.UserInputType.MouseButton1
-
-                then
-
-                    dragging =
-                        true
-
-                    dragStart =
-                        input.Position
-
-                    startPos =
-                        self.menuFrame.Position
-                end
-
+        table.insert(self._connections, titleBar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                startPos = self.menuFrame.Position
             end
-        )
+        end))
 
-        UIS.InputEnded:Connect(
-            function()
+        table.insert(self._connections, UIS.InputEnded:Connect(function()
+            dragging = false
+        end))
 
-                dragging =
-                    false
-
-            end
-        )
-
-        UIS.InputChanged:Connect(
-            function(input)
-
-                if
-                    not dragging
-                then
-                    return
-                end
-
-                local delta =
-                    input.Position
-                    -
-                    dragStart
-
-                self.menuFrame.Position =
-                    UDim2.new(
-                        startPos.X.Scale,
-                        startPos.X.Offset
-                        +
-                        delta.X,
-
-                        startPos.Y.Scale,
-                        startPos.Y.Offset
-                        +
-                        delta.Y
-                    )
-
-            end
-        )
-
+        table.insert(self._connections, UIS.InputChanged:Connect(function(input)
+            if not dragging then return end
+            local delta = input.Position - dragStart
+            self.menuFrame.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        end))
     end
-
-
 
     -- CONTENT
+    self.contentFrame = Instance.new("Frame")
+    self.contentFrame.Size = UDim2.new(1, 0, 1, -28)
+    self.contentFrame.Position = UDim2.new(0, 0, 0, 28)
+    self.contentFrame.BackgroundTransparency = 1
+    self.contentFrame.Parent = self.menuFrame
 
-    self.contentFrame =
-        Instance.new(
-            "Frame"
-        )
-
-    self.contentFrame.Size =
-        UDim2.new(
-            1,
-            0,
-            1,
-            -28
-        )
-
-    self.contentFrame.Position =
-        UDim2.new(
-            0,
-            0,
-            0,
-            28
-        )
-
-    self.contentFrame.BackgroundTransparency =
-        1
-
-    self.contentFrame.Parent =
-        self.menuFrame
-
-
-
-    -- TAB LABELS
-
-    local function makeTab(x)
-
-        local l =
-            Instance.new(
-                "TextLabel"
-            )
-
-        l.Size =
-            UDim2.new(
-                1/3,
-                0,
-                0,
-                20
-            )
-
-        l.Position =
-            UDim2.new(
-                x,
-                0,
-                0,
-                0
-            )
-
-        l.BackgroundTransparency =
-            1
-
-        l.Text =
-            ""
-
-        l.Font =
-            Enum.Font.GothamSemibold
-
-        l.TextSize =
-            11
-
-        l.TextColor3 =
-            Color3.fromRGB(
-                140,
-                140,
-                140
-            )
-
-        l.Parent =
-            self.contentFrame
-
-        return l
-
+    -- TAB LABELS (agora clicáveis)
+    local function makeTab(x, index)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1/3, 0, 0, 20)
+        btn.Position = UDim2.new(x, 0, 0, 0)
+        btn.BackgroundTransparency = 1
+        btn.Text = ""
+        btn.Font = Enum.Font.GothamSemibold
+        btn.TextSize = 11
+        btn.TextColor3 = Color3.fromRGB(140, 140, 140)
+        btn.Parent = self.contentFrame
+        return btn
     end
 
-
-    self.leftTabLabel =
-        makeTab(
-            0
-        )
-
-    self.rightTabLabel =
-        makeTab(
-            1/3
-        )
-
-    self.thirdTabLabel =
-        makeTab(
-            2/3
-        )
-
-
+    self.leftTabLabel  = makeTab(0,   1)
+    self.rightTabLabel = makeTab(1/3, 2)
+    self.thirdTabLabel = makeTab(2/3, 3)
 
     -- CONTAINERS
+    local function makeContainer(x)
+        local c = Instance.new("ScrollingFrame")
+        c.Size = UDim2.new(1/3, -10, 1, -30)
+        c.Position = UDim2.new(x, 5, 0, 26)
+        c.BackgroundTransparency = 1
+        c.BorderSizePixel = 0
+        c.ScrollBarThickness = 0
+        c.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        c.CanvasSize = UDim2.new()
+        c.Parent = self.contentFrame
 
-    local function makeContainer(
-        x
-    )
-
-        local c =
-            Instance.new(
-                "ScrollingFrame"
-            )
-
-        c.Size =
-            UDim2.new(
-                1/3,
-                -10,
-                1,
-                -30
-            )
-
-        c.Position =
-            UDim2.new(
-                x,
-                5,
-                0,
-                26
-            )
-
-        c.BackgroundTransparency =
-            1
-
-        c.BorderSizePixel =
-            0
-
-        c.ScrollBarThickness =
-            0
-
-        c.AutomaticCanvasSize =
-            Enum.AutomaticSize.Y
-
-        c.CanvasSize =
-            UDim2.new()
-
-        c.Parent =
-            self.contentFrame
-
-
-        local layout =
-            Instance.new(
-                "UIListLayout"
-            )
-
-        layout.Padding =
-            UDim.new(
-                0,
-                4
-            )
-
-        layout.Parent =
-            c
+        local layout = Instance.new("UIListLayout")
+        layout.Padding = UDim.new(0, 4)
+        layout.Parent = c
 
         return c
-
     end
 
+    self.leftContainer  = makeContainer(0)
+    self.rightContainer = makeContainer(1/3)
+    self.thirdContainer = makeContainer(2/3)
 
-    self.leftContainer =
-        makeContainer(
-            0
-        )
+    -- LÓGICA DAS ABAS
+    self._activeTab = 1
+    self._tabs = {
+        { label = self.leftTabLabel,  container = self.leftContainer },
+        { label = self.rightTabLabel, container = self.rightContainer },
+        { label = self.thirdTabLabel, container = self.thirdContainer },
+    }
 
-    self.rightContainer =
-        makeContainer(
-            1/3
-        )
+    local function switchTab(index)
+        self._activeTab = index
+        for i, tab in ipairs(self._tabs) do
+            local active = (i == index)
+            tab.container.Visible = active
+            tab.label.TextColor3 = active
+                and Color3.fromRGB(255, 255, 255)
+                or  Color3.fromRGB(100, 100, 100)
+        end
+    end
 
-    self.thirdContainer =
-        makeContainer(
-            2/3
-        )
+    for i, tab in ipairs(self._tabs) do
+        table.insert(self._connections, tab.label.MouseButton1Click:Connect(function()
+            switchTab(i)
+        end))
+    end
 
-
+    switchTab(1) -- começa na aba 1
 
     -- FLOAT BUTTON
+    local toggleBtn = Instance.new("ImageButton")
+    toggleBtn.Size = UDim2.new(0, 44, 0, 44)
+    toggleBtn.Position = UDim2.new(0, 16, .5, -22)
+    toggleBtn.Image = "rbxassetid://126717501064463"
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    toggleBtn.Parent = self.gui
 
-    local toggleBtn =
-        Instance.new(
-            "ImageButton"
-        )
-
-    toggleBtn.Size =
-        UDim2.new(
-            0,
-            44,
-            0,
-            44
-        )
-
-    toggleBtn.Position =
-        UDim2.new(
-            0,
-            16,
-            .5,
-            -22
-        )
-
-    toggleBtn.Image =
-        "rbxassetid://126717501064463"
-
-    toggleBtn.BackgroundColor3 =
-        Color3.fromRGB(
-            18,
-            18,
-            18
-        )
-
-    toggleBtn.Parent =
-        self.gui
-
-
-    local visible =
-        true
-
-    toggleBtn.Activated:Connect(
-        function()
-
-            visible =
-                not visible
-
-            self.menuFrame.Visible =
-                visible
-
-        end
-    )
-
-
+    local visible = true
+    table.insert(self._connections, toggleBtn.Activated:Connect(function()
+        visible = not visible
+        self.menuFrame.Visible = visible
+    end))
 
     return self
-
 end
 
 
-
-function RobloxUI:_getContainer(
-    side
-)
-
-    if side=="left" then
-        return self.leftContainer
+-- =============================================
+-- DESTROY (corrige vazamento de conexões)
+-- =============================================
+function RobloxUI:Destroy()
+    for _, conn in ipairs(self._connections) do
+        conn:Disconnect()
     end
+    self._connections = {}
 
-    if side=="right" then
-        return self.rightContainer
+    if self.gui then
+        self.gui:Destroy()
     end
+end
 
-    if side=="third" then
-        return self.thirdContainer
-    end
 
+-- =============================================
+-- GET CONTAINER
+-- =============================================
+function RobloxUI:_getContainer(side)
+    -- retorna apenas o container da aba ativa se side não for passado
+    if side == "left"  then return self.leftContainer  end
+    if side == "right" then return self.rightContainer end
+    if side == "third" then return self.thirdContainer end
     return self.leftContainer
-
 end
+
+
 -- =============================================
 -- TOGGLE
 -- =============================================
@@ -575,36 +222,36 @@ function RobloxUI:AddToggle(side, text, default, callback)
 
     local btn = Instance.new("TextButton")
     btn.Name = "Toggle"
-    btn.Size = UDim2.new(1,-4,0,28)
-    btn.BackgroundColor3 = Color3.fromRGB(18,18,18)
+    btn.Size = UDim2.new(1, -4, 0, 28)
+    btn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
     btn.BorderSizePixel = 0
     btn.AutoButtonColor = false
     btn.Text = ""
     btn.Parent = container
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,6)
+    corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = btn
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(50,50,50)
+    stroke.Color = Color3.fromRGB(50, 50, 50)
     stroke.Thickness = 1
     stroke.Parent = btn
 
     local dot = Instance.new("Frame")
-    dot.Size = UDim2.new(0,8,0,8)
-    dot.Position = UDim2.new(0,8,0.5,-4)
+    dot.Size = UDim2.new(0, 8, 0, 8)
+    dot.Position = UDim2.new(0, 8, 0.5, -4)
     dot.BorderSizePixel = 0
     dot.Parent = btn
 
     local dotCorner = Instance.new("UICorner")
-    dotCorner.CornerRadius = UDim.new(1,0)
+    dotCorner.CornerRadius = UDim.new(1, 0)
     dotCorner.Parent = dot
 
     local label = Instance.new("TextLabel")
     label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0,24,0,0)
-    label.Size = UDim2.new(1,-30,1,0)
+    label.Position = UDim2.new(0, 24, 0, 0)
+    label.Size = UDim2.new(1, -30, 1, 0)
     label.Font = Enum.Font.Gotham
     label.TextSize = 11
     label.TextXAlignment = Enum.TextXAlignment.Left
@@ -612,36 +259,28 @@ function RobloxUI:AddToggle(side, text, default, callback)
 
     local function refresh()
         if state then
-            dot.BackgroundColor3 = Color3.fromRGB(80,200,120)
-            label.TextColor3 = Color3.fromRGB(230,230,230)
-            label.Text = text.."  ON"
+            dot.BackgroundColor3 = Color3.fromRGB(80, 200, 120)
+            label.TextColor3 = Color3.fromRGB(230, 230, 230)
+            label.Text = text .. "  ON"
         else
-            dot.BackgroundColor3 = Color3.fromRGB(80,80,80)
-            label.TextColor3 = Color3.fromRGB(130,130,130)
-            label.Text = text.."  OFF"
+            dot.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+            label.TextColor3 = Color3.fromRGB(130, 130, 130)
+            label.Text = text .. "  OFF"
         end
     end
 
     refresh()
 
-    btn.MouseButton1Click:Connect(function()
+    local conn = btn.MouseButton1Click:Connect(function()
         state = not state
         refresh()
-
-        if callback then
-            task.spawn(callback,state)
-        end
+        if callback then task.spawn(callback, state) end
     end)
+    table.insert(self._connections, conn)
 
     return {
-        SetState=function(v)
-            state=v
-            refresh()
-        end,
-
-        GetState=function()
-            return state
-        end
+        SetState = function(v) state = v; refresh() end,
+        GetState = function() return state end,
     }
 end
 
@@ -649,255 +288,172 @@ end
 -- =============================================
 -- BUTTON
 -- =============================================
-function RobloxUI:AddButton(side,text,callback)
+function RobloxUI:AddButton(side, text, callback)
+    local container = self:_getContainer(side)
 
-    local container=self:_getContainer(side)
+    local btn = Instance.new("TextButton")
+    btn.Name = "Button"
+    btn.Size = UDim2.new(1, -4, 0, 28)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 11
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(210, 210, 210)
+    btn.Parent = container
 
-    local btn=Instance.new("TextButton")
-    btn.Name="Button"
-    btn.Size=UDim2.new(1,-4,0,28)
-    btn.BackgroundColor3=Color3.fromRGB(25,25,25)
-    btn.BorderSizePixel=0
-    btn.AutoButtonColor=false
-    btn.Font=Enum.Font.GothamSemibold
-    btn.TextSize=11
-    btn.Text=text
-    btn.TextColor3=Color3.fromRGB(210,210,210)
-    btn.Parent=container
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
 
-    local corner=Instance.new("UICorner")
-    corner.CornerRadius=UDim.new(0,6)
-    corner.Parent=btn
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(55, 55, 55)
+    stroke.Thickness = 1
+    stroke.Parent = btn
 
-    local stroke=Instance.new("UIStroke")
-    stroke.Color=Color3.fromRGB(55,55,55)
-    stroke.Thickness=1
-    stroke.Parent=btn
-
-    btn.MouseButton1Down:Connect(function()
-        btn.BackgroundColor3=Color3.fromRGB(38,38,38)
-    end)
-
-    btn.MouseButton1Up:Connect(function()
-        btn.BackgroundColor3=Color3.fromRGB(25,25,25)
-    end)
-
-    btn.MouseLeave:Connect(function()
-        btn.BackgroundColor3=Color3.fromRGB(25,25,25)
-    end)
-
-    btn.MouseButton1Click:Connect(function()
-        if callback then
-            task.spawn(callback)
-        end
-    end)
+    table.insert(self._connections, btn.MouseButton1Down:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+    end))
+    table.insert(self._connections, btn.MouseButton1Up:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    end))
+    table.insert(self._connections, btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    end))
+    table.insert(self._connections, btn.MouseButton1Click:Connect(function()
+        if callback then task.spawn(callback) end
+    end))
 
     return btn
 end
+
+
 -- =============================================
--- SLIDER
+-- SLIDER (sem vazamento de conexões)
 -- =============================================
 function RobloxUI:AddSlider(side, text, min, max, default, callback)
-
     local container = self:_getContainer(side)
+    local UIS = self._UIS
 
     local value = math.clamp(default or min, min, max)
     local dragging = false
 
     local holder = Instance.new("Frame")
     holder.Name = "Slider"
-    holder.Size = UDim2.new(1,-4,0,48)
+    holder.Size = UDim2.new(1, -4, 0, 48)
     holder.BackgroundTransparency = 1
     holder.Parent = container
 
     local label = Instance.new("TextLabel")
     label.BackgroundTransparency = 1
-    label.Size = UDim2.new(1,0,0,16)
+    label.Size = UDim2.new(1, 0, 0, 16)
     label.Font = Enum.Font.Gotham
     label.TextSize = 11
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.TextColor3 = Color3.fromRGB(220,220,220)
+    label.TextColor3 = Color3.fromRGB(220, 220, 220)
     label.Parent = holder
 
     local track = Instance.new("Frame")
-    track.Size = UDim2.new(1,0,0,6)
-    track.Position = UDim2.new(0,0,0,26)
-    track.BackgroundColor3 = Color3.fromRGB(28,28,28)
+    track.Size = UDim2.new(1, 0, 0, 6)
+    track.Position = UDim2.new(0, 0, 0, 26)
+    track.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     track.BorderSizePixel = 0
     track.Parent = holder
 
     local trackCorner = Instance.new("UICorner")
-    trackCorner.CornerRadius = UDim.new(1,0)
+    trackCorner.CornerRadius = UDim.new(1, 0)
     trackCorner.Parent = track
 
     local fill = Instance.new("Frame")
-    fill.Size = UDim2.new(0,0,1,0)
-    fill.BackgroundColor3 = Color3.fromRGB(80,160,255)
+    fill.Size = UDim2.new(0, 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
     fill.BorderSizePixel = 0
     fill.Parent = track
 
     local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(1,0)
+    fillCorner.CornerRadius = UDim.new(1, 0)
     fillCorner.Parent = fill
 
     local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0,12,0,12)
-    knob.AnchorPoint = Vector2.new(.5,.5)
-    knob.Position = UDim2.new(0,0,.5,0)
-    knob.BackgroundColor3 = Color3.new(1,1,1)
+    knob.Size = UDim2.new(0, 12, 0, 12)
+    knob.AnchorPoint = Vector2.new(.5, .5)
+    knob.Position = UDim2.new(0, 0, .5, 0)
+    knob.BackgroundColor3 = Color3.new(1, 1, 1)
     knob.BorderSizePixel = 0
     knob.Parent = track
 
     local knobCorner = Instance.new("UICorner")
-    knobCorner.CornerRadius = UDim.new(1,0)
+    knobCorner.CornerRadius = UDim.new(1, 0)
     knobCorner.Parent = knob
 
     local function redraw()
-
-        local rel = (value-min)/(max-min)
-
-        fill.Size = UDim2.new(rel,0,1,0)
-        knob.Position = UDim2.new(rel,0,.5,0)
-
-        label.Text =
-            text ..
-            ": " ..
-            tostring(math.floor(value))
-
+        local rel = (value - min) / (max - min)
+        fill.Size = UDim2.new(rel, 0, 1, 0)
+        knob.Position = UDim2.new(rel, 0, .5, 0)
+        label.Text = text .. ": " .. tostring(math.floor(value))
     end
 
     local function update(x)
-
-        local rel =
-            math.clamp(
-                (x-track.AbsolutePosition.X)
-                /
-                track.AbsoluteSize.X,
-                0,
-                1
-            )
-
-        value =
-            min +
-            ((max-min)*rel)
-
-        value =
-            math.floor(value)
-
+        local rel = math.clamp(
+            (x - track.AbsolutePosition.X) / track.AbsoluteSize.X,
+            0, 1
+        )
+        value = math.floor(min + (max - min) * rel)
         redraw()
-
-        if callback then
-            task.spawn(callback,value)
-        end
-
+        if callback then task.spawn(callback, value) end
     end
 
     redraw()
 
-    track.InputBegan:Connect(function(inp)
-
-        if inp.UserInputType==Enum.UserInputType.MouseButton1
-        or inp.UserInputType==Enum.UserInputType.Touch then
-
-            dragging=true
+    -- conexões guardadas no self._connections (sem vazamento)
+    table.insert(self._connections, track.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1
+        or inp.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
             update(inp.Position.X)
-
         end
+    end))
 
-    end)
-
-    knob.InputBegan:Connect(function(inp)
-
-        if inp.UserInputType==Enum.UserInputType.MouseButton1
-        or inp.UserInputType==Enum.UserInputType.Touch then
-
-            dragging=true
-
+    table.insert(self._connections, knob.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1
+        or inp.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
         end
+    end))
 
-    end)
-
-    local UIS =
-        game:GetService(
-            "UserInputService"
-        )
-
-    UIS.InputChanged:Connect(function(inp)
-
-        if not dragging then
-            return
-        end
-
-        if inp.UserInputType==Enum.UserInputType.MouseMovement
-        or inp.UserInputType==Enum.UserInputType.Touch then
-
+    table.insert(self._connections, UIS.InputChanged:Connect(function(inp)
+        if not dragging then return end
+        if inp.UserInputType == Enum.UserInputType.MouseMovement
+        or inp.UserInputType == Enum.UserInputType.Touch then
             update(inp.Position.X)
-
         end
+    end))
 
-    end)
-
-    UIS.InputEnded:Connect(function(inp)
-
-        if inp.UserInputType==Enum.UserInputType.MouseButton1
-        or inp.UserInputType==Enum.UserInputType.Touch then
-
-            dragging=false
-
+    table.insert(self._connections, UIS.InputEnded:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1
+        or inp.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
         end
-
-    end)
+    end))
 
     return {
-
-        GetValue=function()
-
-            return value
-
-        end,
-
-        SetValue=function(v)
-
-            value =
-                math.clamp(
-                    v,
-                    min,
-                    max
-                )
-
+        GetValue = function() return value end,
+        SetValue = function(v)
+            value = math.clamp(v, min, max)
             redraw()
-
-        end
-
+        end,
     }
-
 end
 
 
 -- =============================================
--- TAB NAMES
+-- SET TAB NAMES
 -- =============================================
-function RobloxUI:SetTabNames(
-    left,
-    right,
-    third
-)
-
-    if self.leftTabLabel then
-        self.leftTabLabel.Text =
-            left or ""
-    end
-
-    if self.rightTabLabel then
-        self.rightTabLabel.Text =
-            right or ""
-    end
-
-    if self.thirdTabLabel then
-        self.thirdTabLabel.Text =
-            third or ""
-    end
-
+function RobloxUI:SetTabNames(left, right, third)
+    if self.leftTabLabel  then self.leftTabLabel.Text  = left  or "" end
+    if self.rightTabLabel then self.rightTabLabel.Text = right or "" end
+    if self.thirdTabLabel then self.thirdTabLabel.Text = third or "" end
 end
 
 
@@ -905,5 +461,4 @@ end
 -- FINALIZAÇÃO
 -- =============================================
 _G.RobloxUI = RobloxUI
-
 return RobloxUI
