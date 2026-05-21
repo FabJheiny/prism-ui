@@ -10,7 +10,7 @@
 
 -- ── Load Library ──────────────────────────────────────────────────────────────
 local Library = loadstring(game:HttpGet(
-    "https://codeberg.org/VenomVent/Ventura-UI/raw/branch/main/VenturaLibrary.lua"
+    "https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/library%20TESTE"
 ))()
 
 -- ── Window ────────────────────────────────────────────────────────────────────
