@@ -1,5 +1,5 @@
 -- Troque pela URL raw onde você hospedou a lib
-local LIB_URL = "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/RobloxUI_Lib.lua"
+local LIB_URL = "https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/IibAim"
 
 if not _G.RobloxUI then
     loadstring(game:HttpGet(LIB_URL, true))()
