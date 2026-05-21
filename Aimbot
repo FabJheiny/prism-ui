@@ -1,4 +1,3 @@
--- Troque pela URL raw onde você hospedou a lib
 local LIB_URL = "https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/IibAim"
 
 if not _G.RobloxUI then
