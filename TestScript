@@ -1,145 +1,221 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/Library%20Teste"))()
+--[[
+    VenturaUI v3.3  ·  Example Script
+    by xyvenom  ·  codeberg.org/VenomVent/Ventura-UI
 
-local Window = Library:CreateWindow({
-    Title = "Prism Hub",
-    Subtitle = "Premium"
+    1. Copy this into your executor
+    2. Change the window options (name, accent colour, key, etc.)
+    3. Add your own tabs and components
+    4. Run it!
+--]]
+
+-- ── Load Library ──────────────────────────────────────────────────────────────
+local Library = loadstring(game:HttpGet(
+    "https://codeberg.org/VenomVent/Ventura-UI/raw/branch/main/VenturaLibrary.lua"
+))()
+
+-- ── Window ────────────────────────────────────────────────────────────────────
+local GUI = Library:new({
+    name        = "My Script",          -- title shown in the top bar
+    subtitle    = "Loading...",         -- or a table of strings to cycle through
+    accent      = Color3.fromRGB(110, 160, 255), -- theme accent colour
+    toggleKey   = Enum.KeyCode.Insert,  -- show / hide the window
+    minimizeKey = Enum.KeyCode.K,       -- collapse the window
+    loadingTime = 1.5,                  -- seconds before tabs appear
+
+    -- Key system (remove or set keyEnabled = false to skip the gate)
+    keyEnabled   = false,
+    key          = "MY-KEY-HERE",       -- string or table of valid keys
+    onKeySuccess = function() print("Key accepted!") end,
+    onKeyFail    = function() print("Key rejected.") end,
 })
 
-local Main = Window:CreateTab("Main")
-local Combat = Window:CreateTab("Combat")
-local Player = Window:CreateTab("Player")
-local Visual = Window:CreateTab("Visual")
-local Settings = Window:CreateTab("Settings")
+-- ── Services ──────────────────────────────────────────────────────────────────
+local Players    = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS        = game:GetService("UserInputService")
+local LP         = Players.LocalPlayer
 
-Main:CreateToggle({
-    Name = "Auto Farm",
-    Description = "Collects resources automatically while you are playing.",
-    Default = true,
-    Callback = function(v)
-        print("Auto Farm:", v)
-    end
-})
+local function char() return LP.Character end
+local function hum()  local c = char(); return c and c:FindFirstChildOfClass("Humanoid") end
+local function hrp()  local c = char(); return c and c:FindFirstChild("HumanoidRootPart") end
 
-Main:CreateToggle({
-    Name = "Auto Collect",
-    Description = "Automatically grabs nearby drops and rewards.",
-    Default = false,
-    Callback = function(v)
-        print("Auto Collect:", v)
-    end
-})
+-- ════════════════════════════════════════════════════════════════════════════
+--  TABS
+-- ════════════════════════════════════════════════════════════════════════════
 
-Main:CreateSlider({
-    Name = "Walk Speed",
-    Min = 16,
-    Max = 100,
-    Default = 72,
-    Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
-    end
-})
+-- ── Tab 1: Player ─────────────────────────────────────────────────────────────
+GUI:NavSection("MAIN")
+local PlayerTab = GUI:CreateTab({ name = "Player", icon = "👤" })
 
-Main:CreateButton({
-    Name = "✦ Teleport to Spawn",
-    Callback = function()
-        local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = CFrame.new(0,10,0)
+PlayerTab:Section({ name = "Movement" })
+
+-- Speed slider + toggle
+local speedValue  = 16
+local speedActive = false
+
+local speedSlider = PlayerTab:Slider({
+    name     = "Walk Speed",
+    min      = 16, max = 350, default = 16,
+    suffix   = " ws",
+    callback = function(v)
+        speedValue = v
+        if speedActive then
+            local h = hum()
+            if h then h.WalkSpeed = v end
         end
-    end
+    end,
 })
 
-Main:CreateDropdown({
-    Name = "Game Mode",
-    Options = {"Classic","Hardcore","Arena","Sandbox"},
-    Default = "Classic",
-    Callback = function(v)
-        print("Selected:", v)
-    end
+PlayerTab:Toggle({
+    name     = "Speed Hack",
+    default  = false,
+    callback = function(v)
+        speedActive = v
+        local h = hum()
+        if h then h.WalkSpeed = v and speedValue or 16 end
+    end,
 })
 
-Main:CreateTextbox({
-    Name = "Player Name",
-    Placeholder = "Enter username...",
-    Callback = function(v)
-        print("Textbox:", v)
-    end
+PlayerTab:Slider({
+    name     = "Jump Power",
+    min      = 7, max = 300, default = 7,
+    suffix   = " jp",
+    callback = function(v)
+        local h = hum()
+        if h then h.JumpPower = v end
+    end,
 })
 
-Main:CreateLabel("v2.4.1 · Delta Android · No deps")
+PlayerTab:Section({ name = "Extras" })
 
-Main:CreateParagraph({
-    Title = "About",
-    Content = "Single-file library with zero dependencies. Mobile-first drag and touch support with futuristic prism visuals."
+-- Noclip
+local noclipConn
+PlayerTab:Toggle({
+    name        = "Noclip",
+    description = "Walk through walls",
+    default     = false,
+    callback    = function(v)
+        if noclipConn then noclipConn:Disconnect(); noclipConn = nil end
+        if v then
+            noclipConn = RunService.Stepped:Connect(function()
+                local c = char(); if not c then return end
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = false end
+                end
+            end)
+        end
+    end,
 })
 
-Combat:CreateToggle({
-    Name = "Kill Aura",
-    Description = "Automatically attacks nearby enemies.",
-    Default = false,
-    Callback = function(v)
-        print("Kill Aura:", v)
-    end
+-- Infinite jump
+local jumpConn
+PlayerTab:Toggle({
+    name     = "Infinite Jump",
+    default  = false,
+    callback = function(v)
+        if jumpConn then jumpConn:Disconnect(); jumpConn = nil end
+        if v then
+            jumpConn = UIS.JumpRequest:Connect(function()
+                local h = hum()
+                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end)
+        end
+    end,
 })
 
-Combat:CreateToggle({
-    Name = "Kill Reset",
-    Description = "Exibe o botão flutuante para resetar o personagem.",
-    Default = false,
-    FloatingButton = {
-        Label       = "Reset",
-        Icon        = "💀",
-        Description = "Break joints",
-        Position    = UDim2.new(0.5, -56, 0.85, 0),
-        Callback    = function()
-            local char = game.Players.LocalPlayer.Character
-            if char then
-                char:BreakJoints()
-            end
-        end,
-    },
-    Callback = function(v) end
+PlayerTab:Button({
+    name     = "Teleport Up",
+    callback = function()
+        local r = hrp()
+        if r then pcall(function() r.CFrame = r.CFrame + Vector3.new(0, 50, 0) end) end
+    end,
 })
 
-Combat:CreateSlider({
-    Name = "Attack Range",
-    Min = 5,
-    Max = 50,
-    Default = 15,
-    Callback = function(v)
-        print("Range:", v)
-    end
+-- ── Tab 2: World ──────────────────────────────────────────────────────────────
+GUI:NavSection("WORLD")
+local WorldTab = GUI:CreateTab({ name = "World", icon = "🌍" })
+local Lighting = game:GetService("Lighting")
+
+WorldTab:Section({ name = "Lighting" })
+
+WorldTab:Slider({
+    name = "Time of Day", min = 0, max = 24, default = 14, suffix = "h",
+    callback = function(v) pcall(function() Lighting.ClockTime = v end) end,
 })
 
-Player:CreateSlider({
-    Name = "Jump Power",
-    Min = 50,
-    Max = 200,
-    Default = 100,
-    Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
-    end
+WorldTab:Toggle({
+    name     = "Fullbright",
+    default  = false,
+    callback = function(v)
+        pcall(function()
+            Lighting.Ambient        = v and Color3.fromRGB(255,255,255) or Color3.fromRGB(70,70,70)
+            Lighting.OutdoorAmbient = v and Color3.fromRGB(255,255,255) or Color3.fromRGB(140,140,140)
+            Lighting.Brightness     = v and 10 or 2
+        end)
+    end,
 })
 
-Player:CreateButton({
-    Name = "Reset Character",
-    Callback = function()
-        game.Players.LocalPlayer.Character:BreakJoints()
-    end
+WorldTab:Slider({
+    name = "Gravity", min = 0, max = 400, default = 196, suffix = " g",
+    callback = function(v) pcall(function() workspace.Gravity = v end) end,
 })
 
-Visual:CreateToggle({
-    Name = "Fullbright",
-    Description = "Improves map visibility.",
-    Default = false,
-    Callback = function(v)
-        print("Fullbright:", v)
-    end
+-- ── Tab 3: Misc ───────────────────────────────────────────────────────────────
+GUI:NavSection("MISC")
+local MiscTab = GUI:CreateTab({ name = "Misc", icon = "🔧" })
+
+MiscTab:Section({ name = "Utilities" })
+
+MiscTab:Button({
+    name     = "Copy UserId",
+    callback = function()
+        pcall(function() setclipboard(tostring(LP.UserId)) end)
+        GUI.notify("Copied", "UserId: " .. LP.UserId, 3)
+    end,
 })
 
-Settings:CreateButton({
-    Name = "Rejoin Server",
-    Callback = function()
-        game:GetService("TeleportService"):Teleport(game.PlaceId)
-    end
+-- Anti-AFK
+local afkConn
+MiscTab:Toggle({
+    name        = "Anti-AFK",
+    description = "Prevents inactivity kick",
+    default     = false,
+    callback    = function(v)
+        if afkConn then afkConn:Disconnect(); afkConn = nil end
+        if v then
+            afkConn = LP.Idled:Connect(function()
+                local vu = game:GetService("VirtualUser")
+                pcall(function() vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame) end)
+                task.wait(0.1)
+                pcall(function() vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame) end)
+            end)
+        end
+    end,
 })
+
+MiscTab:Separator()
+MiscTab:Label({ text = "VenturaUI v3.3  •  by xyvenom" })
+MiscTab:Label({ text = "Place: " .. tostring(game.Name) })
+
+-- New in v3.3 — Chip, ControlHint, ButtonGrid demo
+MiscTab:Section({ name = "v3.3 New Components" })
+MiscTab:Chip({ text = "STABLE", color = Color3.fromRGB(60, 200, 100), icon = "✅" })
+MiscTab:ControlHint({ name = "Toggle UI",   key = "Insert", description = "Show / hide the window" })
+MiscTab:ControlHint({ name = "Minimize UI", key = "K",      description = "Collapse to titlebar" })
+MiscTab:ButtonGrid({
+    columns = 2,
+    buttons = {
+        { name = "Copy UserId", icon = "📋", callback = function()
+            pcall(function() setclipboard(tostring(LP.UserId)) end)
+            GUI.notify("Copied!", "UserId: " .. LP.UserId, 2, "success")
+        end },
+        { name = "Rejoin",     icon = "🔄", callback = function()
+            pcall(function() game:GetService("TeleportService"):Teleport(game.PlaceId) end)
+        end },
+    }
+})
+
+-- ── Done ──────────────────────────────────────────────────────────────────────
+task.delay(2, function()
+    GUI.notify("My Script", "Loaded! Press Insert to toggle.", 4)
+end)
