@@ -1,427 +1,442 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/IibAim"))()
-local RobloxUI = _G.RobloxUI
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+local RobloxUI = {}
+RobloxUI.__index = RobloxUI
 
-local Settings = {
-    ESP = true,
-    Highlight = true,
-    Team = true,
-    Name = false,
-    Distance = true,
-}
+function RobloxUI.new(title)
+    local self = setmetatable({}, RobloxUI)
 
-local AimbotSettings = {
-    Enabled = true,
-    KillCheck = true,
-    FOV = 90,
-    ShowFOV = true,
-    IgnoreAllies = true,
-    IgnoreWall = false
-}
+    local pg =
+game:GetService("Players")
+.LocalPlayer
+:WaitForChild("PlayerGui")
 
--- =============================================
--- MENU UI
--- =============================================
-local ui = RobloxUI.new("Esp and Aimbot")
-ui:SetTabNames("ESP", "Aimbot", "Player")
+local old =
+pg:FindFirstChild("RobloxUI_Lib")
 
-ui:AddToggle("left", "Esp Player", Settings.ESP, function(state) Settings.ESP = state end)
-ui:AddToggle("left", "Name Esp", Settings.Name, function(state) Settings.Name = state end)
-ui:AddToggle("left", "Esp Distance", Settings.Distance, function(state) Settings.Distance = state end)
+if old then
+    old:Destroy()
+end
 
-ui:AddSlider("right", "FOV", 20, 500, AimbotSettings.FOV, function(val) AimbotSettings.FOV = val end)
-ui:AddToggle("right", "Aimbot", AimbotSettings.Enabled, function(state) AimbotSettings.Enabled = state end)
-ui:AddToggle("right", "Show FOV", AimbotSettings.ShowFOV, function(state) AimbotSettings.ShowFOV = state end)
-ui:AddToggle("right", "Ignore Wall", AimbotSettings.IgnoreWall, function(state) AimbotSettings.IgnoreWall = state end)
+self.gui = Instance.new("ScreenGui")
+    self.gui.Name = "RobloxUI_Lib"
+    self.gui.IgnoreGuiInset = true
+    self.gui.ResetOnSpawn = false
 
-local playerSpeed = 16
+    local Players = game:GetService("Players")
 
-ui:AddButton("third", "Resetar Personagem", function()
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("Humanoid") then
-        char.Humanoid.Health = 0
-    end
-end)
+self.gui.Parent =
+    Players.LocalPlayer:WaitForChild("PlayerGui")
 
-local infiniteJump = false
-ui:AddToggle("third", "Infinite Jump", false, function(state) infiniteJump = state end)
-UIS.JumpRequest:Connect(function()
-    if not infiniteJump then return end
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChild("Humanoid")
-    if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-end)
+    -- === MENU FRAME ===
+    self.menuFrame = Instance.new("Frame")
+    self.menuFrame.Name = "MenuFrame"
+    self.menuFrame.Size = UDim2.new(0, 420, 0, 240)
+    self.menuFrame.Position = UDim2.new(0.5, -210, 0.5, -120)
+    self.menuFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    self.menuFrame.BorderSizePixel = 0
+    self.menuFrame.Active = true
+    self.menuFrame.Draggable = true
+    self.menuFrame.Parent = self.gui
+    local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = self.menuFrame
 
-local noClip = false
-local noClipConnection = nil
+    local stroke = Instance.new("UIStroke", self.menuFrame)
+    stroke.Color = Color3.fromRGB(50, 50, 50)
+    stroke.Thickness = 1
 
-ui:AddToggle("third", "NoClip", false, function(state)
-    noClip = state
-    if noClipConnection then noClipConnection:Disconnect() noClipConnection = nil end
-    if not state then return end
-    noClipConnection = RunService.Stepped:Connect(function()
-        if not noClip then noClipConnection:Disconnect() noClipConnection = nil return end
-        local char = LocalPlayer.Character
-        if not char then return end
-        for _, p in ipairs(char:GetDescendants()) do
-            if p:IsA("BasePart") then p.CanCollide = false end
+    -- === TITLE BAR ===
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 28)
+    titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = self.menuFrame
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 10)
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -40, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title or "Menu"
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 13
+    titleLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
+
+    -- === BOTÃƒO OCULTAR/MOSTRAR (âˆ’ / +) ===
+    local contentVisible = true
+
+    self.contentFrame = Instance.new("Frame")
+    self.contentFrame.Size = UDim2.new(1, 0, 1, -28)
+    self.contentFrame.Position = UDim2.new(0, 0, 0, 28)
+    self.contentFrame.BackgroundTransparency = 1
+    self.contentFrame.BorderSizePixel = 0
+    self.contentFrame.Parent = self.menuFrame
+
+    local hideBtn = Instance.new("TextButton")
+    hideBtn.Size = UDim2.new(0, 22, 0, 18)
+    hideBtn.Position = UDim2.new(1, -26, 0.5, -9)
+    hideBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    hideBtn.BorderSizePixel = 0
+    hideBtn.Font = Enum.Font.GothamBold
+    hideBtn.TextSize = 14
+    hideBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    hideBtn.Text = "-"
+    hideBtn.AutoButtonColor = false
+    hideBtn.Parent = titleBar
+    local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 4)
+corner.Parent = hideBtn
+
+    hideBtn.MouseButton1Click:Connect(function()
+        contentVisible = not contentVisible
+        self.contentFrame.Visible = contentVisible
+        if contentVisible then
+            hideBtn.Text = "-"
+            self.menuFrame.Size = UDim2.new(0, 420, 0, 240)
+        else
+            hideBtn.Text = "+"
+            self.menuFrame.Size = UDim2.new(0, 420, 0, 28)
         end
     end)
-end)
 
-ui:AddSlider("third", "WalkSpeed", 16, 200, 16, function(val)
-    playerSpeed = val
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChild("Humanoid")
-    if hum then hum.WalkSpeed = val end
-end)
+    -- === DIVISOR HORIZONTAL ===
+    local divider = Instance.new("Frame")
+    divider.Size = UDim2.new(1, -20, 0, 1)
+    divider.Position = UDim2.new(0, 10, 0, 0)
+    divider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    divider.BorderSizePixel = 0
+    divider.Parent = self.contentFrame
 
--- =============================================
--- CACHE DE TIMES (evita lookup repetido)
--- =============================================
-local myTeamCache = nil
-local teamCacheTime = 0
-local TEAM_CACHE_TTL = 2
+    -- === LABELS DAS ABAS ===
+    -- Aba 1 (esquerda)
+    self.leftTabLabel = Instance.new("TextLabel")
+    self.leftTabLabel.Size = UDim2.new(1/3, -2, 0, 20)
+    self.leftTabLabel.Position = UDim2.new(0, 0, 0, 1)
+    self.leftTabLabel.BackgroundTransparency = 1
+    self.leftTabLabel.Text = ""
+    self.leftTabLabel.Font = Enum.Font.GothamSemibold
+    self.leftTabLabel.TextSize = 11
+    self.leftTabLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+    self.leftTabLabel.TextXAlignment = Enum.TextXAlignment.Center
+    self.leftTabLabel.Parent = self.contentFrame
 
-local function getMyTeam()
-    if tick() - teamCacheTime > TEAM_CACHE_TTL then
-        myTeamCache = LocalPlayer.Team
-        teamCacheTime = tick()
+    -- Aba 2 (centro)
+    self.rightTabLabel = Instance.new("TextLabel")
+    self.rightTabLabel.Size = UDim2.new(1/3, -2, 0, 20)
+    self.rightTabLabel.Position = UDim2.new(1/3, 1, 0, 1)
+    self.rightTabLabel.BackgroundTransparency = 1
+    self.rightTabLabel.Text = ""
+    self.rightTabLabel.Font = Enum.Font.GothamSemibold
+    self.rightTabLabel.TextSize = 11
+    self.rightTabLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+    self.rightTabLabel.TextXAlignment = Enum.TextXAlignment.Center
+    self.rightTabLabel.Parent = self.contentFrame
+
+    -- Aba 3 (direita)
+    self.thirdTabLabel = Instance.new("TextLabel")
+    self.thirdTabLabel.Size = UDim2.new(1/3, -2, 0, 20)
+    self.thirdTabLabel.Position = UDim2.new(2/3, 1, 0, 1)
+    self.thirdTabLabel.BackgroundTransparency = 1
+    self.thirdTabLabel.Text = ""
+    self.thirdTabLabel.Font = Enum.Font.GothamSemibold
+    self.thirdTabLabel.TextSize = 11
+    self.thirdTabLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+    self.thirdTabLabel.TextXAlignment = Enum.TextXAlignment.Center
+    self.thirdTabLabel.Parent = self.contentFrame
+
+    -- === DIVISORES VERTICAIS ===
+    local line1 = Instance.new("Frame")
+    line1.Size = UDim2.new(0, 1, 1, -26)
+    line1.Position = UDim2.new(1/3, 0, 0, 22)
+    line1.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    line1.BorderSizePixel = 0
+    line1.Parent = self.contentFrame
+
+    local line2 = Instance.new("Frame")
+    line2.Size = UDim2.new(0, 1, 1, -26)
+    line2.Position = UDim2.new(2/3, 0, 0, 22)
+    line2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    line2.BorderSizePixel = 0
+    line2.Parent = self.contentFrame
+
+    -- === CONTAINERS ===
+    local function makeContainer(xScale, xOffset)
+        local c = Instance.new("ScrollingFrame")
+        c.Size = UDim2.new(1/3, -10, 1, -30)
+        c.Position = UDim2.new(xScale, xOffset, 0, 26)
+        c.BackgroundTransparency = 1
+        c.BorderSizePixel = 0
+        c.ScrollBarThickness = 0
+        c.CanvasSize = UDim2.new(0, 0, 0, 0)
+        c.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        c.Parent = self.contentFrame
+        local layout = Instance.new("UIListLayout", c)
+        layout.Padding = UDim.new(0, 4)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        return c
     end
-    return myTeamCache
+
+    self.leftContainer  = makeContainer(0,     5)
+    self.rightContainer = makeContainer(1/3,   5)
+    self.thirdContainer = makeContainer(2/3,   5)
+
+    -- === BOTÃƒO FLUTUANTE ===
+    local toggleBtn = Instance.new("ImageButton")
+    toggleBtn.Size = UDim2.new(0, 44, 0, 44)
+    toggleBtn.Position = UDim2.new(0, 16, 0.5, -22)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    toggleBtn.Image = "rbxassetid://126717501064463"
+    toggleBtn.ScaleType = Enum.ScaleType.Fit
+    toggleBtn.Active = true
+    toggleBtn.Draggable = true
+    toggleBtn.Parent = self.gui
+    Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1, 0)
+
+    local btnStroke = Instance.new("UIStroke", toggleBtn)
+    btnStroke.Color = Color3.fromRGB(55, 55, 55)
+    btnStroke.Thickness = 1
+
+    local menuVisible = true
+    toggleBtn.MouseButton1Click:Connect(function()
+        menuVisible = not menuVisible
+        self.menuFrame.Visible = menuVisible
+    end)
+
+    return self
 end
 
 -- =============================================
--- VISIBILITY (raycast otimizado)
+-- HELPER: resolve container pelo side
 -- =============================================
-local visCache = {}
-local VIS_TTL = 0.5 -- antes 0.4, aumentado para menos raycasts
+function RobloxUI:_getContainer(side)
+    if side == "left"  then return self.leftContainer  end
+    if side == "right" then return self.rightContainer end
+    if side == "third" then return self.thirdContainer end
+    return self.leftContainer
+end
 
-local BODY_PARTS = {"Head", "HumanoidRootPart", "UpperTorso"}
--- reduzido de 7 para 3 partes: mesma precisão, menos raycasts
+-- =============================================
+-- TOGGLE
+-- =============================================
+function RobloxUI:AddToggle(side, text, default, callback)
+    local container = self:_getContainer(side)
+    local state = default or false
 
-local rayParams = RaycastParams.new()
-rayParams.FilterType = Enum.RaycastFilterType.Blacklist
-rayParams.IgnoreWater = true
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 26)
+    btn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Text = ""
+    btn.Parent = container
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
-local function isVisible(char, player)
-    local cache = visCache[player]
-    if cache and tick() - cache.t < VIS_TTL then return cache.v end
+    local indicator = Instance.new("Frame")
+    indicator.Size = UDim2.new(0, 6, 0, 6)
+    indicator.Position = UDim2.new(0, 7, 0.5, -3)
+    indicator.BorderSizePixel = 0
+    indicator.Parent = btn
+    Instance.new("UICorner", indicator).CornerRadius = UDim.new(1, 0)
 
-    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, Camera}
-    local origin = Camera.CFrame.Position
-    local visible = false
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 1, 0)
+    label.Position = UDim2.new(0, 18, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextColor3 = Color3.fromRGB(210, 210, 210)
+    label.Parent = btn
 
-    for _, name in ipairs(BODY_PARTS) do
-        local part = char:FindFirstChild(name)
-        if not part then continue end
-        local ray = workspace:Raycast(origin, part.Position - origin, rayParams)
-        if not ray or char:IsAncestorOf(ray.Instance) then
-            visible = true
-            break
+    local function refresh()
+        if state then
+            indicator.BackgroundColor3 = Color3.fromRGB(80, 200, 120)
+            label.Text = text .. "  ON"
+            label.TextColor3 = Color3.fromRGB(230, 230, 230)
+        else
+            indicator.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+            label.Text = text .. "  OFF"
+            label.TextColor3 = Color3.fromRGB(130, 130, 130)
         end
     end
 
-    visCache[player] = {v = visible, t = tick()}
-    return visible
-end
+    refresh()
 
--- =============================================
--- ESP
--- =============================================
-local espData = {}
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        refresh()
+        if callback then callback(state) end
+    end)
 
-local VIS_ON  = {Color = Color3.fromRGB(255,0,0),   Fill = 0.35, Outline = 0}
-local VIS_OFF = {Color = Color3.fromRGB(160,0,0),   Fill = 0.6,  Outline = 0.3}
-local TEAM_COLOR = Color3.fromRGB(0,255,0)
-
-local function destroyESP(player)
-    local d = espData[player]
-    if not d then return end
-    if d.Billboard then d.Billboard:Destroy() end
-    if d.Highlight then d.Highlight:Destroy() end
-    espData[player] = nil
-    visCache[player] = nil
-end
-
-local function createESP(player, char)
-    if player == LocalPlayer then return end
-    destroyESP(player)
-    local head = char:WaitForChild("Head", 5)
-    if not head then return end
-
-    local bb = Instance.new("BillboardGui", head)
-    bb.Size = UDim2.new(0, 120, 0, 32)
-    bb.StudsOffset = Vector3.new(0, 5, 0)
-    bb.AlwaysOnTop = true
-
-    local nameL = Instance.new("TextLabel", bb)
-    nameL.Size = UDim2.new(1,0,0,12)
-    nameL.BackgroundTransparency = 1
-    nameL.Font = Enum.Font.Gotham
-    nameL.TextSize = 10
-    nameL.TextColor3 = Color3.new(1,1,1)
-    nameL.TextStrokeTransparency = 0
-
-    local distL = Instance.new("TextLabel", bb)
-    distL.Size = UDim2.new(1,0,0,12)
-    distL.Position = UDim2.new(0,0,0,14)
-    distL.BackgroundTransparency = 1
-    distL.Font = Enum.Font.Gotham
-    distL.TextSize = 10
-    distL.TextColor3 = Color3.new(1,1,1)
-    distL.TextStrokeTransparency = 0
-
-    char:FindFirstChild("ESP_Highlight") and char.ESP_Highlight:Destroy()
-
-    local hl = Instance.new("Highlight")
-    hl.Name = "ESP_Highlight"
-    hl.FillTransparency = 0.6
-    hl.OutlineTransparency = 0
-    hl.Enabled = false
-    hl.Adornee = char
-    hl.Parent = char
-
-    espData[player] = {
-        Billboard = bb,
-        NameLabel = nameL,
-        DistLabel = distL,
-        Highlight = hl,
-        Character = char,
-        lastDist = -1,
+    return {
+        SetState = function(v) state = v refresh() end,
+        GetState = function() return state end
     }
 end
 
-local function setupPlayer(player)
-    player.CharacterAdded:Connect(function(char)
-        task.wait(0.4)
-        createESP(player, char)
-        if player == LocalPlayer then
-            local hum = char:WaitForChild("Humanoid", 5)
-            if hum then
-                hum.WalkSpeed = playerSpeed
-                if noClip and noClipConnection == nil then
-                    -- retrigger noClip
-                end
-            end
-        end
+-- =============================================
+-- BOTÃƒO CLICÃVEL
+-- =============================================
+function RobloxUI:AddButton(side, text, callback)
+    local container = self:_getContainer(side)
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 26)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 11
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Text = text
+    btn.Parent = container
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    local s = Instance.new("UIStroke", btn)
+    s.Color = Color3.fromRGB(55, 55, 55)
+    s.Thickness = 1
+
+    btn.MouseButton1Down:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
-    player.CharacterRemoving:Connect(function()
-        destroyESP(player)
+
+    btn.Activated:Connect(function()
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+
+    if callback then
+        callback()
+    end
+end)
+
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        btn.TextColor3 = Color3.fromRGB(200, 200, 200)
     end)
-    if player.Character then createESP(player, player.Character) end
+
+    return btn
 end
 
-for _, p in ipairs(Players:GetPlayers()) do setupPlayer(p) end
-Players.PlayerAdded:Connect(setupPlayer)
-Players.PlayerRemoving:Connect(function(p) destroyESP(p) end)
-
 -- =============================================
--- ESP LOOP — throttled, sem alocações internas
+-- SLIDER COM BOLINHA
 -- =============================================
-local ESP_DELAY = 0.3 -- antes 0.25
-local espTimer = 0
-local halfVP = Vector2.new(0, 0) -- atualizado abaixo
+function RobloxUI:AddSlider(side, text, min, max, default, callback)
+    local container = self:_getContainer(side)
+    local value = default or min
+    local dragging = false
 
-RunService.Heartbeat:Connect(function(dt)
-    espTimer = espTimer + dt
-    if espTimer < ESP_DELAY then return end
-    espTimer = 0
+    local wrapper = Instance.new("Frame")
+    wrapper.Size = UDim2.new(1, 0, 0, 46)
+    wrapper.BackgroundTransparency = 1
+    wrapper.BorderSizePixel = 0
+    wrapper.Parent = container
 
-    local myChar = LocalPlayer.Character
-    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
-    if not myHRP then return end
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, 0, 0, 16)
+    titleLabel.Position = UDim2.new(0, 2, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Font = Enum.Font.GothamSemibold
+    titleLabel.TextSize = 10
+    titleLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Text = text .. ": " .. value
+    titleLabel.Parent = wrapper
 
-    local myTeam = getMyTeam()
-    local myPos = myHRP.Position
+    local track = Instance.new("Frame")
+    track.Size = UDim2.new(1, -4, 0, 4)
+    track.Position = UDim2.new(0, 2, 0, 26)
+    track.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    track.BorderSizePixel = 0
+    track.Parent = wrapper
+    Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
 
-    for player, d in pairs(espData) do
-        local char = d.Character
-        if not char or not char.Parent then continue end
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(0, 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
+    fill.BorderSizePixel = 0
+    fill.Parent = track
+    Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
 
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        local hrp = char:FindFirstChild("HumanoidRootPart")
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 13, 0, 13)
+    knob.AnchorPoint = Vector2.new(0.5, 0.5)
+    knob.Position = UDim2.new(0, 0, 0.5, 0)
+    knob.BackgroundColor3 = Color3.new(1, 1, 1)
+    knob.BorderSizePixel = 0
+    knob.ZIndex = 5
+    knob.Parent = track
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
 
-        if not hum or not hrp or hum.Health <= 0 or not Settings.ESP then
-            d.NameLabel.Visible = false
-            d.DistLabel.Visible = false
-            if d.Highlight then d.Highlight.Enabled = false end
-            continue
-        end
+    local knobStroke = Instance.new("UIStroke", knob)
+    knobStroke.Color = Color3.fromRGB(80, 160, 255)
+    knobStroke.Thickness = 1.5
 
-        local _, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-        if not onScreen then
-            d.NameLabel.Visible = false
-            d.DistLabel.Visible = false
-            if d.Highlight then d.Highlight.Enabled = false end
-            continue
-        end
-
-        local dist = (myPos - hrp.Position).Magnitude
-        if dist > 2500 then
-            d.NameLabel.Visible = false
-            d.DistLabel.Visible = false
-            if d.Highlight then d.Highlight.Enabled = false end
-            continue
-        end
-
-        local vis = isVisible(char, player)
-        local cfg = vis and VIS_ON or VIS_OFF
-        local col = (Settings.Team and myTeam and player.Team == myTeam) and TEAM_COLOR or cfg.Color
-
-        if d.Highlight then
-            if Settings.Highlight then
-                d.Highlight.Enabled = true
-                d.Highlight.FillColor = col
-                d.Highlight.OutlineColor = col
-                d.Highlight.FillTransparency = cfg.Fill
-                d.Highlight.OutlineTransparency = cfg.Outline
-            else
-                d.Highlight.Enabled = false
-            end
-        end
-
-        d.NameLabel.Visible = Settings.Name
-        if Settings.Name then
-            d.NameLabel.Text = player.Name
-            d.NameLabel.TextColor3 = col
-        end
-
-        d.DistLabel.Visible = Settings.Distance
-        if Settings.Distance then
-            local fd = math.floor(dist)
-            if d.lastDist ~= fd then
-                d.DistLabel.Text = vis and ("< "..fd.."m >") or ("[W] "..fd.."m")
-                d.lastDist = fd
-            end
-            d.DistLabel.TextColor3 = col
-        end
-    end
-end)
-
--- =============================================
--- AIMBOT
--- =============================================
-local halfX = Camera.ViewportSize.X * 0.5
-local halfY = Camera.ViewportSize.Y * 0.5
-
-local function getClosestTarget()
-    local best = nil
-    local bestDist = math.huge
-    local myChar = LocalPlayer.Character
-    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
-    if not myHRP then return nil end
-
-    local myTeam = getMyTeam()
-    local fov = AimbotSettings.FOV
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player == LocalPlayer then continue end
-        local char = player.Character
-        if not char then continue end
-
-        if AimbotSettings.IgnoreAllies and myTeam and player.Team == myTeam then continue end
-
-        local head = char:FindFirstChild("Head")
-        local hrp  = char:FindFirstChild("HumanoidRootPart")
-        if not head or not hrp then continue end
-
-        if AimbotSettings.KillCheck then
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if not hum or hum.Health <= 0 then continue end
-        end
-
-        local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
-        if not onScreen then continue end
-
-        local sx = pos.X - halfX
-        local sy = pos.Y - halfY
-        local screenDist = math.sqrt(sx*sx + sy*sy)
-        if screenDist > fov then continue end
-
-        local worldDist = (myHRP.Position - hrp.Position).Magnitude
-        if worldDist > 2000 then continue end
-
-        if not AimbotSettings.IgnoreWall then
-            if not isVisible(char, player) then continue end
-        end
-
-        if worldDist < bestDist then
-            bestDist = worldDist
-            best = head
-        end
+    local function updateSlider(inputX)
+        local rel = math.clamp((inputX - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+        value = math.floor(min + (max - min) * rel)
+        fill.Size = UDim2.new(rel, 0, 1, 0)
+        knob.Position = UDim2.new(rel, 0, 0.5, 0)
+        titleLabel.Text = text .. ": " .. value
+        if callback then callback(value) end
     end
 
-    return best
+    local initRel = (value - min) / (max - min)
+    fill.Size = UDim2.new(initRel, 0, 1, 0)
+    knob.Position = UDim2.new(initRel, 0, 0.5, 0)
+
+    track.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1
+            or inp.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            updateSlider(inp.Position.X)
+        end
+    end)
+
+    knob.InputBegan:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1
+            or inp.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(inp)
+        if dragging and (inp.UserInputType == Enum.UserInputType.MouseMovement
+            or inp.UserInputType == Enum.UserInputType.Touch) then
+            updateSlider(inp.Position.X)
+        end
+    end)
+
+    game:GetService("UserInputService").InputEnded:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1
+            or inp.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    return {
+        GetValue = function() return value end,
+        SetValue = function(v)
+            value = math.clamp(v, min, max)
+            local rel = (value - min) / (max - min)
+            fill.Size = UDim2.new(rel, 0, 1, 0)
+            knob.Position = UDim2.new(rel, 0, 0.5, 0)
+            titleLabel.Text = text .. ": " .. value
+        end
+    }
 end
 
-local cachedTarget = nil
-RunService.Heartbeat:Connect(function()
-    if not AimbotSettings.Enabled then cachedTarget = nil return end
-    cachedTarget = getClosestTarget()
-end)
-
-local BASE_SMOOTH = 0.9
-local curSmooth = BASE_SMOOTH
-local lastCamCF = Camera.CFrame
-local PULL = 0.15
-local RELEASE = 0.25
-
-RunService.RenderStepped:Connect(function()
-    if not cachedTarget then
-        lastCamCF = Camera.CFrame
-        curSmooth = BASE_SMOOTH
-        return
-    end
-
-    local delta = (Camera.CFrame.LookVector - lastCamCF.LookVector).Magnitude
-
-    if delta > RELEASE then
-        cachedTarget = nil
-        curSmooth = 0
-        lastCamCF = Camera.CFrame
-        return
-    end
-
-    if delta > PULL then
-        curSmooth = math.max(0, curSmooth - delta * 3.5)
-    else
-        curSmooth = curSmooth + (BASE_SMOOTH - curSmooth) * 0.05
-    end
-
-    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, cachedTarget.Position), curSmooth)
-    lastCamCF = Camera.CFrame
-end)
-
 -- =============================================
--- CÍRCULO DO FOV (atualiza só quando muda)
+-- NOMES DAS ABAS
 -- =============================================
-local fovCircle = Instance.new("Frame", ui.gui)
-fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
-fovCircle.BackgroundTransparency = 1
-fovCircle.BorderSizePixel = 0
-Instance.new("UICorner", fovCircle).CornerRadius = UDim.new(1, 0)
+function RobloxUI:SetTabNames(leftName, rightName, thirdName)
+    self.leftTabLabel.Text  = leftName  or ""
+    self.rightTabLabel.Text = rightName or ""
+    self.thirdTabLabel.Text = thirdName or ""
+end
 
-local fovStroke = Instance.new("UIStroke", fovCircle)
-fovStroke.Color = Color3.new(1,1,1)
-fovStroke.Thickness = 1
-fovStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+_G.RobloxUI = RobloxUI
 
-local lastFOV = -1
-RunService.RenderStepped:Connect(function()
-    local show = AimbotSettings.Enabled and AimbotSettings.ShowFOV
-    fovCircle.Visible = show
-    if not show then return end
-    local f = AimbotSettings.FOV
-    if f ~= lastFOV then
-        local s = f * 2
-        fovCircle.Size = UDim2.new(0, s, 0, s)
-        lastFOV = f
-    end
-end)
+return RobloxUI
