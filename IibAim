@@ -1,25 +1,30 @@
--- =============================================
--- RobloxUI Lib | Delta Executor
--- v2 - BotÃ£o clicÃ¡vel + Aba Player
--- =============================================
-
 local RobloxUI = {}
 RobloxUI.__index = RobloxUI
 
 function RobloxUI.new(title)
     local self = setmetatable({}, RobloxUI)
 
-    self.gui = Instance.new("ScreenGui")
+    local pg =
+game:GetService("Players")
+.LocalPlayer
+:WaitForChild("PlayerGui")
+
+local old =
+pg:FindFirstChild("RobloxUI_Lib")
+
+if old then
+    old:Destroy()
+end
+
+self.gui = Instance.new("ScreenGui")
     self.gui.Name = "RobloxUI_Lib"
     self.gui.IgnoreGuiInset = true
     self.gui.ResetOnSpawn = false
 
-    pcall(function()
-        self.gui.Parent = game:GetService("CoreGui")
-    end)
-    if not self.gui.Parent then
-        self.gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-    end
+    local Players = game:GetService("Players")
+
+self.gui.Parent =
+    Players.LocalPlayer:WaitForChild("PlayerGui")
 
     -- === MENU FRAME ===
     self.menuFrame = Instance.new("Frame")
@@ -31,7 +36,9 @@ function RobloxUI.new(title)
     self.menuFrame.Active = true
     self.menuFrame.Draggable = true
     self.menuFrame.Parent = self.gui
-    Instance.new("UICorner", self.menuFrame).CornerRadius = UDim.new(0, 10)
+    local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = self.menuFrame
 
     local stroke = Instance.new("UIStroke", self.menuFrame)
     stroke.Color = Color3.fromRGB(50, 50, 50)
@@ -77,7 +84,9 @@ function RobloxUI.new(title)
     hideBtn.Text = "-"
     hideBtn.AutoButtonColor = false
     hideBtn.Parent = titleBar
-    Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(0, 4)
+    local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 4)
+corner.Parent = hideBtn
 
     hideBtn.MouseButton1Click:Connect(function()
         contentVisible = not contentVisible
@@ -293,11 +302,14 @@ function RobloxUI:AddButton(side, text, callback)
         btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
 
-    btn.MouseButton1Up:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-        btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-        if callback then callback() end
-    end)
+    btn.Activated:Connect(function()
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+
+    if callback then
+        callback()
+    end
+end)
 
     btn.MouseLeave:Connect(function()
         btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
@@ -425,3 +437,5 @@ function RobloxUI:SetTabNames(leftName, rightName, thirdName)
 end
 
 _G.RobloxUI = RobloxUI
+
+return RobloxUI
