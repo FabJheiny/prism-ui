@@ -1561,4 +1561,3 @@ AnimateGradient(Gradient(wrapStroke, {
 end
 
 return setmetatable({}, Library)
-
