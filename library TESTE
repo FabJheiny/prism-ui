@@ -2129,6 +2129,6 @@ function Library:new(options)
 	end) -- task.defer (Settings)
 
 	return GUI
-end -- Library:new
+end
 
 return Library
