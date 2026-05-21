@@ -1,5 +1,5 @@
 local Library = loadstring(game:HttpGet(
-    "https://codeberg.org/VenomVent/Ventura-UI/raw/branch/main/VenturaLibrary.lua"
+    "https://pastebin.com/raw/mYtWNmut"
 ))()
 
 local GUI = Library:new({
