@@ -28,6 +28,10 @@ local Config = {
     Tween        = TweenInfo.new(.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
 }
 
+-- ────────────────────────────────────────────────────────────
+-- Helpers
+-- ────────────────────────────────────────────────────────────
+
 local function Create(class, props)
     local obj = Instance.new(class)
     for k,v in pairs(props or {}) do obj[k] = v end
@@ -117,6 +121,10 @@ local function AnimateGradient(g)
     end)
 end
 
+-- ────────────────────────────────────────────────────────────
+-- CreateFloatingActionButton
+-- ────────────────────────────────────────────────────────────
+
 local function CreateFloatingActionButton(root, opts)
     local label       = opts.Label       or "Action"
     local icon        = opts.Icon        or "▶"
@@ -145,13 +153,24 @@ local function CreateFloatingActionButton(root, opts)
 
     local glowBg = Create("Frame",{
         Size             = UDim2.fromScale(1,1),
-        BackgroundColor3 = Color3.fromRGB(30, 26, 72),
+        BackgroundColor3 = Theme.Glow,
         BackgroundTransparency = .88,
         BorderSizePixel  = 0,
         ZIndex           = pill.ZIndex - 1,
         Parent           = pill,
     })
     Corner(glowBg, 22)
+
+    local floatingShadow = Create("Frame",{
+        Size             = UDim2.new(1,16,1,16),
+        Position         = UDim2.fromOffset(-8,-8),
+        BackgroundColor3 = Theme.Glow,
+        BackgroundTransparency = .95,
+        BorderSizePixel  = 0,
+        ZIndex           = pill.ZIndex - 2,
+        Parent           = pill,
+    })
+    Corner(floatingShadow, 999)
 
     local iconFrame = Create("Frame",{
         Size             = UDim2.fromOffset(32,32),
@@ -305,6 +324,10 @@ local function CreateFloatingActionButton(root, opts)
     return { Frame = pill, Show = Show, Hide = Hide }
 end
 
+-- ────────────────────────────────────────────────────────────
+-- CreateWindow
+-- ────────────────────────────────────────────────────────────
+
 function Library:CreateWindow(data)
     local LocalPlayer = Players.LocalPlayer
 
@@ -322,6 +345,7 @@ function Library:CreateWindow(data)
         Parent                 = gui,
     })
 
+    -- ── Floating Bar ──
     local floatingBar = Create("Frame",{
         Size             = UDim2.fromOffset(196, 40),
         Position         = UDim2.new(0.5, -98, 0, 12),
@@ -338,6 +362,7 @@ function Library:CreateWindow(data)
         ColorSequenceKeypoint.new(1,  Theme.Accent3),
     }))
 
+    -- FPS pill
     local fpsPill = Create("Frame",{
         Size             = UDim2.fromOffset(70, 26),
         Position         = UDim2.fromOffset(7, 7),
@@ -349,7 +374,7 @@ function Library:CreateWindow(data)
     Corner(fpsPill, 8)
     Stroke(fpsPill, Theme.Accent1, 1, .6)
 
-    local fpsTagL = Create("TextLabel",{
+    Create("TextLabel",{
         Text               = "FPS",
         Font               = Enum.Font.GothamBold,
         TextSize           = 8,
@@ -375,6 +400,7 @@ function Library:CreateWindow(data)
         Parent             = fpsPill,
     })
 
+    -- Ping pill
     local pingPill = Create("Frame",{
         Size             = UDim2.fromOffset(70, 26),
         Position         = UDim2.fromOffset(83, 7),
@@ -386,7 +412,7 @@ function Library:CreateWindow(data)
     Corner(pingPill, 8)
     Stroke(pingPill, Theme.Accent3, 1, .6)
 
-    local pingTagL = Create("TextLabel",{
+    Create("TextLabel",{
         Text               = "PING",
         Font               = Enum.Font.GothamBold,
         TextSize           = 8,
@@ -420,7 +446,7 @@ function Library:CreateWindow(data)
         if elapsed >= 1 then
             local fps  = math.round(frameCount / elapsed)
             local ping = math.round(Players.LocalPlayer:GetNetworkPing() * 1000)
-            fpsValueL.Text  = fps .. " fps"
+            fpsValueL.Text = fps .. " fps"
             local pingColor
             if ping < 80 then
                 pingColor = Color3.fromRGB(96,255,160)
@@ -436,6 +462,7 @@ function Library:CreateWindow(data)
         end
     end)
 
+    -- Toggle button
     local toggleBtn = Create("TextButton",{
         Text             = "◉",
         Font             = Enum.Font.GothamBold,
@@ -454,6 +481,7 @@ function Library:CreateWindow(data)
 
     Dragify(floatingBar)
 
+    -- ── Window wrap ──
     local wrap = Create("Frame",{
         Size        = Config.WindowSize,
         Position    = UDim2.fromScale(.5,.5),
@@ -464,30 +492,30 @@ function Library:CreateWindow(data)
     Corner(wrap, 16)
 
     local shadow1 = Create("Frame",{
-        Size = UDim2.new(1,40,1,40),
-        Position = UDim2.fromOffset(-20,-20),
+        Size             = UDim2.new(1,40,1,40),
+        Position         = UDim2.fromOffset(-20,-20),
         BackgroundColor3 = Color3.fromRGB(0,0,0),
         BackgroundTransparency = .92,
-        BorderSizePixel = 0,
-        ZIndex = -10,
-        Parent = wrap,
+        BorderSizePixel  = 0,
+        ZIndex           = -10,
+        Parent           = wrap,
     })
-    Corner(shadow1,22)
+    Corner(shadow1, 22)
 
     local shadow2 = Create("Frame",{
-        Size = UDim2.new(1,70,1,70),
-        Position = UDim2.fromOffset(-35,-35),
+        Size             = UDim2.new(1,70,1,70),
+        Position         = UDim2.fromOffset(-35,-35),
         BackgroundColor3 = Theme.Glow,
         BackgroundTransparency = .96,
-        BorderSizePixel = 0,
-        ZIndex = -11,
-        Parent = wrap,
+        BorderSizePixel  = 0,
+        ZIndex           = -11,
+        Parent           = wrap,
     })
-    Corner(shadow2,30)
+    Corner(shadow2, 30)
     AnimateGradient(Gradient(shadow2,{
-        ColorSequenceKeypoint.new(0, Theme.Accent1),
+        ColorSequenceKeypoint.new(0,  Theme.Accent1),
         ColorSequenceKeypoint.new(.5, Theme.Accent2),
-        ColorSequenceKeypoint.new(1, Theme.Accent3),
+        ColorSequenceKeypoint.new(1,  Theme.Accent3),
     },45))
 
     local window = Create("Frame",{
@@ -499,6 +527,7 @@ function Library:CreateWindow(data)
     })
     Corner(window, 16)
 
+    -- ── Sidebar ──
     local sidebar = Create("Frame",{
         Size             = UDim2.new(0,Config.SidebarWidth,1,0),
         BackgroundColor3 = Theme.Sidebar,
@@ -515,6 +544,20 @@ function Library:CreateWindow(data)
         Parent           = sidebar,
     })
 
+    local sidebarGlow = Create("Frame",{
+        Size             = UDim2.new(0,1,1,-20),
+        Position         = UDim2.new(1,-1,0,10),
+        BackgroundTransparency = .3,
+        BorderSizePixel  = 0,
+        Parent           = sidebar,
+    })
+    Gradient(sidebarGlow,{
+        ColorSequenceKeypoint.new(0,  Theme.Accent1),
+        ColorSequenceKeypoint.new(.5, Theme.Accent2),
+        ColorSequenceKeypoint.new(1,  Theme.Accent3),
+    },90)
+
+    -- Brand header
     local brand = Create("Frame",{
         Size               = UDim2.new(1,0,0,82),
         BackgroundTransparency = 1,
@@ -585,6 +628,7 @@ function Library:CreateWindow(data)
     })
     Create("UIListLayout",{ Padding = UDim.new(0,3), Parent = tabList })
 
+    -- ── Player card ──
     local playerCard = Create("Frame",{
         Size             = UDim2.new(1,-12,0,50),
         Position         = UDim2.new(0,6,1,-58),
@@ -674,6 +718,7 @@ function Library:CreateWindow(data)
         Parent             = playerCard,
     })
 
+    -- ── Content ──
     local content = Create("Frame",{
         Position           = UDim2.new(0,Config.SidebarWidth,0,0),
         Size               = UDim2.new(1,-Config.SidebarWidth,1,0),
@@ -729,18 +774,23 @@ function Library:CreateWindow(data)
         wrap.Visible = menuVisible
         toggleBtn.Text = "◉"
         TweenService:Create(toggleBtn, Config.Tween, {
-            TextColor3       = menuVisible and Theme.Accent1 or Color3.fromRGB(240,236,255),
-            BackgroundColor3 = menuVisible and Color3.fromRGB(30,10,50) or Color3.fromRGB(18,14,38),
+            TextColor3       = menuVisible
+                and Theme.Accent1
+                or  Color3.fromRGB(240,236,255),
+            BackgroundColor3 = menuVisible
+                and Color3.fromRGB(30,10,50)
+                or  Color3.fromRGB(18,14,38),
         }):Play()
     end)
 
+    -- ── Window object ──
     local windowObj = { Tabs = {} }
 
     function windowObj:CreateTab(name)
         local tabBtn = Create("TextButton",{
             Text               = "",
-            Size               = UDim2.new(1,-20,0,38),
-            Position           = UDim2.fromOffset(10,0),
+            Size               = UDim2.new(1,-16,0,38),
+            Position           = UDim2.fromOffset(8,0),
             BackgroundTransparency = 1,
             AutoButtonColor    = false,
             Parent             = tabList,
@@ -748,7 +798,7 @@ function Library:CreateWindow(data)
 
         local glowBar = Create("Frame",{
             Size             = UDim2.fromOffset(3,0),
-            Position         = UDim2.new(0,6,.5,0),
+            Position         = UDim2.new(0,0,.5,0),
             AnchorPoint      = Vector2.new(0,.5),
             BackgroundColor3 = Theme.Accent1,
             BorderSizePixel  = 0,
@@ -761,17 +811,13 @@ function Library:CreateWindow(data)
         },90)
 
         local dot = Create("Frame",{
-            Size             = UDim2.fromOffset(5,5),
-            Position         = UDim2.fromOffset(19,17),
+            Size             = UDim2.fromOffset(6,6),
+            Position         = UDim2.fromOffset(14,16),
             BackgroundColor3 = Color3.fromRGB(26,24,56),
             BorderSizePixel  = 0,
             Parent           = tabBtn,
         })
         Corner(dot, 999)
-        Gradient(dot,{
-            ColorSequenceKeypoint.new(0, Theme.Accent1),
-            ColorSequenceKeypoint.new(1, Theme.Accent2),
-        },90)
 
         local tabText = Create("TextLabel",{
             Text               = name,
@@ -779,20 +825,25 @@ function Library:CreateWindow(data)
             TextSize           = 13,
             TextColor3         = Color3.fromRGB(58,56,88),
             BackgroundTransparency = 1,
-            Position           = UDim2.fromOffset(34,0),
-            Size               = UDim2.new(1,-34,1,0),
+            Position           = UDim2.fromOffset(30,0),
+            Size               = UDim2.new(1,-30,1,0),
             TextXAlignment     = Enum.TextXAlignment.Left,
             Parent             = tabBtn,
         })
 
         local bg = Create("Frame",{
-            Size               = UDim2.new(1,-8,1,0),
-            BackgroundColor3   = Color3.fromRGB(30, 26, 72),
+            Size               = UDim2.fromScale(1,1),
+            BackgroundColor3   = Theme.Glow,
             BackgroundTransparency = 1,
-            ZIndex             = -1,
+            ZIndex             = 0,
             Parent             = tabBtn,
         })
         Corner(bg, 9)
+        Create("UIPadding",{
+            PaddingLeft  = UDim.new(0,2),
+            PaddingRight = UDim.new(0,2),
+            Parent       = bg,
+        })
 
         local page = Create("ScrollingFrame",{
             Visible                = false,
@@ -824,15 +875,38 @@ function Library:CreateWindow(data)
             TweenService:Create(dot,     Config.Tween, { BackgroundColor3 = Theme.Accent1 }):Play()
             TweenService:Create(tabText, Config.Tween, { TextColor3 = Color3.fromRGB(200,184,255) }):Play()
             TweenService:Create(glowBar, Config.Tween, { Size = UDim2.fromOffset(3,18) }):Play()
-            TweenService:Create(bg,      Config.Tween, { BackgroundTransparency = .92 }):Play()
+            TweenService:Create(bg,      Config.Tween, { BackgroundTransparency = .88 }):Play()
         end
 
         tabBtn.MouseButton1Click:Connect(Select)
+
+        tabBtn.MouseEnter:Connect(function()
+            if not page.Visible then
+                TweenService:Create(bg, TweenInfo.new(.16, Enum.EasingStyle.Quint), {
+                    BackgroundTransparency = .95
+                }):Play()
+                TweenService:Create(tabText, TweenInfo.new(.16, Enum.EasingStyle.Quint), {
+                    TextColor3 = Color3.fromRGB(160,150,210)
+                }):Play()
+            end
+        end)
+        tabBtn.MouseLeave:Connect(function()
+            if not page.Visible then
+                TweenService:Create(bg, TweenInfo.new(.16, Enum.EasingStyle.Quint), {
+                    BackgroundTransparency = 1
+                }):Play()
+                TweenService:Create(tabText, TweenInfo.new(.16, Enum.EasingStyle.Quint), {
+                    TextColor3 = Color3.fromRGB(58,56,88)
+                }):Play()
+            end
+        end)
+
         tabObj.Page = page; tabObj.Dot = dot; tabObj.Text = tabText
         tabObj.Glow = glowBar; tabObj.Bg = bg
         table.insert(windowObj.Tabs, tabObj)
         if #windowObj.Tabs == 1 then Select() end
 
+        -- Element base frame
         local function CreateElement(h)
             local el = Create("Frame",{
                 Size               = UDim2.new(1,0,0,h),
@@ -857,6 +931,7 @@ function Library:CreateWindow(data)
             return el
         end
 
+        -- ── Toggle ──
         function tabObj:CreateToggle(d)
             local enabled = d.Default or false
             local el      = CreateElement(58)
@@ -937,15 +1012,15 @@ function Library:CreateWindow(data)
             Corner(knob, 999)
 
             local toggleGlow = Create("Frame",{
-                Size = UDim2.new(1,8,1,8),
-                Position = UDim2.fromOffset(-4,-4),
+                Size             = UDim2.new(1,8,1,8),
+                Position         = UDim2.fromOffset(-4,-4),
                 BackgroundColor3 = Theme.Accent1,
                 BackgroundTransparency = .95,
-                BorderSizePixel = 0,
-                ZIndex = track.ZIndex - 1,
-                Parent = track,
+                BorderSizePixel  = 0,
+                ZIndex           = track.ZIndex - 1,
+                Parent           = track,
             })
-            Corner(toggleGlow,999)
+            Corner(toggleGlow, 999)
 
             local function Resize()
                 local h = descL.TextBounds.Y + nameL.TextBounds.Y + 36
@@ -962,12 +1037,14 @@ function Library:CreateWindow(data)
                     Position         = state and UDim2.fromOffset(21,3) or UDim2.fromOffset(3,3),
                     BackgroundColor3 = state and Color3.new(1,1,1) or Color3.fromRGB(24,22,58),
                 }):Play()
-                if fab then
-                    if state then fab.Show() else fab.Hide() end
-                end
                 TweenService:Create(toggleGlow, Config.Tween, {
                     BackgroundTransparency = state and .88 or .95
                 }):Play()
+
+                if fab then
+                    if state then fab.Show() else fab.Hide() end
+                end
+
                 if d.Callback then task.spawn(d.Callback, state) end
             end
 
@@ -975,6 +1052,7 @@ function Library:CreateWindow(data)
             return { Set = Set, Get = function() return enabled end }
         end
 
+        -- ── Slider ──
         function tabObj:CreateSlider(d)
             local min   = d.Min or 0
             local max   = d.Max or 100
@@ -1076,15 +1154,15 @@ function Library:CreateWindow(data)
             })
 
             local thumbGlow = Create("Frame",{
-                Size = UDim2.new(1,10,1,10),
-                Position = UDim2.fromOffset(-5,-5),
+                Size             = UDim2.new(1,10,1,10),
+                Position         = UDim2.fromOffset(-5,-5),
                 BackgroundColor3 = Theme.Accent1,
                 BackgroundTransparency = .90,
-                BorderSizePixel = 0,
-                ZIndex = thumb.ZIndex - 1,
-                Parent = thumb,
+                BorderSizePixel  = 0,
+                ZIndex           = thumb.ZIndex - 1,
+                Parent           = thumb,
             })
-            Corner(thumbGlow,999)
+            Corner(thumbGlow, 999)
 
             local hitZone = Create("TextButton",{
                 Text               = "",
@@ -1164,6 +1242,7 @@ function Library:CreateWindow(data)
             return { Set = SyncUI, Get = function() return value end }
         end
 
+        -- ── Button ──
         function tabObj:CreateButton(d)
             local btn = Create("TextButton",{
                 Text             = d.Name or "Button",
@@ -1215,12 +1294,13 @@ function Library:CreateWindow(data)
             end)
         end
 
+        -- ── Dropdown ──
         function tabObj:CreateDropdown(d)
             local options  = d.Options or {}
             local current  = d.Default or options[1] or "None"
             local open     = false
             local CLOSED_H = 44
-            local OPEN_H   = CLOSED_H + (#options * 30) + 4
+            local OPEN_H   = CLOSED_H + math.min(#options, 4) * 30 + 4
 
             local el = Create("Frame",{
                 Size               = UDim2.new(1,0,0,CLOSED_H),
@@ -1298,7 +1378,7 @@ function Library:CreateWindow(data)
                 ScrollBarThickness     = 3,
                 ScrollBarImageColor3   = Theme.Accent2,
                 Position               = UDim2.fromOffset(0,CLOSED_H),
-                Size                   = UDim2.new(1,0,0,#options*30),
+                Size                   = UDim2.new(1,0,0,math.min(#options,4)*30),
                 CanvasSize             = UDim2.new(),
                 AutomaticCanvasSize    = Enum.AutomaticSize.Y,
                 Visible                = false,
@@ -1336,7 +1416,9 @@ function Library:CreateWindow(data)
                     TweenService:Create(el, Config.Tween, {
                         Size = UDim2.new(1,0,0, CLOSED_H)
                     }):Play()
-                    TweenService:Create(arrowL, Config.Tween, { Rotation = 0 }):Play()
+                    TweenService:Create(arrowL, Config.Tween, {
+                        Rotation = 0
+                    }):Play()
                     task.delay(Config.Tween.Time, function()
                         optList.Visible = false
                     end)
@@ -1346,7 +1428,9 @@ function Library:CreateWindow(data)
 
             row.MouseButton1Click:Connect(function()
                 open = not open
-                if open then optList.Visible = true end
+                if open then
+                    optList.Visible = true
+                end
                 TweenService:Create(el, Config.Tween, {
                     Size = UDim2.new(1,0,0, open and OPEN_H or CLOSED_H)
                 }):Play()
@@ -1366,6 +1450,7 @@ function Library:CreateWindow(data)
             }
         end
 
+        -- ── Textbox ──
         function tabObj:CreateTextbox(d)
             local el = CreateElement(88)
             Create("TextLabel",{
@@ -1419,9 +1504,11 @@ function Library:CreateWindow(data)
                 TweenService:Create(box, TweenInfo.new(.15, Enum.EasingStyle.Quint), {
                     BackgroundTransparency = .4
                 }):Play()
+                if d.Callback then task.spawn(d.Callback, box.Text) end
             end)
         end
 
+        -- ── Label ──
         function tabObj:CreateLabel(text)
             local el = Create("Frame",{
                 Size               = UDim2.new(1,0,0,32),
@@ -1451,6 +1538,7 @@ function Library:CreateWindow(data)
             })
         end
 
+        -- ── Paragraph ──
         function tabObj:CreateParagraph(d)
             local el = CreateElement(72)
             local titleL = Create("TextLabel",{
@@ -1492,3 +1580,4 @@ function Library:CreateWindow(data)
 end
 
 return setmetatable({}, Library)
+
