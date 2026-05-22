@@ -232,40 +232,8 @@ function Library:new(options)
 	sidebarBtn.AutoButtonColor        = false
 	sidebarBtn.ZIndex                 = 5
 
-	-- Minimize button
-	local minBtn = Instance.new("TextButton", Topbar)
-	minBtn.BackgroundTransparency = 1
-	minBtn.BorderSizePixel        = 0
-	minBtn.AnchorPoint            = Vector2.new(1, 0.5)
-	minBtn.Position               = UDim2.new(1, -28, 0.5, 0)
-	minBtn.Size                   = UDim2.new(0, 22, 0, 22)
-	minBtn.Text                   = "─"
-	minBtn.TextSize               = 11
-	minBtn.FontFace               = MONO
-	minBtn.TextColor3             = T.TextSecondary
-	minBtn.AutoButtonColor        = false
-	minBtn.ZIndex                 = 5
-
-	-- Close button
-	local exitBtn = Instance.new("TextButton", Topbar)
-	exitBtn.BackgroundTransparency = 1
-	exitBtn.BorderSizePixel        = 0
-	exitBtn.AnchorPoint            = Vector2.new(1, 0.5)
-	exitBtn.Position               = UDim2.new(1, -6, 0.5, 0)
-	exitBtn.Size                   = UDim2.new(0, 22, 0, 22)
-	exitBtn.Text                   = "✕"
-	exitBtn.TextSize               = 12
-	exitBtn.FontFace               = UBUNTU
-	exitBtn.TextColor3             = T.TextSecondary
-	exitBtn.AutoButtonColor        = false
-	exitBtn.ZIndex                 = 5
-
-	-- Hover: just swap color, no tween (performance)
-	for _, btn in ipairs({minBtn, exitBtn, sidebarBtn}) do
-		btn.MouseEnter:Connect(function() btn.TextColor3 = T.TextPrimary end)
-		btn.MouseLeave:Connect(function() btn.TextColor3 = T.TextSecondary end)
-	end
-
+	sidebarBtn.MouseEnter:Connect(function() sidebarBtn.TextColor3 = T.TextPrimary end)
+sidebarBtn.MouseLeave:Connect(function() sidebarBtn.TextColor3 = T.TextSecondary end)
 	-- ── Sidebar / Nav ────────────────────────────────────────────────
 	local NAV_W   = 100
 	local navOpen = true
@@ -451,19 +419,6 @@ function Library:new(options)
 	-- ══════════════════════════════════════════════════════════════════
 	-- WINDOW CONTROLS
 	-- ══════════════════════════════════════════════════════════════════
-	local function doMinimize()
-		_minimized = not _minimized
-		if _minimized then
-			Nav.Visible     = false
-			Content.Visible = false
-			tw(Main, { Size = UDim2.new(0, winW, 0, 32) }, TI_FAST)
-		else
-			tw(Main, { Size = UDim2.new(0, winW, 0, winH) }, TI_MED, function()
-				Nav.Visible     = true
-				Content.Visible = true
-			end)
-		end
-	end
 
 	function GUI:Destroy()
 		if _destroyed then return end
@@ -485,23 +440,6 @@ function Library:new(options)
 		return false
 	end
 
-	minBtn.MouseButton1Click:Connect(doMinimize)
-	exitBtn.MouseButton1Click:Connect(function()
-		if _destroyed then return end
-		if options.onClose then pcall(options.onClose) end
-		GUI:Destroy()
-	end)
-
-	-- Keyboard toggle
-	track(UIS.InputBegan:Connect(function(input, gpe)
-		if _destroyed or gpe then return end
-		if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
-		if input.KeyCode == options.toggleKey then
-			_open = not _open
-			Main.Visible = _open
-			if GUI._floatBtn then GUI._floatBtn.Visible = true end
-		end
-	end))
 
 	-- ── Drag ─────────────────────────────────────────────────────────
 	local dragging, dragStart, startPos
@@ -520,7 +458,7 @@ function Library:new(options)
 		local d   = i.Position - dragStart
 		local vps = workspace.CurrentCamera.ViewportSize
 		local sw  = Main.AbsoluteSize.X
-		local sh  = _minimized and 32 or Main.AbsoluteSize.Y
+		local sh  = Main.AbsoluteSize.Y
 		Main.Position = UDim2.new(0,
 			math.clamp(startPos.X.Offset + d.X, sw/2, vps.X - sw/2),
 			0,
@@ -551,7 +489,6 @@ function Library:new(options)
 
 	local rDrag, rStart, rStartSz = false, nil, nil
 	resHandle.InputBegan:Connect(function(i)
-		if _minimized then return end
 		if i.UserInputType == Enum.UserInputType.MouseButton1
 			or i.UserInputType == Enum.UserInputType.Touch then
 			rDrag = true; rStart = i.Position; rStartSz = Vector2.new(winW, winH)
@@ -573,81 +510,83 @@ function Library:new(options)
 		end
 	end))
 
-	-- ══════════════════════════════════════════════════════════════════
-	-- FLOATING TOGGLE BUTTON (mobile-first)
-	-- ══════════════════════════════════════════════════════════════════
-	local FB_SIZE = 44
-	local floatBtn = Instance.new("TextButton", SG)
-	floatBtn.Name                   = "FloatToggle"
-	floatBtn.Size                   = UDim2.new(0, FB_SIZE, 0, FB_SIZE)
-	floatBtn.BackgroundColor3       = T.Background
-	floatBtn.BackgroundTransparency = 0.12
-	floatBtn.BorderSizePixel        = 0
-	floatBtn.AnchorPoint            = Vector2.new(1, 1)
-	-- Default: bottom-right corner, safe margin
-	floatBtn.Position               = UDim2.new(1, -14, 1, -14)
-	floatBtn.Text                   = "V"
-	floatBtn.TextSize               = 16
-	floatBtn.FontFace               = UBUNTU_BOLD
-	floatBtn.TextColor3             = T.Accent
-	floatBtn.AutoButtonColor        = false
-	floatBtn.ZIndex                 = 800
-	corner(floatBtn, FB_SIZE / 2)
-	stroke(floatBtn, T.Border)
-	GUI._floatBtn = floatBtn
+	-- ══════════════════════════════════════════════════════════════════════
+-- FLOATING TOGGLE BUTTON
+-- ══════════════════════════════════════════════════════════════════════
+local FB  = 48
+local floatBtn = Instance.new("TextButton", SG)
+floatBtn.Name                   = "FloatToggle"
+floatBtn.Size                   = UDim2.new(0, FB, 0, FB)
+floatBtn.BackgroundColor3       = T.Background
+floatBtn.BackgroundTransparency = 0.08
+floatBtn.BorderSizePixel        = 0
+floatBtn.AnchorPoint            = Vector2.new(0.5, 0.5)
+floatBtn.Position               = UDim2.new(1, -38, 1, -38) -- canto inferior direito
+floatBtn.Text                   = "V"
+floatBtn.TextSize               = 15
+floatBtn.FontFace               = UBUNTU_BOLD
+floatBtn.TextColor3             = T.Accent
+floatBtn.AutoButtonColor        = false
+floatBtn.ZIndex                 = 900
+corner(floatBtn, FB / 2)
+stroke(floatBtn, T.Accent, 1)
+GUI._floatBtn = floatBtn
 
-	-- Accent ring pulse on floatBtn (CSS-free approach)
-	local function pulseFloat(visible)
-		if visible then
-			tw(floatBtn, { BackgroundTransparency = 0.12 }, TI_FAST)
-		else
-			tw(floatBtn, { BackgroundTransparency = 0.35 }, TI_FAST)
-		end
-	end
+-- tap: abre/fecha | drag: move
+local fbDrag, fbStart, fbOrigin, fbMoved = false, nil, nil, false
 
-	floatBtn.MouseButton1Click:Connect(function()
-		_open = not _open
-		Main.Visible = _open
-		pulseFloat(_open)
-		floatBtn.TextColor3 = _open and T.Accent or T.TextSecondary
-	end)
+floatBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then
+        fbDrag   = true
+        fbMoved  = false
+        fbStart  = i.Position
+        fbOrigin = floatBtn.Position
+    end
+end)
 
-	-- Drag the float button
-	local fbDrag, fbDragStart, fbDragPos = false, nil, nil
-	floatBtn.InputBegan:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1
-			or i.UserInputType == Enum.UserInputType.Touch then
-			fbDrag = true; fbDragStart = i.Position; fbDragPos = floatBtn.Position
-		end
-	end)
-	track(UIS.InputChanged:Connect(function(i)
-		if not fbDrag then return end
-		if i.UserInputType ~= Enum.UserInputType.MouseMovement
-			and i.UserInputType ~= Enum.UserInputType.Touch then return end
-		local d   = i.Position - fbDragStart
-		local vps = workspace.CurrentCamera.ViewportSize
-		local nx  = math.clamp(fbDragPos.X.Offset + d.X, FB_SIZE/2, vps.X - FB_SIZE/2)
-		local ny  = math.clamp(fbDragPos.Y.Offset + d.Y, FB_SIZE/2, vps.Y - FB_SIZE/2)
-		floatBtn.Position = UDim2.new(0, nx, 0, ny)
-	end))
-	-- Distinguish tap vs drag: only toggle on short tap
-	local fbMoved = false
-	track(UIS.InputChanged:Connect(function(i)
-		if fbDrag and (i.UserInputType == Enum.UserInputType.MouseMovement
-			or i.UserInputType == Enum.UserInputType.Touch) then
-			local d = i.Position - fbDragStart
-			if math.abs(d.X) > 6 or math.abs(d.Y) > 6 then fbMoved = true end
-		end
-	end))
-	track(UIS.InputEnded:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1
-			or i.UserInputType == Enum.UserInputType.Touch then
-			if fbDrag then
-				fbDrag  = false
-				fbMoved = false
-			end
-		end
-	end))
+track(UIS.InputChanged:Connect(function(i)
+    if not fbDrag then return end
+    if i.UserInputType ~= Enum.UserInputType.MouseMovement
+        and i.UserInputType ~= Enum.UserInputType.Touch then return end
+    local d = i.Position - fbStart
+    if math.abs(d.X) > 5 or math.abs(d.Y) > 5 then
+        fbMoved = true
+        local vps = workspace.CurrentCamera.ViewportSize
+        floatBtn.Position = UDim2.new(0,
+            math.clamp(fbOrigin.X.Offset + d.X, FB/2, vps.X - FB/2),
+            0,
+            math.clamp(fbOrigin.Y.Offset + d.Y, FB/2, vps.Y - FB/2))
+    end
+end))
+
+track(UIS.InputEnded:Connect(function(i)
+    if i.UserInputType ~= Enum.UserInputType.MouseButton1
+        and i.UserInputType ~= Enum.UserInputType.Touch then return end
+    if fbDrag and not fbMoved then
+        -- tap simples → toggle
+        _open = not _open
+        Main.Visible = _open
+        floatBtn.TextColor3  = _open and T.Accent or T.TextSecondary
+        stroke(floatBtn, _open and T.Accent or T.Border, 1):Destroy() -- troca stroke
+        local s = floatBtn:FindFirstChildOfClass("UIStroke")
+        if s then s.Color = _open and T.Accent or T.Border end
+    end
+    fbDrag = false
+end))
+
+-- teclado também funciona
+track(UIS.InputBegan:Connect(function(input, gpe)
+    if _destroyed or gpe then return end
+    if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+    if input.KeyCode == options.toggleKey then
+        _open = not _open
+        Main.Visible = _open
+        local s = floatBtn:FindFirstChildOfClass("UIStroke")
+        if s then s.Color = _open and T.Accent or T.Border end
+        floatBtn.TextColor3 = _open and T.Accent or T.TextSecondary
+    end
+end))
 
 	-- ══════════════════════════════════════════════════════════════════
 	-- NAV SECTION GROUPING
