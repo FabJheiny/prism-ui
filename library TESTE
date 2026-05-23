@@ -203,6 +203,12 @@ function Library:new(options)
 	Topbar.Size                   = UDim2.new(1, 0, 0, 36)
 	corner(Topbar, 8)
 
+	local topbarLine = Instance.new("Frame", Main)
+	topbarLine.BackgroundColor3 = T.Border
+	topbarLine.BorderSizePixel  = 0
+	topbarLine.Size             = UDim2.new(1, 0, 0, 1)
+	topbarLine.Position         = UDim2.new(0, 0, 0, 36)
+
 local titleLbl = lbl(Topbar, options.name, 13, T.TextPrimary, UBUNTU_BOLD)
 titleLbl.Size     = UDim2.new(1, -20, 1, 0)
 titleLbl.Position = UDim2.new(0, 10, 0, 0)
