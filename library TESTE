@@ -819,45 +819,37 @@ function GUI:NavSection(label)
 			local arr = lbl(Btn.frame, "›", 16, T.TextDisabled, MONO, Enum.TextXAlignment.Right)
 			arr.Size     = UDim2.new(0, 14, 1, 0)
 			arr.Position = UDim2.new(1, -14, 0, 0)
-			Btn.frame.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1
-        or i.UserInputType == Enum.UserInputType.Touch then
-        Btn.frame.BackgroundTransparency = 0.3
-        Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-        opts.callback()
-    end
-end)
-
-local clickBtn = Instance.new("TextButton", Btn.frame)
-clickBtn.BackgroundTransparency = 1
-clickBtn.BorderSizePixel        = 0
-clickBtn.Size                   = UDim2.new(1, 0, 1, 0)
-clickBtn.Text                   = ""
-clickBtn.AutoButtonColor        = false
-clickBtn.ZIndex                 = 10
-
-clickBtn.MouseEnter:Connect(function()
-    Btn.frame.BackgroundTransparency = 0.55
-    Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-    bStroke.Color                    = T.BorderHover
-end)
-clickBtn.MouseLeave:Connect(function()
-    Btn.frame.BackgroundTransparency = 1
-    Btn.frame.BackgroundColor3       = T.Surface
-    bStroke.Color                    = T.Border
-end)
-clickBtn.MouseButton1Down:Connect(function()
-    Btn.frame.BackgroundTransparency = 0.3
-    Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-end)
-clickBtn.MouseButton1Up:Connect(function()
-    Btn.frame.BackgroundTransparency = 0.55
-    Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-    bStroke.Color                    = T.BorderHover
-end)
-clickBtn.MouseButton1Click:Connect(function()
-    opts.callback()
-end)
+			local clickBtn = Instance.new("TextButton", Btn.frame)
+			clickBtn.BackgroundTransparency = 1
+			clickBtn.BorderSizePixel        = 0
+			clickBtn.Size                   = UDim2.new(1, 0, 1, 0)
+			clickBtn.Text                   = ""
+			clickBtn.AutoButtonColor        = false
+			clickBtn.ZIndex                 = 10
+			clickBtn.MouseEnter:Connect(function()
+				Btn.frame.BackgroundTransparency = 0.55
+				Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+				bStroke.Color                    = T.BorderHover
+			end)
+			clickBtn.MouseLeave:Connect(function()
+				Btn.frame.BackgroundTransparency = 1
+				Btn.frame.BackgroundColor3       = T.Surface
+				bStroke.Color                    = T.Border
+			end)
+			clickBtn.MouseButton1Down:Connect(function()
+				Btn.frame.BackgroundTransparency = 0.3
+				Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+			end)
+			clickBtn.MouseButton1Up:Connect(function()
+				Btn.frame.BackgroundTransparency = 0.55
+				Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+				bStroke.Color                    = T.BorderHover
+			end)
+			clickBtn.MouseButton1Click:Connect(function()
+				opts.callback()
+			end)
+			return Btn
+		end
 
 		function Tab:Toggle(opts)
 			opts = validate({ name = "Toggle", description = "", tooltip = "", default = false, callback = function() end }, opts)
