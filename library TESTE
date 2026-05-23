@@ -228,7 +228,7 @@ function Library:new(options)
 	Nav.BackgroundColor3       = T.Nav
 	Nav.BackgroundTransparency = 0.55
 	Nav.BorderSizePixel        = 0
-	Nav.Size                   = UDim2.new(0, NAV_W, 1, -36)
+	Nav.Size                   = UDim2.new(0, NAV_W, 1, -96)
 	Nav.Position               = UDim2.new(0, 0, 0, 36)
 	Nav.ClipsDescendants       = true
 	corner(Nav, 0)
@@ -253,8 +253,8 @@ function Library:new(options)
 	local function nextOrder() _navOrder += 1; return _navOrder end
 
 	local UserBox = Instance.new("Frame", Nav)
-	UserBox.BackgroundTransparency = 0.60
-	UserBox.BackgroundColor3       = T.Border
+	UserBox.BackgroundTransparency = 0.55
+	UserBox.BackgroundColor3       = T.Nav
 	UserBox.BorderSizePixel        = 0
 	UserBox.AnchorPoint            = Vector2.new(0, 1)
 	UserBox.Size                   = UDim2.new(1, 0, 0, 60)
