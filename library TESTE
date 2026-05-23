@@ -940,9 +940,10 @@ end)
 			hitbox.AutoButtonColor        = false
 			hitbox.ZIndex                 = 10
 
-local lastValue     = opts.default
-local renderConn    = nil
-local activeTouchId = nil
+local lastValue      = opts.default
+local renderConn     = nil
+local touchDragX     = nil 
+local touchDragDelta = 6 
 
 local function syncUI(x)
     local range = opts.max - opts.min
@@ -974,9 +975,9 @@ hitbox.InputBegan:Connect(function(i)
             if Slider.Dragging then syncUI(UIS:GetMouseLocation().X) end
         end)
     elseif i.UserInputType == Enum.UserInputType.Touch then
-        if activeTouchId then return end
-        activeTouchId   = i
+        if Slider.Dragging then return end  -- já arrastando, ignora
         Slider.Dragging = true
+        touchDragX = i.Position.X          -- guarda X do toque inicial
         syncUI(i.Position.X)
     end
 end)
@@ -985,16 +986,21 @@ local c1 = UIS.InputEnded:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 then
         stopDrag()
     elseif i.UserInputType == Enum.UserInputType.Touch then
-        if i == activeTouchId then stopDrag() end
+        -- só para se o toque terminou perto de onde começou o drag deste slider
+        if Slider.Dragging and touchDragX
+            and math.abs(i.Position.X - touchDragX) < (track.AbsoluteSize.X + touchDragDelta) then
+            stopDrag()
+        end
     end
 end)
 
 local c2 = UIS.InputChanged:Connect(function(i)
     if not Slider.Dragging then return end
-    if i.UserInputType == Enum.UserInputType.MouseMovement then
-        -- mouse já tratado pelo RenderStepped
-    elseif i.UserInputType == Enum.UserInputType.Touch then
-        if i == activeTouchId then syncUI(i.Position.X) end
+    if i.UserInputType == Enum.UserInputType.Touch then
+        if touchDragX and math.abs(i.Position.X - touchDragX) < track.AbsoluteSize.X + 60 then
+            touchDragX = i.Position.X  -- atualiza para seguir o arrasto
+            syncUI(i.Position.X)
+        end
     end
 end)
 
