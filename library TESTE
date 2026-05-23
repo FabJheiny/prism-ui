@@ -827,6 +827,7 @@ function GUI:NavSection(label)
         opts.callback()
     end
 end)
+
 local _btnHover = false
 local _btnPress = false
 
