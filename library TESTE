@@ -184,13 +184,6 @@ function Library:new(options)
 	Topbar.Size                   = UDim2.new(1, 0, 0, 32)
 	corner(Topbar, 8)
 
-	local topBorder = Instance.new("Frame", Topbar)
-	topBorder.BackgroundColor3 = T.Border
-	topBorder.BorderSizePixel  = 0
-	topBorder.AnchorPoint      = Vector2.new(0, 1)
-	topBorder.Size             = UDim2.new(1, 0, 0, 1)
-	topBorder.Position         = UDim2.new(0, 0, 1, 0)
-
 	local titleLbl = lbl(Topbar, options.name, 12, T.TextPrimary, UBUNTU_BOLD)
 	titleLbl.Size     = UDim2.new(1, -80, 1, 0)
 	titleLbl.Position = UDim2.new(0, 36, 0, 0)
@@ -471,7 +464,7 @@ function Library:new(options)
 	floatBtn.Name                   = "FloatToggle"
 	floatBtn.Size                   = UDim2.new(0, FB, 0, FB)
 	floatBtn.BackgroundColor3       = T.Background
-	floatBtn.BackgroundTransparency = 1
+	floatBtn.BackgroundTransparency = 0.15
 	floatBtn.BorderSizePixel        = 0
 	floatBtn.AnchorPoint            = Vector2.new(0.5, 0.5)
 	floatBtn.Position               = UDim2.new(1, -38, 1, -38)
@@ -835,19 +828,30 @@ function GUI:NavSection(label)
 			arr.Size     = UDim2.new(0, 14, 1, 0)
 			arr.Position = UDim2.new(1, -14, 0, 0)
 			Btn.frame.InputBegan:Connect(function(i)
-				if i.UserInputType == Enum.UserInputType.MouseButton1
-					or i.UserInputType == Enum.UserInputType.Touch then
-					opts.callback()
-				end
-			end)
-			Btn.frame.MouseEnter:Connect(function()
-				Btn.frame.BackgroundTransparency = 0
-				bStroke.Color                    = T.BorderHover
-			end)
-			Btn.frame.MouseLeave:Connect(function()
-				Btn.frame.BackgroundTransparency = 1
-				bStroke.Color                    = T.Border
-			end)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then
+        Btn.frame.BackgroundTransparency = 0.4
+        Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+        opts.callback()
+    end
+end)
+Btn.frame.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then
+        Btn.frame.BackgroundTransparency = 0.6
+        Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+    end
+end)
+Btn.frame.MouseEnter:Connect(function()
+    Btn.frame.BackgroundTransparency = 0.6
+    Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+    bStroke.Color                    = T.BorderHover
+end)
+Btn.frame.MouseLeave:Connect(function()
+    Btn.frame.BackgroundTransparency = 1
+    Btn.frame.BackgroundColor3       = T.Surface
+    bStroke.Color                    = T.Border
+end)
 			return Btn
 		end
 
@@ -910,7 +914,7 @@ function GUI:NavSection(label)
 			vl.Position    = UDim2.new(1, 0, 0, 0)
 			local track = Instance.new("Frame", Slider.frame)
 			track.BackgroundColor3       = Color3.fromRGB(10, 10, 14)
-			track.BackgroundTransparency = 1
+			track.BackgroundTransparency = 0.3
 			track.BorderSizePixel        = 0
 			track.AnchorPoint            = Vector2.new(0, 1)
 			track.Size                   = UDim2.new(1, 0, 0, 4)
