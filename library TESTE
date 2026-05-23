@@ -177,7 +177,7 @@ function Library:new(options)
 	local Main = Instance.new("Frame", SG)
 	Main.Name                  = "Main"
 	Main.BackgroundColor3      = T.Background
-	Main.BackgroundTransparency = T.BgAlpha
+Main.BackgroundTransparency = 1
 	Main.BorderSizePixel       = 0
 	Main.AnchorPoint           = Vector2.new(0.5, 0.5)
 	Main.Size                  = UDim2.new(0, winW, 0, winH)
@@ -200,7 +200,7 @@ function Library:new(options)
 	local Topbar = Instance.new("Frame", Main)
 	Topbar.Name                   = "Topbar"
 	Topbar.BackgroundColor3       = T.Topbar
-	Topbar.BackgroundTransparency = T.BgAlpha
+Topbar.BackgroundTransparency = 1
 	Topbar.BorderSizePixel        = 0
 	Topbar.Size                   = UDim2.new(1, 0, 0, 32)
 	corner(Topbar, 8)
@@ -241,7 +241,7 @@ sidebarBtn.MouseLeave:Connect(function() sidebarBtn.TextColor3 = T.TextSecondary
 	local Nav = Instance.new("Frame", Main)
 	Nav.Name                   = "Nav"
 	Nav.BackgroundColor3       = T.Nav
-	Nav.BackgroundTransparency = T.NavAlpha
+	Nav.BackgroundTransparency = 1
 	Nav.BorderSizePixel        = 0
 	Nav.Size                   = UDim2.new(0, NAV_W, 1, -32)
 	Nav.Position               = UDim2.new(0, 0, 0, 32)
@@ -259,7 +259,7 @@ sidebarBtn.MouseLeave:Connect(function() sidebarBtn.TextColor3 = T.TextSecondary
 	-- Search box
 	local searchBox = Instance.new("TextBox", Nav)
 	searchBox.BackgroundColor3      = T.Surface
-	searchBox.BackgroundTransparency = 0.6
+	searchBox.BackgroundTransparency = 1
 	searchBox.BorderSizePixel       = 0
 	searchBox.Size                  = UDim2.new(1, -8, 0, 20)
 	searchBox.Position              = UDim2.new(0, 4, 0, 4)
@@ -518,10 +518,10 @@ local floatBtn = Instance.new("TextButton", SG)
 floatBtn.Name                   = "FloatToggle"
 floatBtn.Size                   = UDim2.new(0, FB, 0, FB)
 floatBtn.BackgroundColor3       = T.Background
-floatBtn.BackgroundTransparency = 0.08
+floatBtn.BackgroundTransparency = 1
 floatBtn.BorderSizePixel        = 0
 floatBtn.AnchorPoint            = Vector2.new(0.5, 0.5)
-floatBtn.Position               = UDim2.new(1, -38, 1, -38) -- canto inferior direito
+floatBtn.Position               = UDim2.new(1, -38, 1, -38)
 floatBtn.Text                   = "V"
 floatBtn.TextSize               = 15
 floatBtn.FontFace               = UBUNTU_BOLD
@@ -529,8 +529,20 @@ floatBtn.TextColor3             = T.Accent
 floatBtn.AutoButtonColor        = false
 floatBtn.ZIndex                 = 900
 corner(floatBtn, FB / 2)
-stroke(floatBtn, T.Accent, 1)
+local floatStroke = stroke(floatBtn, T.Accent, 1)
+floatStroke.Transparency = 1
 GUI._floatBtn = floatBtn
+
+local floatFadeTask = nil
+local function floatShow()
+	if floatFadeTask then task.cancel(floatFadeTask) end
+	tw(floatBtn, { BackgroundTransparency = 0.08 }, TI_FAST)
+	floatStroke.Transparency = 0
+	floatFadeTask = task.delay(3, function()
+		tw(floatBtn, { BackgroundTransparency = 1 }, TI_MED)
+		floatStroke.Transparency = 1
+	end)
+end
 
 -- tap: abre/fecha | drag: move
 local fbDrag, fbStart, fbOrigin, fbMoved = false, nil, nil, false
@@ -564,27 +576,24 @@ track(UIS.InputEnded:Connect(function(i)
     if i.UserInputType ~= Enum.UserInputType.MouseButton1
         and i.UserInputType ~= Enum.UserInputType.Touch then return end
     if fbDrag and not fbMoved then
-        -- tap simples → toggle
         _open = not _open
         Main.Visible = _open
-        floatBtn.TextColor3  = _open and T.Accent or T.TextSecondary
-        stroke(floatBtn, _open and T.Accent or T.Border, 1):Destroy() -- troca stroke
-        local s = floatBtn:FindFirstChildOfClass("UIStroke")
-        if s then s.Color = _open and T.Accent or T.Border end
+        floatBtn.TextColor3 = _open and T.Accent or T.TextSecondary
+        floatStroke.Color   = _open and T.Accent or T.Border
     end
+    if fbDrag then floatShow() end
     fbDrag = false
 end))
 
--- teclado também funciona
 track(UIS.InputBegan:Connect(function(input, gpe)
     if _destroyed or gpe then return end
     if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
     if input.KeyCode == options.toggleKey then
         _open = not _open
         Main.Visible = _open
-        local s = floatBtn:FindFirstChildOfClass("UIStroke")
-        if s then s.Color = _open and T.Accent or T.Border end
+        floatStroke.Color   = _open and T.Accent or T.Border
         floatBtn.TextColor3 = _open and T.Accent or T.TextSecondary
+        floatShow()
     end
 end))
 
@@ -812,16 +821,16 @@ end))
 
 		-- ── Base component frame ───────────────────────────────────────
 		local function base(name, h)
-			local f = Instance.new("Frame", Tab._scroll)
-			f.Name                   = name
-			f.BorderSizePixel        = 0
-			f.BackgroundColor3       = T.Surface
-			f.BackgroundTransparency = T.SurfaceAlpha
-			f.Size                   = UDim2.new(1, 0, 0, h or 32)
-			corner(f, 5)
-			stroke(f, T.Border)
-			return f
-		end
+    local f = Instance.new("Frame", Tab._scroll)
+    f.Name                   = name
+    f.BorderSizePixel        = 0
+    f.BackgroundColor3       = T.Surface
+    f.BackgroundTransparency = 1
+    f.Size                   = UDim2.new(1, 0, 0, h or 32)
+    corner(f, 5)
+    stroke(f, T.Border)
+    return f
+end
 
 		-- ════════════════════════════════════════════════════════════
 		-- COMPONENTS
@@ -986,7 +995,8 @@ end))
 			vl.Position    = UDim2.new(1, 0, 0, 0)
 
 			local track = Instance.new("Frame", Slider.frame)
-			track.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
+			track.BackgroundColor3      = Color3.fromRGB(10, 10, 14)
+track.BackgroundTransparency = 1
 			track.BorderSizePixel  = 0
 			track.AnchorPoint      = Vector2.new(0, 1)
 			track.Size             = UDim2.new(1, 0, 0, 4)
@@ -1059,7 +1069,7 @@ end))
 			local header = Instance.new("TextButton", DD.frame)
 			header.AutoButtonColor        = false
 			header.BackgroundColor3       = T.Surface
-			header.BackgroundTransparency = T.SurfaceAlpha
+			header.BackgroundTransparency = 1
 			header.BorderSizePixel        = 0
 			header.Size                   = UDim2.new(1, 0, 0, 34)
 			header.Text                   = ""
@@ -1100,7 +1110,7 @@ end))
 					opt.AutoButtonColor        = false
 					opt.BorderSizePixel        = 0
 					opt.BackgroundColor3       = isSel and Color3.fromRGB(40, 40, 50) or Color3.fromRGB(22, 22, 28)
-					opt.BackgroundTransparency = isSel and 0 or 0.1
+					opt.BackgroundTransparency = 1
 					opt.TextSize               = 11
 					opt.TextXAlignment         = Enum.TextXAlignment.Left
 					opt.FontFace               = UBUNTU
@@ -1157,7 +1167,7 @@ end))
 
 			local ibg = Instance.new("Frame", TIc.frame)
 			ibg.BackgroundColor3       = Color3.fromRGB(10, 10, 14)
-			ibg.BackgroundTransparency = 0.15
+			ibg.BackgroundTransparency = 1
 			ibg.BorderSizePixel        = 0
 			ibg.Size                   = UDim2.new(1, 0, 0, 22)
 			ibg.Position               = UDim2.new(0, 0, 0, 17)
@@ -1210,7 +1220,7 @@ end))
 
 			local picker = Instance.new("Frame", CP.frame)
 			picker.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
-			picker.BackgroundTransparency = 0.05
+			picker.BackgroundTransparency = 1
 			picker.BorderSizePixel = 0
 			picker.Size     = UDim2.new(1, 0, 0, 72)
 			picker.Position = UDim2.new(0, 0, 0, 28)
@@ -1370,7 +1380,9 @@ end))
 			vl.AnchorPoint = Vector2.new(1, 0); vl.Size = UDim2.new(0, 34, 0, 16); vl.Position = UDim2.new(1, 0, 0, 0)
 
 			local trackF = Instance.new("Frame", PB.frame)
-			trackF.BackgroundColor3 = Color3.fromRGB(10, 10, 14); trackF.BorderSizePixel = 0
+			rackF.BackgroundColor3      = Color3.fromRGB(10, 10, 14)
+           trackF.BackgroundTransparency = 1
+           trackF.BorderSizePixel        = 0
 			trackF.AnchorPoint = Vector2.new(0, 1); trackF.Size = UDim2.new(1, 0, 0, 5)
 			trackF.Position = UDim2.new(0, 0, 1, 0); corner(trackF, 3)
 
@@ -1402,7 +1414,7 @@ end))
 				local w   = 1 / cols
 				local b   = Instance.new("TextButton", f)
 				b.BackgroundColor3       = T.Surface
-				b.BackgroundTransparency = T.SurfaceAlpha
+				b.BackgroundTransparency = 1
 				b.BorderSizePixel        = 0
 				b.AutoButtonColor        = false
 				b.Size                   = UDim2.new(w, -(gap * (cols - 1) / cols), 0, rowH)
