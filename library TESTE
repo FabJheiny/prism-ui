@@ -207,22 +207,22 @@ function Library:new(options)
 	titleLbl.Size     = UDim2.new(1, -80, 1, 0)
 	titleLbl.Position = UDim2.new(0, 40, 0, 0)
 
-	local sidebarBtn = Instance.new("TextButton", Topbar)
-	sidebarBtn.BackgroundTransparency = 1
-	sidebarBtn.BorderSizePixel        = 0
-	sidebarBtn.AnchorPoint            = Vector2.new(0, 0.5)
-	sidebarBtn.Position               = UDim2.new(0, 8, 0.5, 0)
-	sidebarBtn.Size                   = UDim2.new(0, 24, 0, 24)
-	sidebarBtn.Text                   = "≡"
-	sidebarBtn.TextSize               = 20
-	sidebarBtn.FontFace               = UBUNTU_BOLD
-	sidebarBtn.TextColor3             = T.TextSecondary
-	sidebarBtn.AutoButtonColor        = false
-	sidebarBtn.ZIndex                 = 5
-	if not MOBILE then
-		sidebarBtn.MouseEnter:Connect(function() sidebarBtn.TextColor3 = T.TextPrimary end)
-		sidebarBtn.MouseLeave:Connect(function() sidebarBtn.TextColor3 = T.TextSecondary end)
-	end
+	local sidebarBtn = Instance.new("TextButton", Main)
+sidebarBtn.BackgroundTransparency = 1
+sidebarBtn.BorderSizePixel        = 0
+sidebarBtn.AnchorPoint            = Vector2.new(0, 0.5)
+sidebarBtn.Position               = UDim2.new(0, 8, 0, 18)
+sidebarBtn.Size                   = UDim2.new(0, 36, 0, 36)
+sidebarBtn.Text                   = "≡"
+sidebarBtn.TextSize               = 20
+sidebarBtn.FontFace               = UBUNTU_BOLD
+sidebarBtn.TextColor3             = T.TextSecondary
+sidebarBtn.AutoButtonColor        = false
+sidebarBtn.ZIndex                 = 50
+if not MOBILE then
+	sidebarBtn.MouseEnter:Connect(function() sidebarBtn.TextColor3 = T.TextPrimary end)
+	sidebarBtn.MouseLeave:Connect(function() sidebarBtn.TextColor3 = T.TextSecondary end)
+end
 
 	local NAV_W   = 130
 	local navOpen = true
