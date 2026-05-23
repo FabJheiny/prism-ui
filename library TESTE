@@ -44,8 +44,9 @@ end
 
 local function stroke(p, col, thick)
 	local s = Instance.new("UIStroke", p)
-	s.Color = col or Library.Theme.Border
-	s.Thickness = thick or 1
+	s.Color        = col or Library.Theme.Border
+	s.Thickness    = thick or 1
+	s.Transparency = 0.65
 	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	return s
 end
@@ -203,12 +204,6 @@ function Library:new(options)
 	Topbar.Size                   = UDim2.new(1, 0, 0, 36)
 	corner(Topbar, 8)
 
-	local topbarLine = Instance.new("Frame", Main)
-	topbarLine.BackgroundColor3 = T.Border
-	topbarLine.BorderSizePixel  = 0
-	topbarLine.Size             = UDim2.new(1, 0, 0, 1)
-	topbarLine.Position         = UDim2.new(0, 0, 0, 36)
-
 local titleLbl = lbl(Topbar, options.name, 13, T.TextPrimary, UBUNTU_BOLD)
 titleLbl.Size     = UDim2.new(1, -20, 1, 0)
 titleLbl.Position = UDim2.new(0, 10, 0, 0)
@@ -219,19 +214,12 @@ titleLbl.Position = UDim2.new(0, 10, 0, 0)
 	local Nav = Instance.new("Frame", Main)
 	Nav.Name                   = "Nav"
 	Nav.BackgroundColor3       = T.Nav
-	Nav.BackgroundTransparency = 1
+	Nav.BackgroundTransparency = 0.55
 	Nav.BorderSizePixel        = 0
 	Nav.Size                   = UDim2.new(0, NAV_W, 1, -36)
 	Nav.Position               = UDim2.new(0, 0, 0, 36)
 	Nav.ClipsDescendants       = true
 	corner(Nav, 6)
-
-	local navBorder = Instance.new("Frame", Nav)
-	navBorder.BackgroundColor3 = T.Border
-	navBorder.BorderSizePixel  = 0
-	navBorder.AnchorPoint      = Vector2.new(1, 0)
-	navBorder.Size             = UDim2.new(0, 1, 1, 0)
-	navBorder.Position         = UDim2.new(1, 0, 0, 0)
 
 	local BtnHolder = Instance.new("ScrollingFrame", Nav)
 	BtnHolder.BackgroundTransparency = 1
@@ -252,15 +240,9 @@ titleLbl.Position = UDim2.new(0, 10, 0, 0)
 	local _navOrder = 0
 	local function nextOrder() _navOrder += 1; return _navOrder end
 
-	local userSep = Instance.new("Frame", Nav)
-	userSep.BackgroundColor3 = T.Border
-	userSep.BorderSizePixel  = 0
-	userSep.AnchorPoint      = Vector2.new(0, 1)
-	userSep.Size             = UDim2.new(1, 0, 0, 1)
-	userSep.Position         = UDim2.new(0, 0, 1, -60)
-
 	local UserBox = Instance.new("Frame", Nav)
-	UserBox.BackgroundTransparency = 1
+	UserBox.BackgroundTransparency = 0.75
+    UserBox.BackgroundColor3       = T.Border
 	UserBox.BorderSizePixel        = 0
 	UserBox.AnchorPoint            = Vector2.new(0, 1)
 	UserBox.Size                   = UDim2.new(1, 0, 0, 60)
