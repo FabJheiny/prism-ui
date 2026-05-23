@@ -482,6 +482,9 @@ function Library:new(options)
 	end))
 
 
+	-- Stub: NavSection calls are ignored (no category system), but kept for compatibility
+	function GUI:NavSection() end
+
 	function GUI:CreateTab(opts)
 		opts = validate({ name = "Tab" }, opts)
 		-- Strip emojis from tab name
