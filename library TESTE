@@ -827,12 +827,22 @@ function GUI:NavSection(label)
         opts.callback()
     end
 end)
+local _btnHover = false
+Btn.frame.MouseEnter:Connect(function() _btnHover = true end)
+Btn.frame.MouseLeave:Connect(function() _btnHover = false end)
+
 Btn.frame.InputEnded:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1
         or i.UserInputType == Enum.UserInputType.Touch then
-        Btn.frame.BackgroundTransparency = 0.55
-        Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-        bStroke.Color                    = T.BorderHover
+        if _btnHover then
+            Btn.frame.BackgroundTransparency = 0.55
+            Btn.frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
+            bStroke.Color                    = T.BorderHover
+        else
+            Btn.frame.BackgroundTransparency = 1
+            Btn.frame.BackgroundColor3       = T.Surface
+            bStroke.Color                    = T.Border
+        end
     end
 end)
 Btn.frame.MouseEnter:Connect(function()
