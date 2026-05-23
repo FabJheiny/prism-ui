@@ -3,12 +3,8 @@ local Library = loadstring(game:HttpGet(
 ))()
 
 local GUI = Library:new({
-    name        = "My Script",
-    subtitle    = "Loading...",
-    accent      = Color3.fromRGB(110, 160, 255),
-    toggleKey   = Enum.KeyCode.Insert,
-    minimizeKey = Enum.KeyCode.K,
-    loadingTime = 1.5,
+    name      = "My Script",
+    toggleKey = Enum.KeyCode.Insert,
 })
 
 local Players    = game:GetService("Players")
@@ -21,18 +17,16 @@ local function hum()  local c = char(); return c and c:FindFirstChildOfClass("Hu
 local function hrp()  local c = char(); return c and c:FindFirstChild("HumanoidRootPart") end
 
 -- ── Tab 1: Player ─────────────────────────────────────────────────────────────
-GUI:NavSection("MAIN")
-local PlayerTab = GUI:CreateTab({ name = "Player", icon = "👤" })
+local PlayerTab = GUI:CreateTab({ name = "Player" })
 
 PlayerTab:Section({ name = "Movement" })
 
 local speedValue  = 16
 local speedActive = false
 
-local speedSlider = PlayerTab:Slider({
+PlayerTab:Slider({
     name     = "Walk Speed",
     min      = 16, max = 350, default = 16,
-    suffix   = " ws",
     callback = function(v)
         speedValue = v
         if speedActive then
@@ -55,7 +49,6 @@ PlayerTab:Toggle({
 PlayerTab:Slider({
     name     = "Jump Power",
     min      = 7, max = 300, default = 7,
-    suffix   = " jp",
     callback = function(v)
         local h = hum()
         if h then h.JumpPower = v end
@@ -106,14 +99,14 @@ PlayerTab:Button({
 })
 
 -- ── Tab 2: World ──────────────────────────────────────────────────────────────
-GUI:NavSection("WORLD")
-local WorldTab = GUI:CreateTab({ name = "World", icon = "🌍" })
+local WorldTab = GUI:CreateTab({ name = "World" })
 local Lighting = game:GetService("Lighting")
 
 WorldTab:Section({ name = "Lighting" })
 
 WorldTab:Slider({
-    name = "Time of Day", min = 0, max = 24, default = 14, suffix = "h",
+    name     = "Time of Day",
+    min      = 0, max = 24, default = 14,
     callback = function(v) pcall(function() Lighting.ClockTime = v end) end,
 })
 
@@ -130,13 +123,13 @@ WorldTab:Toggle({
 })
 
 WorldTab:Slider({
-    name = "Gravity", min = 0, max = 400, default = 196, suffix = " g",
+    name     = "Gravity",
+    min      = 0, max = 400, default = 196,
     callback = function(v) pcall(function() workspace.Gravity = v end) end,
 })
 
 -- ── Tab 3: Misc ───────────────────────────────────────────────────────────────
-GUI:NavSection("MISC")
-local MiscTab = GUI:CreateTab({ name = "Misc", icon = "🔧" })
+local MiscTab = GUI:CreateTab({ name = "Misc" })
 
 MiscTab:Section({ name = "Utilities" })
 
