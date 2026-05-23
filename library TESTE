@@ -202,27 +202,10 @@ function Library:new(options)
 	Topbar.BorderSizePixel        = 0
 	Topbar.Size                   = UDim2.new(1, 0, 0, 36)
 	corner(Topbar, 8)
-
+	
 	local titleLbl = lbl(Topbar, options.name, 13, T.TextPrimary, UBUNTU_BOLD)
-	titleLbl.Size     = UDim2.new(1, -80, 1, 0)
-	titleLbl.Position = UDim2.new(0, 40, 0, 0)
-
-	local sidebarBtn = Instance.new("TextButton", Main)
-sidebarBtn.BackgroundTransparency = 1
-sidebarBtn.BorderSizePixel        = 0
-sidebarBtn.AnchorPoint            = Vector2.new(0, 0.5)
-sidebarBtn.Position               = UDim2.new(0, 8, 0, 18)
-sidebarBtn.Size                   = UDim2.new(0, 36, 0, 36)
-sidebarBtn.Text                   = "≡"
-sidebarBtn.TextSize               = 20
-sidebarBtn.FontFace               = UBUNTU_BOLD
-sidebarBtn.TextColor3             = T.TextSecondary
-sidebarBtn.AutoButtonColor        = false
-sidebarBtn.ZIndex                 = 50
-if not MOBILE then
-	sidebarBtn.MouseEnter:Connect(function() sidebarBtn.TextColor3 = T.TextPrimary end)
-	sidebarBtn.MouseLeave:Connect(function() sidebarBtn.TextColor3 = T.TextSecondary end)
-end
+    titleLbl.Size     = UDim2.new(1, -20, 1, 0)
+    titleLbl.Position = UDim2.new(0, 10, 0, 0)
 
 	local NAV_W   = 130
 	local navOpen = true
@@ -315,23 +298,6 @@ end
 	Content.Size                  = UDim2.new(1, -(NAV_W + 8), 1, -46)
 	Content.ClipsDescendants      = true
 	GUI._content = Content
-
-	sidebarBtn.Size = UDim2.new(0, 36, 0, 36)
-
-bindTap(sidebarBtn, function()
-	navOpen = not navOpen
-	if navOpen then
-		tw(Nav,     { Size = UDim2.new(0, NAV_W, 1, -36) }, TI_MED)
-		tw(Content, { Position = UDim2.new(0, NAV_W + 4, 0, 40),
-		              Size     = UDim2.new(1, -(NAV_W + 8), 1, -46) }, TI_MED)
-		if not MOBILE then sidebarBtn.TextColor3 = T.TextSecondary end
-	else
-		tw(Nav,     { Size = UDim2.new(0, 0, 1, -36) }, TI_MED)
-		tw(Content, { Position = UDim2.new(0, 4, 0, 40),
-		              Size     = UDim2.new(1, -8, 1, -46) }, TI_MED)
-		if not MOBILE then sidebarBtn.TextColor3 = T.TextPrimary end
-	end
-end)
 
 	function GUI.notify(title, body, dur)
 		dur = dur or 3
