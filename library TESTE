@@ -316,52 +316,22 @@ function Library:new(options)
 	Content.ClipsDescendants      = true
 	GUI._content = Content
 
-	sidebarBtn.MouseButton1Click:Connect(function()
-		navOpen = not navOpen
-		if navOpen then
-			tw(Nav,     { Size = UDim2.new(0, NAV_W, 1, -36) }, TI_MED)
-			tw(Content, { Position = UDim2.new(0, NAV_W + 4, 0, 40),
-			              Size     = UDim2.new(1, -(NAV_W + 8), 1, -46) }, TI_MED)
-			if not MOBILE then sidebarBtn.TextColor3 = T.TextSecondary end
-		else
-			tw(Nav,     { Size = UDim2.new(0, 0, 1, -36) }, TI_MED)
-			tw(Content, { Position = UDim2.new(0, 4, 0, 40),
-			              Size     = UDim2.new(1, -8, 1, -46) }, TI_MED)
-			if not MOBILE then sidebarBtn.TextColor3 = T.TextPrimary end
-		end
-	end)
-	-- Mobile tap para sidebar
-	do
-		local sbStart, sbMoved = nil, false
-		sidebarBtn.InputBegan:Connect(function(i)
-			if i.UserInputType == Enum.UserInputType.Touch then
-				sbStart = i.Position; sbMoved = false
-			end
-		end)
-		sidebarBtn.InputChanged:Connect(function(i)
-			if i.UserInputType == Enum.UserInputType.Touch and sbStart then
-				local d = i.Position - sbStart
-				if math.abs(d.X) > 8 or math.abs(d.Y) > 8 then sbMoved = true end
-			end
-		end)
-		sidebarBtn.InputEnded:Connect(function(i)
-			if i.UserInputType == Enum.UserInputType.Touch then
-				if not sbMoved then
-					navOpen = not navOpen
-					if navOpen then
-						tw(Nav,     { Size = UDim2.new(0, NAV_W, 1, -36) }, TI_MED)
-						tw(Content, { Position = UDim2.new(0, NAV_W + 4, 0, 40),
-						              Size     = UDim2.new(1, -(NAV_W + 8), 1, -46) }, TI_MED)
-					else
-						tw(Nav,     { Size = UDim2.new(0, 0, 1, -36) }, TI_MED)
-						tw(Content, { Position = UDim2.new(0, 4, 0, 40),
-						              Size     = UDim2.new(1, -8, 1, -46) }, TI_MED)
-					end
-				end
-				sbStart = nil; sbMoved = false
-			end
-		end)
+	sidebarBtn.Size = UDim2.new(0, 36, 0, 36)
+
+bindTap(sidebarBtn, function()
+	navOpen = not navOpen
+	if navOpen then
+		tw(Nav,     { Size = UDim2.new(0, NAV_W, 1, -36) }, TI_MED)
+		tw(Content, { Position = UDim2.new(0, NAV_W + 4, 0, 40),
+		              Size     = UDim2.new(1, -(NAV_W + 8), 1, -46) }, TI_MED)
+		if not MOBILE then sidebarBtn.TextColor3 = T.TextSecondary end
+	else
+		tw(Nav,     { Size = UDim2.new(0, 0, 1, -36) }, TI_MED)
+		tw(Content, { Position = UDim2.new(0, 4, 0, 40),
+		              Size     = UDim2.new(1, -8, 1, -46) }, TI_MED)
+		if not MOBILE then sidebarBtn.TextColor3 = T.TextPrimary end
 	end
+end)
 
 	function GUI.notify(title, body, dur)
 		dur = dur or 3
