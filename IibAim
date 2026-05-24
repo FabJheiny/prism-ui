@@ -11,20 +11,25 @@ function RobloxUI.new(title)
 
     local old = pg:FindFirstChild("RobloxUI_Lib")
     if old then old:Destroy() end
+    local oldBtn = pg:FindFirstChild("RobloxUI_FloatBtn")
+    if oldBtn then oldBtn:Destroy() end
 
     self._connections = {}
     self._UIS = UIS
 
+    -- ScreenGui principal (menu)
     self.gui = Instance.new("ScreenGui")
     self.gui.Name = "RobloxUI_Lib"
     self.gui.ResetOnSpawn = false
     self.gui.IgnoreGuiInset = true
+    self.gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    self.gui.DisplayOrder = 10
     self.gui.Parent = pg
 
     self.menuFrame = Instance.new("Frame")
     self.menuFrame.Name = "MenuFrame"
-    self.menuFrame.Size = UDim2.new(0, 420, 0, 240)
-    self.menuFrame.Position = UDim2.new(.5, -210, .5, -120)
+    self.menuFrame.Size = UDim2.new(0, 420, 0, 220)
+    self.menuFrame.Position = UDim2.new(.5, -210, .5, -110)
     self.menuFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     self.menuFrame.BorderSizePixel = 0
     self.menuFrame.Active = true
@@ -38,64 +43,10 @@ function RobloxUI.new(title)
     menuStroke.Color = Color3.fromRGB(50, 50, 50)
     menuStroke.Parent = self.menuFrame
 
-    local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 28)
-    titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    titleBar.BorderSizePixel = 0
-    titleBar.Parent = self.menuFrame
-
-    local titleCorner = Instance.new("UICorner")
-    titleCorner.CornerRadius = UDim.new(0, 10)
-    titleCorner.Parent = titleBar
-
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -40, 1, 0)
-    titleLabel.Position = UDim2.new(0, 10, 0, 0)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title or "Menu"
-    titleLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 13
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    titleLabel.Parent = titleBar
-
-    do
-        local dragging = false
-        local dragStart
-        local startPos
-
-        table.insert(self._connections, titleBar.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch
-            or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = self.menuFrame.Position
-            end
-        end))
-
-        table.insert(self._connections, UIS.InputEnded:Connect(function(inp)
-            if inp.UserInputType == Enum.UserInputType.MouseButton1
-            or inp.UserInputType == Enum.UserInputType.Touch then
-                dragging = false
-            end
-        end))
-
-        table.insert(self._connections, UIS.InputChanged:Connect(function(input)
-            if not dragging then return end
-            if input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch then
-                local delta = input.Position - dragStart
-                self.menuFrame.Position = UDim2.new(
-                    startPos.X.Scale, startPos.X.Offset + delta.X,
-                    startPos.Y.Scale, startPos.Y.Offset + delta.Y
-                )
-            end
-        end))
-    end
-
+    -- Content ocupa 100% (sem topbar)
     self.contentFrame = Instance.new("Frame")
-    self.contentFrame.Size = UDim2.new(1, 0, 1, -28)
-    self.contentFrame.Position = UDim2.new(0, 0, 0, 28)
+    self.contentFrame.Size = UDim2.new(1, 0, 1, 0)
+    self.contentFrame.Position = UDim2.new(0, 0, 0, 0)
     self.contentFrame.BackgroundTransparency = 1
     self.contentFrame.Parent = self.menuFrame
 
@@ -153,7 +104,15 @@ function RobloxUI.new(title)
     sep2.BorderSizePixel = 0
     sep2.Parent = self.contentFrame
 
-    -- Botão toggle: redondo, borda, arrastável
+    -- ScreenGui separado para o float button (camada mais alta)
+    self.btnGui = Instance.new("ScreenGui")
+    self.btnGui.Name = "RobloxUI_FloatBtn"
+    self.btnGui.ResetOnSpawn = false
+    self.btnGui.IgnoreGuiInset = true
+    self.btnGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    self.btnGui.DisplayOrder = 999   -- acima de tudo
+    self.btnGui.Parent = pg
+
     local toggleBtn = Instance.new("Frame")
     toggleBtn.Name = "ToggleBtn"
     toggleBtn.Size = UDim2.new(0, 44, 0, 44)
@@ -161,7 +120,7 @@ function RobloxUI.new(title)
     toggleBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
     toggleBtn.BorderSizePixel = 0
     toggleBtn.Active = true
-    toggleBtn.Parent = self.gui
+    toggleBtn.Parent = self.btnGui   -- pai é o btnGui isolado
 
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(1, 0)
@@ -176,7 +135,7 @@ function RobloxUI.new(title)
     local btnIcon = Instance.new("TextLabel")
     btnIcon.Size = UDim2.new(1, 0, 1, 0)
     btnIcon.BackgroundTransparency = 1
-    btnIcon.Text = "X"
+    btnIcon.Text = "☰"
     btnIcon.TextColor3 = Color3.fromRGB(200, 200, 200)
     btnIcon.Font = Enum.Font.GothamBold
     btnIcon.TextSize = 18
@@ -234,7 +193,7 @@ function RobloxUI.new(title)
             if moved then moved = false return end
             visible = not visible
             self.menuFrame.Visible = visible
-            btnIcon.Text = visible and "X" or "▶"
+            btnIcon.Text = visible and "☰" or "▶"
             btnStroke.Color = visible
                 and Color3.fromRGB(80, 80, 80)
                 or  Color3.fromRGB(100, 180, 255)
@@ -247,7 +206,8 @@ end
 function RobloxUI:Destroy()
     for _, conn in ipairs(self._connections) do conn:Disconnect() end
     self._connections = {}
-    if self.gui then self.gui:Destroy() end
+    if self.gui    then self.gui:Destroy()    end
+    if self.btnGui then self.btnGui:Destroy() end
 end
 
 function RobloxUI:_getContainer(side)
