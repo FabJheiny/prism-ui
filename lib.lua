@@ -1,10 +1,6 @@
 --[[
 	User Interface Library
 	Made by Late
-	
-	Changes:
-	- Added BottomLeft corner resize handle (created via code, no model dependency)
-	- Added floating toggle button (always visible, opens/closes the menu)
 ]]
 
 --// Connections
@@ -144,10 +140,10 @@ local Drag = function(Canvas)
 end
 
 Resizing = { 
-	TopLeft     = { X = Vector2.new(-1, 0), Y = Vector2.new(0, -1) };
-	TopRight    = { X = Vector2.new(1, 0),  Y = Vector2.new(0, -1) };
-	BottomLeft  = { X = Vector2.new(-1, 0), Y = Vector2.new(0,  1) };
-	BottomRight = { X = Vector2.new(1, 0),  Y = Vector2.new(0,  1) };
+	TopLeft = { X = Vector2.new(-1, 0),   Y = Vector2.new(0, -1)};
+	TopRight = { X = Vector2.new(1, 0),    Y = Vector2.new(0, -1)};
+	BottomLeft = { X = Vector2.new(-1, 0),   Y = Vector2.new(0, 1)};
+	BottomRight = { X = Vector2.new(1, 0),    Y = Vector2.new(0, 1)};
 }
 
 Resizeable = function(Tab, Minimum, Maximum)
@@ -176,7 +172,7 @@ Resizeable = function(Tab, Minimum, Maximum)
 		end
 
 		local Resize = function(Delta)
-			if Type and MousePos and Size and UIPos and Tab:FindFirstChild("Resize") and Tab:FindFirstChild("Resize")[Type.Name] == Type then
+			if Type and MousePos and Size and UIPos and Tab:FindFirstChild("Resize")[Type.Name] == Type then
 				local Mode = Resizing[Type.Name]
 				local NewSize = Vector2.new(Size.X + Delta.X * Mode.X.X, Size.Y + Delta.Y * Mode.Y.Y)
 				NewSize = Vector2.new(math.clamp(NewSize.X, Minimum.X, Maximum.X), math.clamp(NewSize.Y, Minimum.Y, Maximum.Y))
@@ -203,165 +199,6 @@ Resizeable = function(Tab, Minimum, Maximum)
 			end
 		end)
 	end)
-end
-
---// BottomLeft resize handle (created via code — no model instance needed)
---// Returns a cleanup function in case the window is destroyed.
-local function AddBottomLeftResize(Window, Minimum, Maximum)
-	local HandleSize = 14  -- pixels; small grab zone at the corner
-
-	-- Create the invisible grab handle
-	local Handle = Instance.new("Frame")
-	Handle.Name = "BottomLeftHandle"
-	Handle.Size = UDim2.new(0, HandleSize, 0, HandleSize)
-	Handle.Position = UDim2.new(0, 0, 1, -HandleSize) -- bottom-left of Window
-	Handle.BackgroundTransparency = 1                  -- invisible
-	Handle.ZIndex = 10
-	Handle.Parent = Window
-
-	-- Show a subtle cursor hint via ImageLabel (optional, harmless if no image)
-	local Hint = Instance.new("ImageLabel")
-	Hint.Size = UDim2.fromScale(1, 1)
-	Hint.BackgroundTransparency = 1
-	Hint.ImageTransparency = 0.6
-	Hint.Image = "rbxassetid://6031075931" -- small arrow icon (Roblox default)
-	Hint.Rotation = 90
-	Hint.Parent = Handle
-
-	-- State
-	local Active    = false
-	local StartMouse= Vector2.zero
-	local StartSize = Vector2.zero
-	local StartPos  = UDim2.new()
-
-	Handle.InputBegan:Connect(function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-			Active     = true
-			StartMouse = Vector2.new(Player.Mouse.X, Player.Mouse.Y)
-			StartSize  = Window.AbsoluteSize
-			StartPos   = Window.Position
-		end
-	end)
-
-	Services.Input.InputEnded:Connect(function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-			Active = false
-		end
-	end)
-
-	Services.Input.InputChanged:Connect(function(Input)
-		if not Active then return end
-		if Input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
-
-		local Delta = Vector2.new(Player.Mouse.X, Player.Mouse.Y) - StartMouse
-
-		-- BottomLeft: arrastar para esquerda → mais largo, arrastar para baixo → mais alto
-		local NewW = math.clamp(StartSize.X - Delta.X, Minimum.X, Maximum.X)
-		local NewH = math.clamp(StartSize.Y + Delta.Y, Minimum.Y, Maximum.Y)
-
-		-- Compensar posição X para a borda direita não se mover
-		local OffsetX = StartPos.X.Offset + (StartSize.X - NewW)
-
-		Window.Size     = UDim2.new(0, NewW, 0, NewH)
-		Window.Position = UDim2.new(StartPos.X.Scale, OffsetX, StartPos.Y.Scale, StartPos.Y.Offset)
-	end)
-
-	return Handle  -- caller can Destroy() if needed
-end
-
---// Floating toggle button
---// Always visible regardless of whether the menu is open or closed.
-local function CreateFloatingButton(Screen, OnClick)
-	local BtnSize = 40
-
-	local Container = Instance.new("ScreenGui")
-	Container.Name = "FloatingToggleGui"
-	Container.ResetOnSpawn = false
-	Container.DisplayOrder = 999  -- always on top
-	xpcall(function() Container.Parent = game.CoreGui end,
-	       function() Container.Parent = Player.GUI    end)
-
-	local Btn = Instance.new("TextButton")
-	Btn.Name = "FloatingToggle"
-	Btn.Size = UDim2.new(0, BtnSize, 0, BtnSize)
-	Btn.Position = UDim2.new(0, 16, 0.5, 0)  -- left-center; draggable by user
-	Btn.AnchorPoint = Vector2.new(0, 0.5)
-	Btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-	Btn.BorderSizePixel = 0
-	Btn.Text = ""
-	Btn.ZIndex = 10
-	Btn.Parent = Container
-
-	-- Rounded corners
-	local Corner = Instance.new("UICorner")
-	Corner.CornerRadius = UDim.new(0, 10)
-	Corner.Parent = Btn
-
-	-- Outline
-	local Stroke = Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(70, 70, 70)
-	Stroke.Thickness = 1.2
-	Stroke.Parent = Btn
-
-	-- Icon (hamburger / menu lines)
-	local Icon = Instance.new("ImageLabel")
-	Icon.Size = UDim2.new(0, 22, 0, 22)
-	Icon.Position = UDim2.fromScale(0.5, 0.5)
-	Icon.AnchorPoint = Vector2.new(0.5, 0.5)
-	Icon.BackgroundTransparency = 1
-	Icon.Image = "rbxassetid://9886659276"  -- menu / hamburger icon
-	Icon.ImageColor3 = Color3.fromRGB(210, 210, 210)
-	Icon.Parent = Btn
-
-	-- Hover animation
-	Btn.MouseEnter:Connect(function()
-		Tween(Btn, .15, { BackgroundColor3 = Color3.fromRGB(60, 60, 60) })
-	end)
-	Btn.MouseLeave:Connect(function()
-		Tween(Btn, .15, { BackgroundColor3 = Color3.fromRGB(45, 45, 45) })
-	end)
-
-	-- Click → toggle menu
-	Btn.MouseButton1Click:Connect(OnClick)
-
-	-- Make the button itself draggable so the user can reposition it
-	do
-		local Dragging = false
-		local DragStart, BtnStart
-
-		Btn.InputBegan:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-				DragStart = Input.Position
-				BtnStart  = Btn.Position
-				Dragging  = false
-
-				task.spawn(function()
-					task.wait(0.18)
-					if math.abs(Player.Mouse.X - DragStart.X) > 4 or math.abs(Player.Mouse.Y - DragStart.Y) > 4 then
-						Dragging = true
-					end
-				end)
-			end
-		end)
-
-		Services.Input.InputChanged:Connect(function(Input)
-			if Dragging and Input.UserInputType == Enum.UserInputType.MouseMovement then
-				local Delta = Input.Position - DragStart
-				Btn.Position = UDim2.new(
-					BtnStart.X.Scale, BtnStart.X.Offset + Delta.X,
-					BtnStart.Y.Scale, BtnStart.Y.Offset + Delta.Y
-				)
-			end
-		end)
-
-		Services.Input.InputEnded:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-				Dragging = false
-			end
-		end)
-	end
-
-	return Btn, Container
 end
 
 --// Setup [UI]
@@ -469,10 +306,6 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 	--// UI Setup
 	Drag(Window);
 	Resizeable(Window, Vector2.new(411, 271), Vector2.new(9e9, 9e9));
-
-	--// BottomLeft resize handle (code-driven, no model dependency)
-	AddBottomLeftResize(Window, Vector2.new(411, 271), Vector2.new(9e9, 9e9))
-
 	Setup.Transparency = Settings.Transparency or 0
 	Setup.Size = Settings.Size
 	Setup.ThemeMode = Settings.Theme or "Dark"
@@ -492,9 +325,6 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 			Opened = true
 		end
 	end
-
-	--// Floating toggle button (always visible)
-	local FloatingBtn, FloatingGui = CreateFloatingButton(Screen, Close)
 
 	for Index, Button in next, Sidebar.Top.Buttons:GetChildren() do
 		if Button:IsA("TextButton") then
@@ -1106,10 +936,6 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 			warn("Tried to change a setting that doesn't exist or isn't available to change.")
 		end
 	end
-
-	--// Expose the floating button so callers can reposition/hide it if needed
-	Options.FloatingButton  = FloatingBtn
-	Options.FloatingGui     = FloatingGui
 
 	SetProperty(Window, { Size = Settings.Size, Visible = true, Parent = Screen });
 	Animations:Open(Window, Settings.Transparency or 0)
