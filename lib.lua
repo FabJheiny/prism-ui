@@ -283,6 +283,96 @@ function Animations:Component(Component: any, Custom: boolean)
 	end)
 end
 
+--// Floating Button
+local function CreateFloatingButton(OnClick)
+	local BtnSize = 40
+
+	local Container = Instance.new("ScreenGui")
+	Container.Name = "FloatingToggleGui"
+	Container.ResetOnSpawn = false
+	Container.DisplayOrder = 999
+	xpcall(function() Container.Parent = game.CoreGui end,
+		   function() Container.Parent = Player.GUI    end)
+
+	local Btn = Instance.new("TextButton")
+	Btn.Name = "FloatingToggle"
+	Btn.Size = UDim2.new(0, BtnSize, 0, BtnSize)
+	Btn.Position = UDim2.new(0, 16, 0.5, 0)
+	Btn.AnchorPoint = Vector2.new(0, 0.5)
+	Btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	Btn.BorderSizePixel = 0
+	Btn.Text = ""
+	Btn.ZIndex = 10
+	Btn.Parent = Container
+
+	local Corner = Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(0, 10)
+	Corner.Parent = Btn
+
+	local Stroke = Instance.new("UIStroke")
+	Stroke.Color = Color3.fromRGB(70, 70, 70)
+	Stroke.Thickness = 1.2
+	Stroke.Parent = Btn
+
+	local Icon = Instance.new("ImageLabel")
+	Icon.Size = UDim2.new(0, 22, 0, 22)
+	Icon.Position = UDim2.fromScale(0.5, 0.5)
+	Icon.AnchorPoint = Vector2.new(0.5, 0.5)
+	Icon.BackgroundTransparency = 1
+	Icon.Image = "rbxassetid://9886659276"
+	Icon.ImageColor3 = Color3.fromRGB(210, 210, 210)
+	Icon.Parent = Btn
+
+	Btn.MouseEnter:Connect(function()
+		Tween(Btn, .15, { BackgroundColor3 = Color3.fromRGB(60, 60, 60) })
+	end)
+	Btn.MouseLeave:Connect(function()
+		Tween(Btn, .15, { BackgroundColor3 = Color3.fromRGB(45, 45, 45) })
+	end)
+
+	-- Drag com distinção correta de click vs arrasto
+	local Dragging = false
+	local DidDrag = false
+	local DragStart, BtnStart
+	local DragThreshold = 6
+
+	Btn.InputBegan:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+			DragStart = Input.Position
+			BtnStart  = Btn.Position
+			Dragging  = true
+			DidDrag   = false
+		end
+	end)
+
+	Services.Input.InputChanged:Connect(function(Input)
+		if Dragging and Input.UserInputType == Enum.UserInputType.MouseMovement then
+			local Delta = Input.Position - DragStart
+			if not DidDrag and (math.abs(Delta.X) > DragThreshold or math.abs(Delta.Y) > DragThreshold) then
+				DidDrag = true
+			end
+			if DidDrag then
+				Btn.Position = UDim2.new(
+					BtnStart.X.Scale, BtnStart.X.Offset + Delta.X,
+					BtnStart.Y.Scale, BtnStart.Y.Offset + Delta.Y
+				)
+			end
+		end
+	end)
+
+	Services.Input.InputEnded:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+			if not DidDrag then
+				OnClick()
+			end
+			Dragging = false
+			DidDrag  = false
+		end
+	end)
+
+	return Btn, Container
+end
+
 --// Library [Window]
 
 function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparency: number, MinimizeKeybind: Enum.KeyCode?, Theme: string })
@@ -314,6 +404,48 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 		Setup.Keybind = Settings.MinimizeKeybind
 	end
 
+	--// Topbar: mover para Window e esticar full width
+	local TopBar = Sidebar:FindFirstChild("Top")
+	if TopBar then
+		TopBar.Parent   = Window
+		TopBar.Size     = UDim2.new(1, 0, 0, TopBar.Size.Y.Offset)
+		TopBar.Position = UDim2.new(0, 0, 0, 0)
+		TopBar.ZIndex   = 5
+	end
+
+	--// Remover divisor da Sidebar
+	local Divider = Sidebar:FindFirstChild("Divider")
+		or Sidebar:FindFirstChild("Line")
+		or Sidebar:FindFirstChild("Separator")
+	if Divider then
+		Divider:Destroy()
+	end
+
+	--// Abaixar Sidebar e Holder para não sobrepor a topbar
+	local TopH = (TopBar and TopBar.Size.Y.Offset) or 30
+
+	Sidebar.Position = UDim2.new(
+		Sidebar.Position.X.Scale,
+		Sidebar.Position.X.Offset,
+		0, TopH
+	)
+	Sidebar.Size = UDim2.new(
+		Sidebar.Size.X.Scale,
+		Sidebar.Size.X.Offset,
+		1, -TopH
+	)
+
+	Holder.Position = UDim2.new(
+		Holder.Position.X.Scale,
+		Holder.Position.X.Offset,
+		0, TopH
+	)
+	Holder.Size = UDim2.new(
+		Holder.Size.X.Scale,
+		Holder.Size.X.Offset,
+		1, -TopH
+	)
+
 	--// Animate
 	local Close = function()
 		if Opened then
@@ -326,7 +458,14 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 		end
 	end
 
-	for Index, Button in next, Sidebar.Top.Buttons:GetChildren() do
+	--// Floating Button
+	local FloatingBtn, FloatingGui = CreateFloatingButton(Close)
+	Options.FloatingButton = FloatingBtn
+	Options.FloatingGui    = FloatingGui
+
+	--// TopBar buttons (agora filho de Window)
+	local ButtonsParent = TopBar or Sidebar
+	for Index, Button in next, ButtonsParent:FindFirstChild("Buttons"):GetChildren() do
 		if Button:IsA("TextButton") then
 			local Name = Button.Name
 			Animations:Component(Button, true)
