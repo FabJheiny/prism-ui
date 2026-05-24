@@ -29,18 +29,25 @@ local AimbotSettings = {
     IgnoreWall   = false,
 }
 
-local ui = RobloxUI.new("Esp and Aimbot")
+local ui = RobloxUI.new()
 ui:SetTabNames("ESP", "Aimbot", "Player")
 
-ui:AddToggle("left", "Esp Player",   Settings.ESP,      function(s) Settings.ESP      = s end)
-ui:AddToggle("left", "Name Esp",     Settings.Name,     function(s) Settings.Name     = s end)
-ui:AddToggle("left", "Esp Distance", Settings.Distance, function(s) Settings.Distance = s end)
+-- ESP
+ui:AddToggle("left", "Esp Player",   Settings.ESP,       function(s) Settings.ESP       = s end)
+ui:AddToggle("left", "Highlight",    Settings.Highlight, function(s) Settings.Highlight = s end)
+ui:AddToggle("left", "Team Color",   Settings.Team,      function(s) Settings.Team      = s end)
+ui:AddToggle("left", "Name Esp",     Settings.Name,      function(s) Settings.Name      = s end)
+ui:AddToggle("left", "Esp Distance", Settings.Distance,  function(s) Settings.Distance  = s end)
 
-ui:AddSlider ("right", "FOV",         20, 500, AimbotSettings.FOV,  function(v) AimbotSettings.FOV        = v end)
-ui:AddToggle ("right", "Aimbot",      AimbotSettings.Enabled,        function(s) AimbotSettings.Enabled    = s end)
-ui:AddToggle ("right", "Show FOV",    AimbotSettings.ShowFOV,        function(s) AimbotSettings.ShowFOV    = s end)
-ui:AddToggle ("right", "Ignore Wall", AimbotSettings.IgnoreWall,     function(s) AimbotSettings.IgnoreWall = s end)
+-- Aimbot
+ui:AddSlider ("right", "FOV",         20, 500, AimbotSettings.FOV,      function(v) AimbotSettings.FOV          = v end)
+ui:AddToggle ("right", "Aimbot",      AimbotSettings.Enabled,            function(s) AimbotSettings.Enabled      = s end)
+ui:AddToggle ("right", "Show FOV",    AimbotSettings.ShowFOV,            function(s) AimbotSettings.ShowFOV      = s end)
+ui:AddToggle ("right", "Kill Check",  AimbotSettings.KillCheck,          function(s) AimbotSettings.KillCheck    = s end)
+ui:AddToggle ("right", "Ignore Ally", AimbotSettings.IgnoreAllies,       function(s) AimbotSettings.IgnoreAllies = s end)
+ui:AddToggle ("right", "Ignore Wall", AimbotSettings.IgnoreWall,         function(s) AimbotSettings.IgnoreWall   = s end)
 
+-- Player
 local playerSpeed = 16
 
 ui:AddButton("third", "Resetar Personagem", function()
@@ -91,6 +98,7 @@ ui:AddSlider("third", "WalkSpeed", 16, 200, 16, function(val)
     if hum then hum.WalkSpeed = val end
 end)
 
+-- Lógica ESP
 local myTeamCache, teamCacheTime = nil, 0
 local function getMyTeam()
     if tick() - teamCacheTime > 2 then
@@ -280,6 +288,7 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
+-- Aimbot
 local function getClosestTarget()
     local myChar = LocalPlayer.Character
     local myHRP  = myChar and myChar:FindFirstChild("HumanoidRootPart")
@@ -345,6 +354,7 @@ RunService.RenderStepped:Connect(function()
     lastCamCF = Camera.CFrame
 end)
 
+-- FOV Circle (no gui do menu)
 local fovCircle = Instance.new("Frame", ui.gui)
 fovCircle.AnchorPoint            = Vector2.new(0.5, 0.5)
 fovCircle.Position               = UDim2.new(0.5, 0, 0.5, 0)
