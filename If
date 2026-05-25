@@ -5,9 +5,6 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui   = LocalPlayer:WaitForChild("PlayerGui")
 
--- ============================================================
--- DADOS
--- ============================================================
 local COMMANDS = {
     {n="rejoin",      c="servidor",    d="Reloga no servidor atual."},
     {n="autorejoin",  c="servidor",    d="Reloga ao tomar kick/cair.",         u="—"},
@@ -68,43 +65,35 @@ local CAT_LABELS = {
 }
 
 local CAT_COLORS = {
-    servidor   = Color3.fromRGB(34,  211, 238),
-    movimento  = Color3.fromRGB(74,  222, 128),
-    visual     = Color3.fromRGB(244, 114, 182),
-    players    = Color3.fromRGB(168,  85, 247),
-    personagem = Color3.fromRGB(251, 146,  60),
-    veiculos   = Color3.fromRGB(250, 204,  21),
+    servidor   = Color3.fromRGB(180, 180, 180),
+    movimento  = Color3.fromRGB(180, 180, 180),
+    visual     = Color3.fromRGB(180, 180, 180),
+    players    = Color3.fromRGB(180, 180, 180),
+    personagem = Color3.fromRGB(180, 180, 180),
+    veiculos   = Color3.fromRGB(180, 180, 180),
 }
 
 local T = {
-    bg      = Color3.fromRGB(13,  13,  18),
-    text    = Color3.fromRGB(201, 209, 217),
-    textDim = Color3.fromRGB(74,  85,  104),
-    textArg = Color3.fromRGB(34,  211, 238),
-    sep     = Color3.fromRGB(45,  55,  72),
-    desc    = Color3.fromRGB(107, 114, 128),
-    cmd     = Color3.fromRGB(226, 232, 240),
-    accent  = Color3.fromRGB(124,  58, 237),
-    accentL = Color3.fromRGB(168,  85, 247),
-    green   = Color3.fromRGB(74,  222, 128),
-    rowHover= Color3.fromRGB(124,  58, 237),
+    bg       = Color3.fromRGB(26,  26,  26),
+    bgRow    = Color3.fromRGB(38,  38,  38),
+    text     = Color3.fromRGB(220, 220, 220),
+    textDim  = Color3.fromRGB(110, 110, 110),
+    textArg  = Color3.fromRGB(170, 170, 170),
+    sep      = Color3.fromRGB(90,  90,  90),
+    desc     = Color3.fromRGB(145, 145, 145),
+    cmd      = Color3.fromRGB(220, 220, 220),
+    accent   = Color3.fromRGB(70,  70,  70),
+    accentL  = Color3.fromRGB(210, 210, 210),
+    green    = Color3.fromRGB(170, 170, 170),
+    rowHover = Color3.fromRGB(48,  48,  48),
 }
 
-local MONO = Enum.Font.Code
+local FONT = Enum.Font.Gotham
 
--- Layout vertical:
---   TopBar   Y=0   h=44
---   SearchRow Y=44  h=28
---   TabRow    Y=72  h=28
---   Divider   Y=100 h=1
---   Content   Y=101 h=WIN_H-101
-local WIN_W    = 520
-local WIN_H    = 480   -- ligeiramente maior para compensar as 2 linhas
-local CONTENT_Y = 101
+local WIN_W     = 420
+local WIN_H     = 460
+local CONTENT_Y = 92
 
--- ============================================================
--- UTILS
--- ============================================================
 local function newInst(cls, props)
     local i = Instance.new(cls)
     for k, v in pairs(props) do
@@ -136,9 +125,6 @@ local function truncate(s, n)
     return #s > n and s:sub(1, n-1).."…" or s
 end
 
--- ============================================================
--- SCREENGUI + JANELA
--- ============================================================
 local ScreenGui = newInst("ScreenGui", {
     Name           = "InfiniteYieldGUI",
     ResetOnSpawn   = false,
@@ -160,191 +146,142 @@ local Window = newInst("Frame", {
     ClipsDescendants = true,
     Parent           = ScreenGui,
 })
-corner(6, Window)
-stroke(Color3.fromRGB(255,255,255), 1, 0.94, Window)
-newInst("UIGradient", {
-    Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(26, 10, 42)),
-        ColorSequenceKeypoint.new(1, T.bg),
-    }),
-    Rotation = 135,
-    Parent   = Window,
-})
+corner(4, Window)
+stroke(Color3.fromRGB(60, 60, 60), 1, 0.3, Window)
 
--- ============================================================
--- TOPBAR  (Y=0, H=44)
--- ============================================================
+-- TOPBAR (H=38)
 local TopBar = newInst("Frame", {
     Name             = "TopBar",
-    Size             = UDim2.new(1, 0, 0, 44),
+    Size             = UDim2.new(1, 0, 0, 38),
     Position         = UDim2.new(0, 0, 0, 0),
-    BackgroundTransparency = 1,
+    BackgroundColor3 = Color3.fromRGB(20, 20, 20),
     BorderSizePixel  = 0,
     Parent           = Window,
 })
--- borda inferior do TopBar
 newInst("Frame", {
     Size             = UDim2.new(1, 0, 0, 1),
     Position         = UDim2.new(0, 0, 1, -1),
-    BackgroundColor3 = Color3.fromRGB(255,255,255),
-    BackgroundTransparency = 0.94,
+    BackgroundColor3 = Color3.fromRGB(55, 55, 55),
+    BackgroundTransparency = 0,
     BorderSizePixel  = 0,
     Parent           = TopBar,
 })
-pad(0, 0, 20, 10, TopBar)
+pad(0, 0, 14, 10, TopBar)
 
--- Título "Infinite Yield" com gradiente
-local TitleLabel = newInst("TextLabel", {
-    Text             = "Infinite Yield",
-    Font             = MONO,
-    TextSize         = 16,
-    TextColor3       = Color3.fromRGB(255,255,255),
-    BackgroundTransparency = 1,
-    Size             = UDim2.new(0, 0, 1, 0),
-    AutomaticSize    = Enum.AutomaticSize.X,
-    TextXAlignment   = Enum.TextXAlignment.Left,
-    Parent           = TopBar,
-})
-newInst("UIGradient", {
-    Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(168, 85, 247)),
-    }),
-    Rotation = 0,
-    Parent   = TitleLabel,
-})
-
--- "// comandos"
 newInst("TextLabel", {
-    Text             = "// comandos",
-    Font             = MONO,
-    TextSize         = 10,
-    TextColor3       = T.textDim,
-    BackgroundTransparency = 1,
-    Size             = UDim2.new(0, 100, 1, 0),
-    Position         = UDim2.new(0, 148, 0, 0),
-    TextXAlignment   = Enum.TextXAlignment.Left,
-    Parent           = TopBar,
-})
-
--- Contador "N cmds"
-local CntLabel = newInst("TextLabel", {
-    Text             = "50 cmds",
-    Font             = MONO,
-    TextSize         = 10,
-    TextColor3       = T.textDim,
+    Text             = "Infinite Yield FE",
+    Font             = FONT,
+    TextSize         = 13,
+    TextColor3       = Color3.fromRGB(220, 220, 220),
     BackgroundTransparency = 1,
     Size             = UDim2.new(1, -70, 1, 0),
+    TextXAlignment   = Enum.TextXAlignment.Center,
+    Parent           = TopBar,
+})
+
+local CntLabel = newInst("TextLabel", {
+    Text             = "50 cmds",
+    Font             = FONT,
+    TextSize         = 10,
+    TextColor3       = T.textDim,
+    BackgroundTransparency = 1,
+    Size             = UDim2.new(1, -10, 1, 0),
     TextXAlignment   = Enum.TextXAlignment.Right,
     Parent           = TopBar,
 })
 
--- Botão fechar ×
 local CloseBtn = newInst("TextButton", {
     Text             = "×",
-    Font             = MONO,
+    Font             = FONT,
     TextSize         = 14,
     TextColor3       = T.textDim,
-    BackgroundColor3 = Color3.fromRGB(200, 50, 50),
-    BackgroundTransparency = 0.7,
-    Size             = UDim2.new(0, 22, 0, 22),
-    Position         = UDim2.new(1, -30, 0.5, -11),
+    BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+    BackgroundTransparency = 0.6,
+    Size             = UDim2.new(0, 20, 0, 20),
+    Position         = UDim2.new(1, -28, 0.5, -10),
     BorderSizePixel  = 0,
     ZIndex           = 5,
     Parent           = TopBar,
 })
-corner(4, CloseBtn)
+corner(3, CloseBtn)
 
--- Botão minimizar –
 local MinBtn = newInst("TextButton", {
     Text             = "–",
-    Font             = MONO,
+    Font             = FONT,
     TextSize         = 12,
     TextColor3       = T.textDim,
-    BackgroundColor3 = T.textDim,
-    BackgroundTransparency = 0.7,
-    Size             = UDim2.new(0, 22, 0, 22),
-    Position         = UDim2.new(1, -56, 0.5, -11),
+    BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+    BackgroundTransparency = 0.6,
+    Size             = UDim2.new(0, 20, 0, 20),
+    Position         = UDim2.new(1, -52, 0.5, -10),
     BorderSizePixel  = 0,
     ZIndex           = 5,
     Parent           = TopBar,
 })
-corner(4, MinBtn)
+corner(3, MinBtn)
 
--- ============================================================
--- LINHA 1 DA TOOLBAR: busca  (Y=44, H=28)
--- ============================================================
+-- SEARCH ROW (Y=38, H=28)
 local SearchRow = newInst("Frame", {
     Name             = "SearchRow",
     Size             = UDim2.new(1, 0, 0, 28),
-    Position         = UDim2.new(0, 0, 0, 44),
+    Position         = UDim2.new(0, 0, 0, 38),
     BackgroundTransparency = 1,
     BorderSizePixel  = 0,
     Parent           = Window,
 })
-pad(4, 4, 20, 20, SearchRow)
-newInst("UIListLayout", {
-    FillDirection     = Enum.FillDirection.Horizontal,
-    VerticalAlignment = Enum.VerticalAlignment.Center,
-    Padding           = UDim.new(0, 6),
-    Parent            = SearchRow,
-})
+pad(4, 4, 14, 14, SearchRow)
 
 local SearchBox = newInst("TextBox", {
     Name              = "SearchBox",
     PlaceholderText   = "buscar comando...",
     Text              = "",
-    Font              = MONO,
+    Font              = FONT,
     TextSize          = 11,
     TextColor3        = T.text,
     PlaceholderColor3 = T.textDim,
-    BackgroundColor3  = Color3.fromRGB(17, 17, 24),
+    BackgroundColor3  = Color3.fromRGB(35, 35, 35),
     BorderSizePixel   = 0,
-    Size              = UDim2.new(1, 0, 0, 22),
+    Size              = UDim2.new(1, 0, 0, 20),
     ClearTextOnFocus  = false,
     Parent            = SearchRow,
 })
-corner(4, SearchBox)
-local sbStroke = stroke(Color3.fromRGB(255,255,255), 1, 0.92, SearchBox)
+corner(3, SearchBox)
+local sbStroke = stroke(Color3.fromRGB(60, 60, 60), 1, 0.2, SearchBox)
 pad(0, 0, 8, 8, SearchBox)
 
 SearchBox.Focused:Connect(function()
-    tween(sbStroke, {Color=T.accent, Transparency=0}, 0.15)
+    tween(sbStroke, {Color=Color3.fromRGB(150,150,150), Transparency=0}, 0.15)
 end)
 SearchBox.FocusLost:Connect(function()
-    tween(sbStroke, {Color=Color3.fromRGB(255,255,255), Transparency=0.92}, 0.15)
+    tween(sbStroke, {Color=Color3.fromRGB(60,60,60), Transparency=0.2}, 0.15)
 end)
 
--- ============================================================
--- LINHA 2 DA TOOLBAR: abas  (Y=72, H=28)
--- ============================================================
+-- TAB ROW (Y=66, H=26)
 local TabRow = newInst("Frame", {
     Name             = "TabRow",
-    Size             = UDim2.new(1, 0, 0, 28),
-    Position         = UDim2.new(0, 0, 0, 72),
+    Size             = UDim2.new(1, 0, 0, 26),
+    Position         = UDim2.new(0, 0, 0, 66),
     BackgroundTransparency = 1,
     BorderSizePixel  = 0,
     Parent           = Window,
 })
-pad(4, 4, 20, 20, TabRow)
+pad(3, 3, 14, 14, TabRow)
 newInst("UIListLayout", {
     FillDirection     = Enum.FillDirection.Horizontal,
     VerticalAlignment = Enum.VerticalAlignment.Center,
-    Padding           = UDim.new(0, 4),
+    Padding           = UDim.new(0, 3),
     Parent            = TabRow,
 })
 
--- Divisor abaixo das abas (Y=100)
 newInst("Frame", {
     Size             = UDim2.new(1, 0, 0, 1),
-    Position         = UDim2.new(0, 0, 0, 100),
-    BackgroundColor3 = Color3.fromRGB(255,255,255),
-    BackgroundTransparency = 0.94,
+    Position         = UDim2.new(0, 0, 0, 91),
+    BackgroundColor3 = Color3.fromRGB(55, 55, 55),
+    BackgroundTransparency = 0,
     BorderSizePixel  = 0,
     Parent           = Window,
 })
 
--- Abas
 local ALL_TABS   = {"all","servidor","movimento","visual","players","personagem","veiculos"}
 local TAB_LABELS = {
     all="Todos", servidor="Servidor", movimento="Movimento",
@@ -356,47 +293,37 @@ local tabBtns   = {}
 local function styleTab(btn, active)
     if active then
         tween(btn, {
-            BackgroundColor3       = Color3.fromRGB(32, 10, 60),
+            BackgroundColor3       = Color3.fromRGB(50, 50, 50),
             BackgroundTransparency = 0,
-            TextColor3             = T.accentL,
+            TextColor3             = Color3.fromRGB(220, 220, 220),
         }, 0.12)
-        local s = btn:FindFirstChildOfClass("UIStroke")
-        if s then tween(s, {Color=T.accent, Transparency=0}, 0.12) end
     else
         tween(btn, {
             BackgroundColor3       = T.bg,
             BackgroundTransparency = 1,
             TextColor3             = T.textDim,
         }, 0.12)
-        local s = btn:FindFirstChildOfClass("UIStroke")
-        if s then tween(s, {Color=Color3.fromRGB(255,255,255), Transparency=0.92}, 0.12) end
     end
 end
 
-local render  -- forward ref
+local render
 
 for _, cat in ipairs(ALL_TABS) do
     local isActive = cat == "all"
     local btn = newInst("TextButton", {
         Text                   = TAB_LABELS[cat],
-        Font                   = MONO,
+        Font                   = FONT,
         TextSize               = 10,
-        TextColor3             = isActive and T.accentL or T.textDim,
-        BackgroundColor3       = isActive and Color3.fromRGB(32, 10, 60) or T.bg,
+        TextColor3             = isActive and Color3.fromRGB(220,220,220) or T.textDim,
+        BackgroundColor3       = isActive and Color3.fromRGB(50,50,50) or T.bg,
         BackgroundTransparency = isActive and 0 or 1,
         BorderSizePixel        = 0,
-        Size                   = UDim2.new(0, 0, 0, 22),
+        Size                   = UDim2.new(0, 0, 0, 20),
         AutomaticSize          = Enum.AutomaticSize.X,
         Parent                 = TabRow,
     })
-    corner(4, btn)
-    stroke(
-        isActive and T.accent or Color3.fromRGB(255,255,255),
-        1,
-        isActive and 0 or 0.92,
-        btn
-    )
-    pad(0, 0, 8, 8, btn)
+    corner(3, btn)
+    pad(0, 0, 7, 7, btn)
     tabBtns[cat] = btn
 
     btn.MouseEnter:Connect(function()
@@ -412,9 +339,7 @@ for _, cat in ipairs(ALL_TABS) do
     end)
 end
 
--- ============================================================
--- ÁREA DE SCROLL  (Y=101, H=WIN_H-101)
--- ============================================================
+-- SCROLL AREA (Y=92)
 local ContentFrame = newInst("Frame", {
     Name             = "Content",
     Size             = UDim2.new(1, 0, 1, -CONTENT_Y),
@@ -429,27 +354,25 @@ local ScrollFrame = newInst("ScrollingFrame", {
     BackgroundTransparency     = 1,
     BorderSizePixel            = 0,
     ScrollBarThickness         = 2,
-    ScrollBarImageColor3       = T.accent,
-    ScrollBarImageTransparency = 0.5,
+    ScrollBarImageColor3       = Color3.fromRGB(100, 100, 100),
+    ScrollBarImageTransparency = 0.4,
     CanvasSize                 = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize        = Enum.AutomaticSize.Y,
     Parent                     = ContentFrame,
 })
-pad(10, 30, 20, 20, ScrollFrame)
+pad(8, 24, 14, 14, ScrollFrame)
 
 local ScrollLayout = newInst("UIListLayout", {
-    Padding             = UDim.new(0, 12),
+    Padding             = UDim.new(0, 10),
     FillDirection       = Enum.FillDirection.Vertical,
     HorizontalAlignment = Enum.HorizontalAlignment.Left,
     SortOrder           = Enum.SortOrder.LayoutOrder,
     Parent              = ScrollFrame,
 })
 
--- ============================================================
 -- RENDERER
--- ============================================================
 local function makeRow(cmd)
-    local ROW_H = 22
+    local ROW_H = 20
     local row = newInst("Frame", {
         Size             = UDim2.new(1, 0, 0, ROW_H),
         BackgroundColor3 = T.rowHover,
@@ -458,84 +381,63 @@ local function makeRow(cmd)
     })
     corner(2, row)
 
-    -- Nome do comando
-    local cmdLabel = newInst("TextLabel", {
+    local nameW = #cmd.n * 7
+
+    newInst("TextLabel", {
         Text           = cmd.n,
-        Font           = MONO,
-        TextSize       = 11,
+        Font           = FONT,
+        TextSize       = 12,
         TextColor3     = T.cmd,
         BackgroundTransparency = 1,
-        Size           = UDim2.new(0, 0, 1, 0),
+        Size           = UDim2.new(0, nameW, 1, 0),
         Position       = UDim2.new(0, 0, 0, 0),
         TextXAlignment = Enum.TextXAlignment.Left,
-        AutomaticSize  = Enum.AutomaticSize.X,
         Parent         = row,
     })
 
-    local nameW = #cmd.n * 7
-
-    -- Argumento [speed] etc
     if cmd.a then
         newInst("TextLabel", {
             Text           = " "..cmd.a,
-            Font           = MONO,
-            TextSize       = 11,
+            Font           = FONT,
+            TextSize       = 12,
             TextColor3     = T.textArg,
             BackgroundTransparency = 1,
-            Size           = UDim2.new(0, 0, 1, 0),
+            Size           = UDim2.new(0, #(" "..cmd.a)*6, 1, 0),
             Position       = UDim2.new(0, nameW, 0, 0),
             TextXAlignment = Enum.TextXAlignment.Left,
-            AutomaticSize  = Enum.AutomaticSize.X,
             Parent         = row,
         })
         nameW = nameW + #(" "..cmd.a) * 6
     end
 
-    -- Separador —
     newInst("TextLabel", {
-        Text           = "—",
-        Font           = MONO,
-        TextSize       = 11,
-        TextColor3     = T.sep,
-        BackgroundTransparency = 1,
-        Size           = UDim2.new(0, 22, 1, 0),
-        Position       = UDim2.new(0, nameW + 6, 0, 0),
-        TextXAlignment = Enum.TextXAlignment.Center,
-        Parent         = row,
-    })
-
-    -- Descrição
-    local descX = nameW + 28
-    newInst("TextLabel", {
-        Text           = truncate(cmd.d, 44),
-        Font           = MONO,
+        Text           = " / "..cmd.d,
+        Font           = FONT,
         TextSize       = 11,
         TextColor3     = T.desc,
         BackgroundTransparency = 1,
-        Size           = UDim2.new(1, -(descX + 84), 1, 0),
-        Position       = UDim2.new(0, descX, 0, 0),
+        Size           = UDim2.new(1, -(nameW + 80), 1, 0),
+        Position       = UDim2.new(0, nameW + 2, 0, 0),
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTruncate   = Enum.TextTruncate.AtEnd,
         Parent         = row,
     })
 
-    -- Undo / on-off
     if cmd.u then
-        local offText = cmd.u == "—" and "on/off" or ("↩"..cmd.u)
+        local offText = cmd.u == "—" and "on/off" or cmd.u
         newInst("TextLabel", {
             Text           = offText,
-            Font           = MONO,
+            Font           = FONT,
             TextSize       = 10,
-            TextColor3     = T.green,
+            TextColor3     = T.textDim,
             BackgroundTransparency = 1,
-            Size           = UDim2.new(0, 80, 1, 0),
-            Position       = UDim2.new(1, -80, 0, 0),
+            Size           = UDim2.new(0, 76, 1, 0),
+            Position       = UDim2.new(1, -76, 0, 0),
             TextXAlignment = Enum.TextXAlignment.Right,
             Parent         = row,
         })
     end
 
-    -- Hitbox invisível para hover/click
     local hit = newInst("TextButton", {
         Text             = "",
         BackgroundColor3 = T.rowHover,
@@ -548,15 +450,13 @@ local function makeRow(cmd)
     corner(2, hit)
 
     hit.MouseEnter:Connect(function()
-        tween(hit,      {BackgroundTransparency=0.88}, 0.1)
-        tween(cmdLabel, {TextColor3=Color3.fromRGB(255,255,255)}, 0.1)
+        tween(hit, {BackgroundTransparency=0.7}, 0.1)
     end)
     hit.MouseLeave:Connect(function()
-        tween(hit,      {BackgroundTransparency=1}, 0.1)
-        tween(cmdLabel, {TextColor3=T.cmd}, 0.1)
+        tween(hit, {BackgroundTransparency=1}, 0.1)
     end)
     hit.MouseButton1Click:Connect(function()
-        tween(hit, {BackgroundTransparency=0.7}, 0.05)
+        tween(hit, {BackgroundTransparency=0.4}, 0.05)
         task.wait(0.05)
         tween(hit, {BackgroundTransparency=1}, 0.1)
         print("[IY] "..cmd.n)
@@ -581,32 +481,22 @@ local function makeSection(catKey, cmds)
         Parent    = sec,
     })
 
-    -- Cabeçalho da seção
     local sh = newInst("Frame", {
-        Size             = UDim2.new(1, 0, 0, 20),
+        Size             = UDim2.new(1, 0, 0, 18),
         BackgroundTransparency = 1,
         BorderSizePixel  = 0,
         LayoutOrder      = 0,
         Parent           = sec,
     })
 
-    local dot = newInst("Frame", {
-        Size             = UDim2.new(0, 6, 0, 6),
-        Position         = UDim2.new(0, 0, 0.5, -3),
-        BackgroundColor3 = catColor,
-        BorderSizePixel  = 0,
-        Parent           = sh,
-    })
-    corner(99, dot)
-
     newInst("TextLabel", {
-        Text           = label:upper(),
-        Font           = MONO,
+        Text           = label,
+        Font           = FONT,
         TextSize       = 10,
-        TextColor3     = catColor,
+        TextColor3     = T.textDim,
         BackgroundTransparency = 1,
         Size           = UDim2.new(0, 0, 1, 0),
-        Position       = UDim2.new(0, 14, 0, 0),
+        Position       = UDim2.new(0, 0, 0, 0),
         AutomaticSize  = Enum.AutomaticSize.X,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent         = sh,
@@ -614,7 +504,7 @@ local function makeSection(catKey, cmds)
 
     newInst("TextLabel", {
         Text           = tostring(#cmds),
-        Font           = MONO,
+        Font           = FONT,
         TextSize       = 10,
         TextColor3     = T.textDim,
         BackgroundTransparency = 1,
@@ -623,23 +513,21 @@ local function makeSection(catKey, cmds)
         Parent         = sh,
     })
 
-    -- Linha divisória da seção
     newInst("Frame", {
         Size             = UDim2.new(1, 0, 0, 1),
-        BackgroundColor3 = Color3.fromRGB(255,255,255),
-        BackgroundTransparency = 0.95,
+        BackgroundColor3 = Color3.fromRGB(55, 55, 55),
+        BackgroundTransparency = 0,
         BorderSizePixel  = 0,
         LayoutOrder      = 1,
         Parent           = sec,
     })
 
-    -- Linhas de comando
     for i, cmd in ipairs(cmds) do
         if i > 1 then
             newInst("Frame", {
                 Size             = UDim2.new(1, 0, 0, 1),
-                BackgroundColor3 = Color3.fromRGB(255,255,255),
-                BackgroundTransparency = 0.97,
+                BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+                BackgroundTransparency = 0,
                 BorderSizePixel  = 0,
                 LayoutOrder      = (i-1)*2,
                 Parent           = sec,
@@ -653,7 +541,6 @@ local function makeSection(catKey, cmds)
     return sec
 end
 
--- Função principal de render
 render = function(cat, query)
     for _, ch in ipairs(ScrollFrame:GetChildren()) do
         if ch:IsA("GuiObject") and ch ~= ScrollLayout then
@@ -689,7 +576,7 @@ render = function(cat, query)
     if order == 0 then
         newInst("TextLabel", {
             Text           = "Nenhum comando encontrado.",
-            Font           = MONO,
+            Font           = FONT,
             TextSize       = 11,
             TextColor3     = T.textDim,
             BackgroundTransparency = 1,
@@ -705,16 +592,14 @@ SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     render(activeTab, SearchBox.Text:lower())
 end)
 
--- ============================================================
--- BOTÃO FLUTUANTE (reabrir)
--- ============================================================
-local BTN_SIZE = 40
+-- BOTÃO FLUTUANTE
+local BTN_SIZE = 36
 local ReopenBtn = newInst("TextButton", {
     Text             = "IY",
-    Font             = MONO,
-    TextSize         = 12,
-    TextColor3       = Color3.fromRGB(255,255,255),
-    BackgroundColor3 = Color3.fromRGB(32, 10, 60),
+    Font             = FONT,
+    TextSize         = 11,
+    TextColor3       = Color3.fromRGB(200, 200, 200),
+    BackgroundColor3 = Color3.fromRGB(26, 26, 26),
     BorderSizePixel  = 0,
     Size             = UDim2.new(0, BTN_SIZE, 0, BTN_SIZE),
     Position         = UDim2.new(0, 20, 0.5, -BTN_SIZE/2),
@@ -722,8 +607,8 @@ local ReopenBtn = newInst("TextButton", {
     ZIndex           = 20,
     Parent           = ScreenGui,
 })
-corner(99, ReopenBtn)
-stroke(T.accentL, 1, 0, ReopenBtn)
+corner(4, ReopenBtn)
+stroke(Color3.fromRGB(70, 70, 70), 1, 0, ReopenBtn)
 
 do
     local rd, rs, rp, rm
@@ -752,16 +637,13 @@ do
         tween(Window, {Size=UDim2.new(0,WIN_W,0,WIN_H), BackgroundTransparency=0}, 0.2)
     end)
     ReopenBtn.MouseEnter:Connect(function()
-        tween(ReopenBtn, {BackgroundColor3=Color3.fromRGB(60,20,110)}, 0.12)
+        tween(ReopenBtn, {BackgroundColor3=Color3.fromRGB(40,40,40)}, 0.12)
     end)
     ReopenBtn.MouseLeave:Connect(function()
-        tween(ReopenBtn, {BackgroundColor3=Color3.fromRGB(32,10,60)}, 0.12)
+        tween(ReopenBtn, {BackgroundColor3=Color3.fromRGB(26,26,26)}, 0.12)
     end)
 end
 
--- ============================================================
--- TOPBAR: fechar / minimizar / drag
--- ============================================================
 CloseBtn.MouseButton1Click:Connect(function()
     tween(Window, {Size=UDim2.new(0,WIN_W,0,0), BackgroundTransparency=1}, 0.18)
     task.wait(0.2)
@@ -769,25 +651,24 @@ CloseBtn.MouseButton1Click:Connect(function()
     ReopenBtn.Visible = true
 end)
 CloseBtn.MouseEnter:Connect(function()
-    tween(CloseBtn, {BackgroundTransparency=0.2, TextColor3=Color3.fromRGB(255,255,255)}, 0.1)
+    tween(CloseBtn, {BackgroundTransparency=0.1, TextColor3=Color3.fromRGB(255,255,255)}, 0.1)
 end)
 CloseBtn.MouseLeave:Connect(function()
-    tween(CloseBtn, {BackgroundTransparency=0.7, TextColor3=T.textDim}, 0.1)
+    tween(CloseBtn, {BackgroundTransparency=0.6, TextColor3=T.textDim}, 0.1)
 end)
 
 local minimized = false
 MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
-    tween(Window, {Size=UDim2.new(0, WIN_W, 0, minimized and 44 or WIN_H)}, 0.2)
+    tween(Window, {Size=UDim2.new(0, WIN_W, 0, minimized and 38 or WIN_H)}, 0.2)
 end)
 MinBtn.MouseEnter:Connect(function()
-    tween(MinBtn, {BackgroundTransparency=0.2, TextColor3=Color3.fromRGB(255,255,255)}, 0.1)
+    tween(MinBtn, {BackgroundTransparency=0.1, TextColor3=Color3.fromRGB(255,255,255)}, 0.1)
 end)
 MinBtn.MouseLeave:Connect(function()
-    tween(MinBtn, {BackgroundTransparency=0.7, TextColor3=T.textDim}, 0.1)
+    tween(MinBtn, {BackgroundTransparency=0.6, TextColor3=T.textDim}, 0.1)
 end)
 
--- Drag pela TopBar
 do
     local dr, ds, dp
     TopBar.InputBegan:Connect(function(inp)
@@ -809,9 +690,6 @@ do
     end)
 end
 
--- ============================================================
--- INIT
--- ============================================================
 render("all", "")
 
 Window.Size = UDim2.new(0, WIN_W, 0, 0)
@@ -819,7 +697,6 @@ Window.BackgroundTransparency = 1
 tween(Window, {
     Size = UDim2.new(0, WIN_W, 0, WIN_H),
     BackgroundTransparency = 0,
-}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+}, 0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
-print("[InfiniteYield GUI v2] Carregado!")
-
+print("[InfiniteYield GUI] Carregado!")
