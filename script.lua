@@ -997,7 +997,7 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 		elseif Setting == "Transparency" then
 			Window.GroupTransparency = Value
 			Setup.Transparency = Value
-			Btn.BackgroundTransparency = Value 
+			
 			for Index, Notification in next, Screen:GetDescendants() do
 				if Notification:IsA("CanvasGroup") and Notification.Name == "Notification" then
 					Notification.GroupTransparency = Value
