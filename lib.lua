@@ -147,6 +147,68 @@ local Drag = function(Canvas)
 	end
 end
 
+--// Floating Button
+local FloatingButton = Instance.new("ScreenGui")
+FloatingButton.Name = "FloatingButton"
+FloatingButton.ResetOnSpawn = false
+xpcall(function()
+	FloatingButton.Parent = game.CoreGui
+end, function()
+	FloatingButton.Parent = Player.GUI
+end)
+
+local Btn = Instance.new("TextButton")
+Btn.Name = "Toggle"
+Btn.Size = UDim2.new(0, 44, 0, 44)
+Btn.Position = UDim2.new(0, 20, 0.5, 0)
+Btn.BackgroundColor3 = Theme.Component
+Btn.TextColor3 = Theme.Title
+Btn.Text = "☰"
+Btn.Font = Enum.Font.GothamBold
+Btn.TextSize = 20
+Btn.BorderSizePixel = 0
+Btn.ZIndex = 10
+Btn.Parent = FloatingButton
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 10)
+BtnCorner.Parent = Btn
+
+local BtnStroke = Instance.new("UIStroke")
+BtnStroke.Color = Theme.Outline
+BtnStroke.Thickness = 1
+BtnStroke.Parent = Btn
+
+local btnDragging = false
+local btnDragStart, btnStartPos
+
+Connect(Btn.InputBegan, function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or
+	   input.UserInputType == Enum.UserInputType.Touch then
+		btnDragging = true
+		btnDragStart = input.Position
+		btnStartPos = Btn.Position
+		Connect(input.Changed, function()
+			if input.UserInputState == Enum.UserInputState.End then
+				btnDragging = false
+			end
+		end)
+	end
+end)
+
+Connect(Services.Input.InputChanged, function(input)
+	if btnDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or
+	   input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - btnDragStart
+		Btn.Position = UDim2.new(
+			btnStartPos.X.Scale,
+			btnStartPos.X.Offset + delta.X,
+			btnStartPos.Y.Scale,
+			btnStartPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
 Resizing = { 
 	TopLeft = { X = Vector2.new(-1, 0),   Y = Vector2.new(0, -1)};
 	TopRight = { X = Vector2.new(1, 0),    Y = Vector2.new(0, -1)};
@@ -362,6 +424,11 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 		if (Input == Setup.Keybind or Input.KeyCode == Setup.Keybind) and not Focused then
 			Close()
 		end
+	end)
+
+	--// Conecta o botão flutuante à janela
+	Connect(Btn.MouseButton1Click, function()
+		Close()
 	end)
 
 	--// Tab Functions
