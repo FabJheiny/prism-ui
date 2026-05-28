@@ -1,8 +1,13 @@
+-- 1. Carrega a lib
 loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/next.ui"))()
 
-Library:Register({
+-- 2. Pega a referência
+local Library = _G.Library
+
+-- 3. Registra os módulos
+Library.Register({
     Name        = "Calculator",
-    Category    = "Movement",
+    Category    = "Utilities",
     Icon        = "🔢",
     Description = "Só uma calculadora normal",
     Load        = function()
