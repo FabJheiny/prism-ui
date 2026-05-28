@@ -6,6 +6,6 @@ Library:Register({
     Icon        = "🔢",
     Description = "Só uma calculadora normal",
     Load        = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/Calc")()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FabJheiny/Scripts/refs/heads/main/Calc"))()
     end
 })
