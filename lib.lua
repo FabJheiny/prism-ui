@@ -116,7 +116,26 @@ local Drag = function(Canvas)
 
 		local function Update(input)
 			local delta = input.Position - Start
-			Canvas.Position = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + delta.Y)
+			local screenSize = workspace.CurrentCamera.ViewportSize
+			local canvasSize = Canvas.AbsoluteSize
+
+			local newX = math.clamp(
+				StartPosition.X.Offset + delta.X,
+				-StartPosition.X.Scale * screenSize.X,
+				screenSize.X - canvasSize.X - StartPosition.X.Scale * screenSize.X
+			)
+			local newY = math.clamp(
+				StartPosition.Y.Offset + delta.Y,
+				-StartPosition.Y.Scale * screenSize.Y,
+				screenSize.Y - canvasSize.Y - StartPosition.Y.Scale * screenSize.Y
+			)
+
+			Canvas.Position = UDim2.new(
+				StartPosition.X.Scale,
+				newX,
+				StartPosition.Y.Scale,
+				newY
+			)
 		end
 
 		Connect(Canvas.InputBegan, function(Input)
@@ -200,11 +219,25 @@ Connect(Services.Input.InputChanged, function(input)
 	if btnDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or
 	   input.UserInputType == Enum.UserInputType.Touch) then
 		local delta = input.Position - btnDragStart
+		local screenSize = workspace.CurrentCamera.ViewportSize
+		local btnSize = Btn.AbsoluteSize
+
+		local newX = math.clamp(
+			btnStartPos.X.Offset + delta.X,
+			0,
+			screenSize.X - btnSize.X
+		)
+		local newY = math.clamp(
+			btnStartPos.Y.Offset + delta.Y,
+			-btnStartPos.Y.Scale * screenSize.Y,
+			screenSize.Y * (1 - btnStartPos.Y.Scale) - btnSize.Y
+		)
+
 		Btn.Position = UDim2.new(
 			btnStartPos.X.Scale,
-			btnStartPos.X.Offset + delta.X,
+			newX,
 			btnStartPos.Y.Scale,
-			btnStartPos.Y.Offset + delta.Y
+			newY
 		)
 	end
 end)
