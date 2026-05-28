@@ -59,16 +59,6 @@ function RobloxUI.new(title, version)
     topCorner.CornerRadius = UDim.new(0, 10)
     topCorner.Parent = topBar
 
-    -- Patch para cortar os cantos inferiores da topbar (ficam retos)
-    local topPatch = Instance.new("Frame")
-topPatch.Size = UDim2.new(1, 0, 0, 10)
-topPatch.Position = UDim2.new(0, 0, 1, -10)
-topPatch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-topPatch.BackgroundTransparency = 0
-topPatch.BorderSizePixel = 0
-topPatch.ZIndex = topBar.ZIndex + 1
-topPatch.Parent = topBar
-
     local topSep = Instance.new("Frame")
     topSep.Size = UDim2.new(1, 0, 0, 1)
     topSep.Position = UDim2.new(0, 0, 1, -1)
@@ -112,16 +102,6 @@ topPatch.Parent = topBar
     local botCorner = Instance.new("UICorner")
     botCorner.CornerRadius = UDim.new(0, 10)
     botCorner.Parent = bottomBar
-
-    -- Patch para cortar os cantos superiores da bottombar (ficam retos)
-    local botPatch = Instance.new("Frame")
-botPatch.Size = UDim2.new(1, 0, 0, 10)
-botPatch.Position = UDim2.new(0, 0, 0, 0)
-botPatch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-botPatch.BackgroundTransparency = 0
-botPatch.BorderSizePixel = 0
-botPatch.ZIndex = bottomBar.ZIndex + 1
-botPatch.Parent = bottomBar
 
     local botSep = Instance.new("Frame")
     botSep.Size = UDim2.new(1, 0, 0, 1)
