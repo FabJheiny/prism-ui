@@ -7,7 +7,6 @@ local Library = _G.Library
 -- 3. Registra os módulos
 Library.Register({
     Name        = "Calculator",
-    Category    = "Utilities",
     Icon        = "🔢",
     Description = "Só uma calculadora normal",
     Load        = function()
