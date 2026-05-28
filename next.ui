@@ -848,7 +848,5 @@ Library:Register({
     end
 })
 --]]
-
--- Alias global opcional
-_G.Library  = NexLib
-_G.NexLib   = NexLib
+_G.NexLib  = NexLib
+_G.Library = NexLib
