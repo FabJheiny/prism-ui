@@ -89,42 +89,29 @@ function RobloxUI.new(title, version)
     versionLabel.TextXAlignment = Enum.TextXAlignment.Right
     versionLabel.Parent = topBar
 
-    -- BOTTOMBAR
-    local bottomBar = Instance.new("Frame")
-    bottomBar.Name = "BottomBar"
-    bottomBar.Size = UDim2.new(1, 0, 0, 22)
-    bottomBar.Position = UDim2.new(0, 0, 1, -22)
-    bottomBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    bottomBar.BackgroundTransparency = 0.35
-    bottomBar.BorderSizePixel = 0
-    bottomBar.Parent = self.menuFrame
+    -- Bottom Info Line
+local bottomSep = Instance.new("Frame")
+bottomSep.Size = UDim2.new(1, -16, 0, 1)
+bottomSep.Position = UDim2.new(0, 8, 1, -24)
+bottomSep.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+bottomSep.BackgroundTransparency = 0.9
+bottomSep.BorderSizePixel = 0
+bottomSep.Parent = self.menuFrame
 
-    local botCorner = Instance.new("UICorner")
-    botCorner.CornerRadius = UDim.new(0, 10)
-    botCorner.Parent = bottomBar
-
-    local botSep = Instance.new("Frame")
-    botSep.Size = UDim2.new(1, 0, 0, 1)
-    botSep.Position = UDim2.new(0, 0, 0, 0)
-    botSep.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    botSep.BackgroundTransparency = 0.82
-    botSep.BorderSizePixel = 0
-    botSep.Parent = bottomBar
-
-    local obsLabel = Instance.new("TextLabel")
-    obsLabel.Size = UDim2.new(1, -10, 1, 0)
-    obsLabel.Position = UDim2.new(0, 10, 0, 0)
-    obsLabel.BackgroundTransparency = 1
-    obsLabel.Text = "obs: play in first person for better experience."
-    obsLabel.Font = Enum.Font.Gotham
-    obsLabel.TextSize = 9
-    obsLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
-    obsLabel.TextXAlignment = Enum.TextXAlignment.Left
-    obsLabel.Parent = bottomBar
+local obsLabel = Instance.new("TextLabel")
+obsLabel.Size = UDim2.new(1, -16, 0, 18)
+obsLabel.Position = UDim2.new(0, 8, 1, -20)
+obsLabel.BackgroundTransparency = 1
+obsLabel.Text = "optimized for first person gameplay"
+obsLabel.Font = Enum.Font.Gotham
+obsLabel.TextSize = 9
+obsLabel.TextColor3 = Color3.fromRGB(130, 130, 130)
+obsLabel.TextXAlignment = Enum.TextXAlignment.Left
+obsLabel.Parent = self.menuFrame
 
     -- CONTENT (entre topbar e bottombar)
     self.contentFrame = Instance.new("Frame")
-    self.contentFrame.Size = UDim2.new(1, 0, 1, -50)
+    self.contentFrame.Size = UDim2.new(1, 0, 1, -56)
     self.contentFrame.Position = UDim2.new(0, 0, 0, 28)
     self.contentFrame.BackgroundTransparency = 1
     self.contentFrame.Parent = self.menuFrame
