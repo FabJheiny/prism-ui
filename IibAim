@@ -1,7 +1,7 @@
 local RobloxUI = {}
 RobloxUI.__index = RobloxUI
 
-function RobloxUI.new(title)
+function RobloxUI.new(title, version)
     local self = setmetatable({}, RobloxUI)
 
     local Players = game:GetService("Players")
@@ -27,8 +27,8 @@ function RobloxUI.new(title)
 
     self.menuFrame = Instance.new("Frame")
     self.menuFrame.Name = "MenuFrame"
-    self.menuFrame.Size = UDim2.new(0, 480, 0, 300)
-    self.menuFrame.Position = UDim2.new(.5, -240, .5, -150)
+    self.menuFrame.Size = UDim2.new(0, 480, 0, 340)
+    self.menuFrame.Position = UDim2.new(.5, -240, .5, -170)
     self.menuFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     self.menuFrame.BackgroundTransparency = 0.35
     self.menuFrame.BorderSizePixel = 0
@@ -45,9 +45,105 @@ function RobloxUI.new(title)
     menuStroke.Thickness = 1
     menuStroke.Parent = self.menuFrame
 
+    -- TOPBAR
+    local topBar = Instance.new("Frame")
+    topBar.Name = "TopBar"
+    topBar.Size = UDim2.new(1, 0, 0, 28)
+    topBar.Position = UDim2.new(0, 0, 0, 0)
+    topBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    topBar.BackgroundTransparency = 0.5
+    topBar.BorderSizePixel = 0
+    topBar.Parent = self.menuFrame
+
+    local topCorner = Instance.new("UICorner")
+    topCorner.CornerRadius = UDim.new(0, 10)
+    topCorner.Parent = topBar
+
+    -- Patch para cortar os cantos inferiores da topbar (ficam retos)
+    local topPatch = Instance.new("Frame")
+    topPatch.Size = UDim2.new(1, 0, 0, 10)
+    topPatch.Position = UDim2.new(0, 0, 1, -10)
+    topPatch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    topPatch.BackgroundTransparency = 0.5
+    topPatch.BorderSizePixel = 0
+    topPatch.Parent = topBar
+
+    local topSep = Instance.new("Frame")
+    topSep.Size = UDim2.new(1, 0, 0, 1)
+    topSep.Position = UDim2.new(0, 0, 1, -1)
+    topSep.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    topSep.BackgroundTransparency = 0.82
+    topSep.BorderSizePixel = 0
+    topSep.Parent = topBar
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(0.6, 0, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title or "Menu"
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 12
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = topBar
+
+    local versionLabel = Instance.new("TextLabel")
+    versionLabel.Size = UDim2.new(0.35, 0, 1, 0)
+    versionLabel.Position = UDim2.new(0.63, 0, 0, 0)
+    versionLabel.BackgroundTransparency = 1
+    versionLabel.Text = version or "v1.0"
+    versionLabel.Font = Enum.Font.Gotham
+    versionLabel.TextSize = 10
+    versionLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    versionLabel.TextXAlignment = Enum.TextXAlignment.Right
+    versionLabel.Parent = topBar
+
+    -- BOTTOMBAR
+    local bottomBar = Instance.new("Frame")
+    bottomBar.Name = "BottomBar"
+    bottomBar.Size = UDim2.new(1, 0, 0, 22)
+    bottomBar.Position = UDim2.new(0, 0, 1, -22)
+    bottomBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bottomBar.BackgroundTransparency = 0.5
+    bottomBar.BorderSizePixel = 0
+    bottomBar.Parent = self.menuFrame
+
+    local botCorner = Instance.new("UICorner")
+    botCorner.CornerRadius = UDim.new(0, 10)
+    botCorner.Parent = bottomBar
+
+    -- Patch para cortar os cantos superiores da bottombar (ficam retos)
+    local botPatch = Instance.new("Frame")
+    botPatch.Size = UDim2.new(1, 0, 0, 10)
+    botPatch.Position = UDim2.new(0, 0, 0, 0)
+    botPatch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    botPatch.BackgroundTransparency = 0.5
+    botPatch.BorderSizePixel = 0
+    botPatch.Parent = bottomBar
+
+    local botSep = Instance.new("Frame")
+    botSep.Size = UDim2.new(1, 0, 0, 1)
+    botSep.Position = UDim2.new(0, 0, 0, 0)
+    botSep.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    botSep.BackgroundTransparency = 0.82
+    botSep.BorderSizePixel = 0
+    botSep.Parent = bottomBar
+
+    local obsLabel = Instance.new("TextLabel")
+    obsLabel.Size = UDim2.new(1, -10, 1, 0)
+    obsLabel.Position = UDim2.new(0, 10, 0, 0)
+    obsLabel.BackgroundTransparency = 1
+    obsLabel.Text = "obs: play in first person for better experience."
+    obsLabel.Font = Enum.Font.Gotham
+    obsLabel.TextSize = 9
+    obsLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    obsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    obsLabel.Parent = bottomBar
+
+    -- CONTENT (entre topbar e bottombar)
     self.contentFrame = Instance.new("Frame")
-    self.contentFrame.Size = UDim2.new(1, 0, 1, 0)
-    self.contentFrame.Position = UDim2.new(0, 0, 0, 0)
+    self.contentFrame.Size = UDim2.new(1, 0, 1, -50)
+    self.contentFrame.Position = UDim2.new(0, 0, 0, 28)
     self.contentFrame.BackgroundTransparency = 1
     self.contentFrame.Parent = self.menuFrame
 
@@ -137,7 +233,6 @@ function RobloxUI.new(title)
     btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     btnStroke.Parent = toggleBtn
 
-    -- Ícone usando TextLabel com símbolo compatível com Roblox
     local btnIcon = Instance.new("TextLabel")
     btnIcon.Size = UDim2.new(1, 0, 1, 0)
     btnIcon.BackgroundTransparency = 1
@@ -240,7 +335,6 @@ function RobloxUI:AddToggle(side, text, default, callback)
     stroke.Transparency = 0.85
     stroke.Thickness = 1
 
-    -- Bolinha indicadora de estado
     local dot = Instance.new("Frame", btn)
     dot.Size = UDim2.new(0, 8, 0, 8)
     dot.Position = UDim2.new(0, 8, 0.5, -4)
