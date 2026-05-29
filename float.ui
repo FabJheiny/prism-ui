@@ -22,7 +22,7 @@ local Config = {
         Size = UDim2.new(0, 160, 0, 77),
         DefaultPosition = UDim2.new(0.05, 0, 0.4, 0),
         TextSize = 10,
-        Font = Enum.Font.SourceSansBold,
+        Font = Enum.Font.GothamSemibold,
         BackgroundColor = Color3.fromRGB(15, 15, 15),
         TextColor = Color3.fromRGB(255, 255, 255),
         DividerColor = Color3.fromRGB(50, 50, 50),
@@ -45,10 +45,9 @@ local State = {
     StartPos = nil
 }
 
--- Variáveis do script original
 local Platform = nil
 
--- Controlador da Plataforma (Estilo Original)
+-- Controlador da Plataforma
 local PlatformController = {}
 PlatformController.__index = PlatformController
 
@@ -62,7 +61,6 @@ end
 
 function PlatformController:createPlatform()
     if Platform then return end
-    
     local platform = Instance.new("Part")
     platform.Name = "FloatPlatform"
     platform.Size = self.Config.Float.PlatformSize
@@ -72,7 +70,6 @@ function PlatformController:createPlatform()
     platform.Anchored = true
     platform.CanCollide = true
     platform.Parent = workspace
-    
     Platform = platform
     self.State.PlatformY = 0
 end
@@ -87,32 +84,16 @@ end
 
 function PlatformController:updatePlatform()
     local char = self.Services.Players.LocalPlayer.Character
-    
-    if not char or not char:FindFirstChild("HumanoidRootPart") then
-        return
-    end
-    
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
     local root = char.HumanoidRootPart
     local rot = root.CFrame - root.CFrame.Position
-    
-    -- Inicializa altura no primeiro frame (igual original: _v2 = h.Position.Y - 3.2)
     if self.State.PlatformY == 0 then
         self.State.PlatformY = root.Position.Y - self.Config.Float.PlatformOffset
     end
-    
-    -- Atualiza altura com direção e velocidade (igual original: _v2 = _v2 + (_v3 * _v4))
     self.State.PlatformY = self.State.PlatformY + (self.State.Direction * self.State.FloatSpeed)
-    
-    -- Move plataforma para posição (igual original)
     if Platform then
-        Platform.Position = Vector3.new(
-            root.Position.X,
-            self.State.PlatformY,
-            root.Position.Z
-        )
+        Platform.Position = Vector3.new(root.Position.X, self.State.PlatformY, root.Position.Z)
     end
-    
-    -- Teletransporta jogador (igual original: h.CFrame = CFrame.new(h.Position.X, _v2 + 3.2, h.Position.Z) * rot)
     root.CFrame = CFrame.new(
         root.Position.X,
         self.State.PlatformY + self.Config.Float.PlatformOffset,
@@ -122,7 +103,6 @@ end
 
 function PlatformController:handleCharacterAdded(character)
     local humanoid = character:WaitForChild("Humanoid")
-    
     humanoid.Died:Connect(function()
         self:destroyPlatform()
     end)
@@ -130,18 +110,13 @@ end
 
 function PlatformController:connectEvents()
     local player = self.Services.Players.LocalPlayer
-    
     self.Connections = {}
-    
     table.insert(self.Connections, player.CharacterAdded:Connect(function(character)
         self:handleCharacterAdded(character)
     end))
-    
     if player.Character then
         self:handleCharacterAdded(player.Character)
     end
-    
-    -- Loop principal (igual original: RenderStepped)
     table.insert(self.Connections, self.Services.RunService.RenderStepped:Connect(function()
         if not self.State.Active or not self.State.FloatEnabled then return end
         self:updatePlatform()
@@ -150,7 +125,6 @@ end
 
 function PlatformController:cleanup()
     self:destroyPlatform()
-    
     if self.Connections then
         for _, connection in pairs(self.Connections) do
             if connection and connection.Disconnect then
@@ -181,15 +155,12 @@ function UIController:createScreenGui()
     sg.DisplayOrder = self.Config.UI.DisplayOrder
     sg.IgnoreGuiInset = true
     sg.ResetOnSpawn = false
-    
     local success = pcall(function()
         sg.Parent = self.Services.CoreGui
     end)
-    
     if not success then
         sg.Parent = self.Services.Players.LocalPlayer.PlayerGui
     end
-    
     return sg
 end
 
@@ -202,7 +173,6 @@ function UIController:createMainFrame(parent)
     main.BorderSizePixel = 1
     main.BorderColor3 = self.Config.UI.BorderColor
     main.Active = true
-    
     return main
 end
 
@@ -218,12 +188,11 @@ end
 
 function UIController:enableDrag(obj, mainFrame)
     obj.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or
            input.UserInputType == Enum.UserInputType.Touch then
             self.State.Dragging = true
             self.State.DragStart = input.Position
             self.State.StartPos = mainFrame.Position
-            
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     self.State.Dragging = false
@@ -231,9 +200,8 @@ function UIController:enableDrag(obj, mainFrame)
             end)
         end
     end)
-    
     obj.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or 
+        if input.UserInputType == Enum.UserInputType.MouseMovement or
            input.UserInputType == Enum.UserInputType.Touch then
             self.State.DragInput = input
         end
@@ -251,7 +219,6 @@ function UIController:createButton(text, position, size, parent)
     button.Font = self.Config.UI.Font
     button.TextSize = self.Config.UI.TextSize
     button.AutoButtonColor = false
-    
     table.insert(self.Buttons, button)
     return button
 end
@@ -259,17 +226,21 @@ end
 function UIController:updateButtonStates()
     for _, button in pairs(self.Buttons) do
         if button.Name == "FloatBtn" then
-            button.Text = self.State.FloatEnabled and "FLOAT: ON" or "FLOAT: OFF"
-            button.BackgroundColor3 = self.State.FloatEnabled and 
-                self.Config.UI.FloatActive or 
-                self.Config.UI.BackgroundColor
+            button.Text = self.State.FloatEnabled and "Float: ON" or "Float: OFF"
+            if self.State.FloatEnabled then
+                button.BackgroundColor3 = self.Config.UI.FloatActive
+                button.TextColor3 = Color3.fromRGB(0, 0, 0)
+            else
+                button.BackgroundColor3 = self.Config.UI.BackgroundColor
+                button.TextColor3 = self.Config.UI.TextColor
+            end
         elseif button.Name == "UpBtn" then
-            button.BackgroundColor3 = (self.State.Direction == 1) and 
-                self.Config.UI.ButtonActive or 
+            button.BackgroundColor3 = (self.State.Direction == 1) and
+                self.Config.UI.ButtonActive or
                 self.Config.UI.BackgroundColor
         elseif button.Name == "DownBtn" then
-            button.BackgroundColor3 = (self.State.Direction == -1) and 
-                self.Config.UI.ButtonActive or 
+            button.BackgroundColor3 = (self.State.Direction == -1) and
+                self.Config.UI.ButtonActive or
                 self.Config.UI.BackgroundColor
         elseif button.Name == "SpeedDisplay" then
             button.Text = string.format("%.1f", self.State.FloatSpeed)
@@ -280,9 +251,9 @@ end
 function UIController:build()
     self.ScreenGui = self:createScreenGui()
     local main = self:createMainFrame(self.ScreenGui)
-    
+
     self:enableDrag(main, main)
-    
+
     self.Services.UserInputService.InputChanged:Connect(function(input)
         if input == self.State.DragInput and self.State.Dragging then
             local delta = input.Position - self.State.DragStart
@@ -294,34 +265,32 @@ function UIController:build()
             )
         end
     end)
-    
+
     -- Linha 1: X | FLOAT
     local closeBtn = self:createButton("X", UDim2.new(0, 0, 0, 0), UDim2.new(0, 32, 0, 25), main)
     self:enableDrag(closeBtn, main)
     closeBtn.MouseButton1Click:Connect(function()
         self:cleanup()
     end)
-    
+
     self:createDivider(main, UDim2.new(0, 32, 0, 0), UDim2.new(0, 1, 0, 25))
-    
+
     local floatBtn = self:createButton("FLOAT: OFF", UDim2.new(0, 33, 0, 0), UDim2.new(0, 127, 0, 25), main)
     floatBtn.Name = "FloatBtn"
     self:enableDrag(floatBtn, main)
     floatBtn.MouseButton1Click:Connect(function()
         self.State.FloatEnabled = not self.State.FloatEnabled
-        
         if self.State.FloatEnabled then
             self.PlatformController:createPlatform()
         else
             self.State.Direction = 0
             self.PlatformController:destroyPlatform()
         end
-        
         self:updateButtonStates()
     end)
-    
+
     self:createDivider(main, UDim2.new(0, 0, 0, 25), UDim2.new(0, 160, 0, 1))
-    
+
     -- Linha 2: UP | + | Speed
     local upBtn = self:createButton("UP", UDim2.new(0, 0, 0, 26), UDim2.new(0, 32, 0, 25), main)
     upBtn.Name = "UpBtn"
@@ -331,21 +300,18 @@ function UIController:build()
         self.State.Direction = (self.State.Direction == 1) and 0 or 1
         self:updateButtonStates()
     end)
-    
+
     self:createDivider(main, UDim2.new(0, 32, 0, 26), UDim2.new(0, 1, 0, 25))
-    
+
     local plusBtn = self:createButton("+", UDim2.new(0, 33, 0, 26), UDim2.new(0, 48, 0, 25), main)
     self:enableDrag(plusBtn, main)
     plusBtn.MouseButton1Click:Connect(function()
-        self.State.FloatSpeed = math.min(
-            self.State.FloatSpeed + 0.1,
-            self.Config.Float.MaxSpeed
-        )
+        self.State.FloatSpeed = math.min(self.State.FloatSpeed + 0.1, self.Config.Float.MaxSpeed)
         self:updateButtonStates()
     end)
-    
+
     self:createDivider(main, UDim2.new(0, 81, 0, 26), UDim2.new(0, 1, 0, 25))
-    
+
     local speedDisplay = self:createButton(
         string.format("%.1f", self.State.FloatSpeed),
         UDim2.new(0, 82, 0, 26),
@@ -354,9 +320,9 @@ function UIController:build()
     )
     speedDisplay.Name = "SpeedDisplay"
     self:enableDrag(speedDisplay, main)
-    
+
     self:createDivider(main, UDim2.new(0, 0, 0, 51), UDim2.new(0, 160, 0, 1))
-    
+
     -- Linha 3: DN | - | RESET
     local downBtn = self:createButton("DN", UDim2.new(0, 0, 0, 52), UDim2.new(0, 32, 0, 25), main)
     downBtn.Name = "DownBtn"
@@ -366,22 +332,19 @@ function UIController:build()
         self.State.Direction = (self.State.Direction == -1) and 0 or -1
         self:updateButtonStates()
     end)
-    
+
     self:createDivider(main, UDim2.new(0, 32, 0, 52), UDim2.new(0, 1, 0, 25))
-    
+
     local minusBtn = self:createButton("-", UDim2.new(0, 33, 0, 52), UDim2.new(0, 48, 0, 25), main)
     self:enableDrag(minusBtn, main)
     minusBtn.MouseButton1Click:Connect(function()
-        self.State.FloatSpeed = math.max(
-            self.State.FloatSpeed - 0.1,
-            self.Config.Float.MinSpeed
-        )
+        self.State.FloatSpeed = math.max(self.State.FloatSpeed - 0.1, self.Config.Float.MinSpeed)
         self:updateButtonStates()
     end)
-    
+
     self:createDivider(main, UDim2.new(0, 81, 0, 52), UDim2.new(0, 1, 0, 25))
-    
-    local resetBtn = self:createButton("RESET", UDim2.new(0, 82, 0, 52), UDim2.new(0, 78, 0, 25), main)
+
+    local resetBtn = self:createButton("Reset", UDim2.new(0, 82, 0, 52), UDim2.new(0, 78, 0, 25), main)
     self:enableDrag(resetBtn, main)
     resetBtn.MouseButton1Click:Connect(function()
         self.PlatformController:destroyPlatform()
@@ -391,10 +354,10 @@ function UIController:build()
         self.State.PlatformY = 0
         self:updateButtonStates()
     end)
-    
+
     self.MainFrame = main
     self:updateButtonStates()
-    
+
     return self
 end
 
@@ -402,9 +365,7 @@ function UIController:cleanup()
     self.State.Active = false
     self.State.FloatEnabled = false
     self.State.Direction = 0
-    
     self.PlatformController:destroyPlatform()
-    
     if self.ScreenGui then
         self.ScreenGui:Destroy()
         self.ScreenGui = nil
@@ -417,27 +378,18 @@ MainController.__index = MainController
 
 function MainController.new()
     local self = setmetatable({}, MainController)
-    
     self.PlatformController = PlatformController.new(Services, Config, State)
     self.UIController = UIController.new(Services, Config, State, self.PlatformController)
-    
     self.UIController:build()
     self.PlatformController:connectEvents()
-    
     return self
 end
 
 function MainController:cleanup()
-    if self.PlatformController then
-        self.PlatformController:cleanup()
-    end
-    
-    if self.UIController then
-        self.UIController:cleanup()
-    end
+    if self.PlatformController then self.PlatformController:cleanup() end
+    if self.UIController then self.UIController:cleanup() end
 end
 
--- Inicialização
 local controller = MainController.new()
 
 return function()
