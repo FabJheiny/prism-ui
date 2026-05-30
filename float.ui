@@ -1,4 +1,3 @@
--- Services
 local Services = {
     Players = game:GetService("Players"),
     RunService = game:GetService("RunService"),
@@ -6,7 +5,6 @@ local Services = {
     CoreGui = game:GetService("CoreGui")
 }
 
--- Configurações
 local Config = {
     Float = {
         DefaultSpeed = 0.1,
@@ -28,11 +26,10 @@ local Config = {
         DividerColor = Color3.fromRGB(50, 50, 50),
         BorderColor = Color3.fromRGB(255, 255, 255),
         ButtonActive = Color3.fromRGB(0, 170, 255),
-        FloatActive = Color3.fromRGB(0, 255, 100)
+        FloatActive = Color3.fromRGB(255, 255, 255)
     }
 }
 
--- Estado
 local State = {
     FloatEnabled = false,
     Direction = 0,
@@ -47,7 +44,6 @@ local State = {
 
 local Platform = nil
 
--- Controlador da Plataforma
 local PlatformController = {}
 PlatformController.__index = PlatformController
 
@@ -135,7 +131,6 @@ function PlatformController:cleanup()
     end
 end
 
--- Controlador da Interface
 local UIController = {}
 UIController.__index = UIController
 
@@ -266,7 +261,6 @@ function UIController:build()
         end
     end)
 
-    -- Linha 1: X | FLOAT
     local closeBtn = self:createButton("X", UDim2.new(0, 0, 0, 0), UDim2.new(0, 32, 0, 25), main)
     self:enableDrag(closeBtn, main)
     closeBtn.MouseButton1Click:Connect(function()
@@ -291,8 +285,7 @@ function UIController:build()
 
     self:createDivider(main, UDim2.new(0, 0, 0, 25), UDim2.new(0, 160, 0, 1))
 
-    -- Linha 2: UP | + | Speed
-    local upBtn = self:createButton("UP", UDim2.new(0, 0, 0, 26), UDim2.new(0, 32, 0, 25), main)
+    local upBtn = self:createButton("↑", UDim2.new(0, 0, 0, 26), UDim2.new(0, 32, 0, 25), main)
     upBtn.Name = "UpBtn"
     self:enableDrag(upBtn, main)
     upBtn.MouseButton1Click:Connect(function()
@@ -323,8 +316,7 @@ function UIController:build()
 
     self:createDivider(main, UDim2.new(0, 0, 0, 51), UDim2.new(0, 160, 0, 1))
 
-    -- Linha 3: DN | - | RESET
-    local downBtn = self:createButton("DN", UDim2.new(0, 0, 0, 52), UDim2.new(0, 32, 0, 25), main)
+    local downBtn = self:createButton("↓", UDim2.new(0, 0, 0, 52), UDim2.new(0, 32, 0, 25), main)
     downBtn.Name = "DownBtn"
     self:enableDrag(downBtn, main)
     downBtn.MouseButton1Click:Connect(function()
@@ -372,7 +364,6 @@ function UIController:cleanup()
     end
 end
 
--- Controlador Principal
 local MainController = {}
 MainController.__index = MainController
 
